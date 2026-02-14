@@ -200,16 +200,20 @@ Use Tailwind for all styling:
 </div>
 ```
 
-### Custom Utilities
+### Custom CSS Classes
 
-Define in `globals.css` only when needed:
+Define in `globals.css` as regular CSS (NOT inside `@layer utilities` — Tailwind v4 manages that layer internally):
 
 ```css
+/* ✅ Correct for Tailwind v4: regular CSS */
+.flip-card {
+  perspective: 1500px;
+  width: 180px;
+}
+
+/* ❌ Wrong for Tailwind v4: @layer utilities blocks are managed by Tailwind */
 @layer utilities {
-  .flip-card {
-    perspective: 1500px;
-    min-height: 160px;
-  }
+  .flip-card { ... }
 }
 ```
 
@@ -342,15 +346,14 @@ All elements use `border-radius: 0px` (sharp edges). Do not use Tailwind `rounde
 ### Text Size Guidelines
 
 **Sizes in use**:
-- **Card front titles**: `text-[11px]` with `leading-tight` and `truncate`
-- **Card front artist**: `text-[11px]` with `leading-tight` and `truncate`
-- **Card back titles**: `text-xs` (12px)
-- **Dense information cards** (detailed metadata): `text-[10px]`
+- **Card titles (front AND back)**: `text-[11px]` with `truncate` — matched on both faces
+- **Card front artist**: `text-[11px]` with `truncate`
+- **Dense metadata** (back card details): `text-[10px]`
 - **Body text**: `text-sm` (14px) or larger
 
 ```tsx
-// ✅ Good: Front card title with truncation
-<h3 className="text-[11px] font-semibold text-warmText-primary truncate leading-tight">
+// ✅ Good: Card title (same size on front and back)
+<h3 className="text-[11px] font-semibold text-warmText-primary truncate leading-none">
   {record.albumTitle}
 </h3>
 
@@ -358,34 +361,25 @@ All elements use `border-radius: 0px` (sharp edges). Do not use Tailwind `rounde
 <span className="text-[10px]">{record.yearReleased}</span>
 ```
 
-**Rationale**: `text-[11px]` balances readability with space on card fronts. `text-[10px]` is acceptable for dense metadata on the back card.
+**Rationale**: `text-[11px]` balances readability with space. Matching front/back title sizes keeps the flip transition visually consistent. `text-[10px]` is acceptable for dense metadata.
 
-### Grid Layout Spacing
+### Card Sizing
 
-Cards in grid layouts need sufficient `min-height` to prevent text overlap:
+Cards use **content-driven height** — NO min-height. The front face uses `position: relative` to set natural height; the back face uses `position: absolute` to overlay.
 
 ```css
-/* ❌ Bad: Cards overlap, artist text covered */
-.card {
-  min-height: 160px;
-  width: 120px;
-}
+/* ❌ Bad: Fixed min-height creates whitespace */
+.flip-card { min-height: 240px; }
 
-/* ✅ Good: Sufficient height for image + text */
-.card {
-  min-height: 240px;
-  width: 200px;
-}
+/* ✅ Good: Content determines height */
+.flip-card-front { position: relative; }
+.flip-card-back { position: absolute; top: 0; left: 0; }
 ```
 
-**Calculation**: For cards with 96px image + title (2 lines) + artist (1 line):
-- Image: 96px
-- Title: ~36px (2 lines at 18px line-height)
-- Artist: ~18px (1 line)
-- Spacing: ~30px (margins/padding)
-- **Total: ~240px minimum**
-
-**Why**: Insufficient `min-height` causes text to extend beyond card bounds and overlap with cards in the next row.
+**Current card dimensions**:
+- Card width: 180px
+- Album art: 144px × 144px (`.album-art-size`)
+- Grid gap: `gap-x-5 gap-y-8` for vertical breathing room
 
 ## File Organization
 

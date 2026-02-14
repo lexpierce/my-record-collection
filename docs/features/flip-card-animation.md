@@ -10,7 +10,7 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 
 - **3D Transform**: Realistic flip using CSS perspective and rotateY
 - **No Text Bleed-Through**: Proper backface-visibility prevents reversed text from showing
-- **Natural Sizing**: Card sized appropriately (200px × 240px) without scaling
+- **Content-Driven Sizing**: Card width 180px, height determined by content (no min-height)
 - **Z-Index Elevation**: Flipped card appears above other cards
 - **Border and Shadow**: Layered drop-shadow and bronze border for 3D depth
 - **Smooth Animation**: 0.6s transition for flip
@@ -21,22 +21,26 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 ### Container Setup
 
 ```css
-/* app/globals.css */
+/* app/globals.css — regular CSS, NOT inside @layer utilities (Tailwind v4) */
 
 .flip-card {
   perspective: 1500px;
-  min-height: 240px;
-  width: 200px;
+  width: 180px;
   position: relative;
   z-index: 1;
+  transition: transform 0.2s ease;
+}
+
+.flip-card:hover:not(.flipped) {
+  transform: translateY(-2px);
 }
 ```
 
 **Key Properties:**
 - `perspective: 1500px` - Creates 3D space for transform
-- `min-height: 240px` - Sufficient height for image (96px) + title + artist without overlap
-- `width: 200px` - Wide enough to display all content comfortably
+- `width: 180px` - Card width; height is content-driven (no min-height)
 - `position: relative` - Enables z-index control
+- Hover lift provides subtle interactivity feedback
 
 ### Flipped State
 
@@ -62,8 +66,6 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 .flip-card-inner {
   position: relative;
   width: 100%;
-  height: 100%;
-  min-height: 240px;
   transition: transform 0.6s;
   transform-style: preserve-3d;
 }
@@ -83,10 +85,7 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 ```css
 .flip-card-front,
 .flip-card-back {
-  position: absolute;
   width: 100%;
-  height: 100%;
-  min-height: 240px;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   -moz-backface-visibility: hidden;
@@ -96,7 +95,8 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 ```
 
 **Key Properties:**
-- `position: absolute` - Overlays faces in same space
+- Front face is `position: relative` (sets container height naturally)
+- Back face is `position: absolute` (overlays the front)
 - `backface-visibility: hidden` - **Critical for preventing text bleed-through**
 - Vendor prefixes (`-webkit-`, `-moz-`) - Browser compatibility
 - `background-color` - Solid opaque background
@@ -105,9 +105,11 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 
 ```css
 .flip-card-front {
+  position: relative;
   transform: rotateY(0deg);
-  border: 1px solid #E5D4BC;
+  border: 1px solid #E8D4BA;
   border-radius: 0px;
+  box-shadow: 0 1px 3px rgba(139, 69, 19, 0.08);
 }
 ```
 
@@ -120,19 +122,19 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 
 ```css
 .flip-card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
   transform: rotateY(180deg);
   background-color: #F5E6D3; /* warmBg-secondary */
-  opacity: 1;
-  height: auto;
   border: 2px solid #C9A876; /* warmAccent-bronze */
   border-radius: 0px;
 }
 ```
 
 **Key Properties:**
-- `transform: rotateY(180deg)` - Starts rotated 180 degrees, faces correct direction when flipped
-- `opacity: 1` - Explicitly fully opaque (no transparency)
-- `height: auto` - **Overrides `height: 100%` from shared rules so background covers ALL content**, not just the first 240px
+- `position: absolute; top: 0; left: 0` - Overlays the front face
+- `transform: rotateY(180deg)` - Starts rotated, faces correct direction when flipped
 - `border: 2px solid #C9A876` - Thicker bronze border for 3D depth
 - Component handles internal padding (not CSS)
 
@@ -155,7 +157,7 @@ export default function RecordCard({ record }: RecordCardProps) {
       onClick={handleCardClick}
     >
       <div className="flip-card-inner">
-        <div className="flip-card-front pt-2">
+        <div className="flip-card-front p-1.5">
           {/* Album art and basic info */}
         </div>
         <div className="flip-card-back bg-warmBg-secondary p-3">
@@ -257,7 +259,7 @@ background-color: #FFF8F0; /* Solid color, not transparent */
 **User feedback:** "Scaling is ugly" - scaling creates jarring UX
 
 When the card flips to show detailed information:
-- Card is already sized appropriately (200px x 240px)
+- Card is already sized appropriately (180px wide, content-driven height)
 - Scaling creates abrupt, disorienting visual changes
 - Natural sizing provides smoother, more professional experience
 
@@ -400,32 +402,26 @@ The flip card works on mobile with these considerations:
 onClick={handleCardClick} // Works for both click and touch
 ```
 
-**Appropriate Card Size:**
+**Card Size:**
 ```css
-min-height: 240px; /* Enough space for image + text without overlap */
-width: 200px; /* Wide enough for all content */
+width: 180px; /* Content-driven height, no min-height */
 ```
 
 ### Layout in Grid
 
-Cards are displayed in a grid layout:
+Cards are displayed in a responsive grid:
 
 ```tsx
 // components/records/RecordShelf.tsx
-<div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-x-5 gap-y-8">
   {records.map((record) => (
     <RecordCard key={record.recordId} record={record} />
   ))}
 </div>
 ```
 
-**Responsive columns:**
-- Mobile: 2 columns
-- Tablet: 4 columns
-- Desktop: 6 columns
-
 **Gap spacing:**
-- `gap-4` (1rem) provides space between cards
+- `gap-x-5` horizontal, `gap-y-8` vertical for breathing room between rows
 
 ## Common Issues and Solutions
 
@@ -493,7 +489,7 @@ backface-visibility: hidden;
 
 **Symptom:** Hard to read text on front or back
 
-**Solution:** Use `text-[11px]` for front titles, `text-xs` for back titles, `text-[10px]` for dense metadata. Increase card size rather than scaling.
+**Solution:** Use `text-[11px]` for titles (front AND back), `text-[10px]` for dense metadata.
 
 ## Browser Compatibility
 

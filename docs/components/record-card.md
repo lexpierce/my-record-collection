@@ -22,12 +22,12 @@ interface RecordCardProps {
 
 ## Features
 
-- **Front Side**: 96px album art (1"), title, artist name
+- **Front Side**: 144px album art, title, artist name
 - **Back Side**: Thumbnail, all record details, update/delete buttons
-- **Interaction**: Click anywhere to flip
+- **Interaction**: Click anywhere to flip, hover lifts card
 - **Animation**: 3D transform with border and shadow effects (no scaling)
 - **Actions**: Update from Discogs, delete with confirmation
-- **Dimensions**: 200px wide x 240px minimum height
+- **Dimensions**: 180px wide, content-driven height (no min-height)
 - **Sharp Edges**: All elements use border-radius: 0px
 
 ## State Management
@@ -103,25 +103,23 @@ Deletes record after user confirmation.
 ## Display Fields
 
 ### Front Face
-- **Album art**: 96x96px (1" at 96 DPI)
-- **Album title**: `text-[11px]`, truncated with ellipsis, `leading-tight`
-- **Artist name**: `text-[11px]`, truncated with ellipsis, `leading-tight`
+- **Album art**: 144x144px (`.album-art-size`)
+- **Album title**: `text-[11px]`, truncated, `leading-none`
+- **Artist name**: `text-[11px]`, truncated, `leading-none`
 
 **Layout:**
 ```tsx
-<div className="flip-card-front pt-2">
-  <div className="flex flex-col items-center gap-0">
-    <div className="album-art-size bg-warmBg-tertiary shadow-md overflow-hidden">
+<div className="flip-card-front p-1.5">
+  <div className="flex flex-col items-center">
+    <div className="album-art-size bg-warmBg-tertiary overflow-hidden">
       {/* Image */}
     </div>
-    <div className="text-center w-full">
-      <h3 className="text-[11px] font-semibold text-warmText-primary truncate leading-tight">
-        {title}
-      </h3>
-      <p className="text-[11px] text-warmText-secondary truncate leading-tight">
-        {artist}
-      </p>
-    </div>
+    <h3 className="text-[11px] font-semibold text-warmText-primary truncate w-full text-center mt-1 leading-none">
+      {title}
+    </h3>
+    <p className="text-[11px] text-warmText-secondary truncate w-full text-center leading-none mt-0.5">
+      {artist}
+    </p>
   </div>
 </div>
 ```
@@ -131,8 +129,8 @@ Deletes record after user confirmation.
 **Structure:** Thumbnail -> Info -> Buttons
 
 **Content:**
-1. **Album thumbnail**: 96x96px at top (centered)
-2. **Album title**: `text-xs font-bold`
+1. **Album thumbnail**: 144x144px at top (centered)
+2. **Album title**: `text-[11px] font-semibold` (matches front)
 3. **Artist name**: `text-[10px]`
 4. **All metadata** (`text-[10px]`):
    - Year, size, color, shaped vinyl status
@@ -148,7 +146,7 @@ Deletes record after user confirmation.
   <div className="flex flex-col space-y-2">
     <div className="album-art-size mx-auto">{/* Thumbnail */}</div>
     <div className="space-y-1">
-      <h3 className="text-xs font-bold">{title}</h3>
+      <h3 className="text-[11px] font-semibold">{title}</h3>
       <p className="text-[10px]">{artist}</p>
       {/* All metadata fields */}
     </div>
@@ -163,8 +161,8 @@ Deletes record after user confirmation.
 ## Styling
 
 ### Card Dimensions
-- **Width**: 200px
-- **Minimum Height**: 240px
+- **Width**: 180px
+- **Height**: Content-driven (no min-height)
 
 ### Design Principles
 - **Border Radius**: 0px on all elements (sharp edges)
@@ -172,8 +170,8 @@ Deletes record after user confirmation.
 
 ### Front Card
 - **Background**: `#FFF8F0` (warmBg-primary)
-- **Border**: 1px solid `#E5D4BC` (subtle)
-- **Top Padding**: `pt-2` for border-to-image spacing
+- **Border**: 1px solid `#E8D4BA` (subtle)
+- **Padding**: `p-1.5` for border-to-image spacing
 - **Text Colors**: warmText-primary, warmText-secondary
 
 ### Back Card (Flipped)
@@ -188,12 +186,12 @@ Deletes record after user confirmation.
   ```
 
 ### Font Sizing
-- **Front - Title**: `text-[11px]` (11px) with `leading-tight`
-- **Front - Artist**: `text-[11px]` (11px) with `leading-tight`
-- **Back - Title**: `text-xs font-bold` (12px)
-- **Back - Artist**: `text-[10px]` (10px)
-- **Back - Details**: `text-[10px]` (10px)
-- **Back - Buttons**: `text-[10px]` (10px)
+- **Front - Title**: `text-[11px]` with `leading-none`
+- **Front - Artist**: `text-[11px]` with `leading-none`
+- **Back - Title**: `text-[11px] font-semibold` (matches front)
+- **Back - Artist**: `text-[10px]`
+- **Back - Details**: `text-[10px]`
+- **Back - Buttons**: `text-[10px]`
 
 ### Custom CSS
 - Custom `.flip-card` utilities in `app/globals.css`
