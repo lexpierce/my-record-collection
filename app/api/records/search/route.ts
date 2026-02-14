@@ -52,10 +52,40 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Return search results
+    // Fetch detailed format information for each result (limited to first 10 results)
+    // This respects rate limiting while providing useful vinyl details
+    const resultsWithDetails = await Promise.all(
+      searchResults.slice(0, 10).map(async (result) => {
+        try {
+          const releaseData = await discogsClient.getRelease(result.id);
+          const recordSize = discogsClient.extractRecordSize(
+            releaseData.formats
+          );
+          const vinylColor = discogsClient.extractVinylColor(
+            releaseData.formats
+          );
+          const isShapedVinyl = discogsClient.isShapedVinyl(
+            releaseData.formats
+          );
+
+          return {
+            ...result,
+            recordSize,
+            vinylColor,
+            isShapedVinyl,
+          };
+        } catch (error) {
+          // If fetching details fails for any result, return original result
+          console.warn(`Failed to fetch details for release ${result.id}`);
+          return result;
+        }
+      })
+    );
+
+    // Return enriched search results
     return NextResponse.json({
-      results: searchResults,
-      count: searchResults.length,
+      results: resultsWithDetails,
+      count: resultsWithDetails.length,
     });
   } catch (error) {
     console.error("Error searching Discogs:", error);

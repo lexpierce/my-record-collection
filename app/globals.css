@@ -33,10 +33,22 @@
 
   /* Flip card animation utilities */
   .flip-card {
-    perspective: 1000px;
+    perspective: 1500px;
     /* Fixed height to prevent overlap - allows space for image + text */
     min-height: 160px;
     width: 120px;
+    /* Transition for scaling effect */
+    transition: transform 0.3s ease, z-index 0s;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* When flipped, scale up and bring to front */
+  .flip-card.flipped {
+    transform: scale(2.0);
+    z-index: 1000;
+    /* Add shadow for depth */
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
   }
 
   .flip-card-inner {
@@ -57,14 +69,30 @@
     position: absolute;
     width: 100%;
     height: 100%;
+    min-height: 160px;
+    /* CRITICAL: Hide back face to prevent text bleed-through */
     backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
     /* Make cards fully opaque with solid background */
     background-color: #FFF8F0; /* warmBg-primary */
+    /* Ensure proper rendering */
+    transform-style: preserve-3d;
+  }
+
+  .flip-card-front {
+    z-index: 2;
+    /* Ensure front stays in front */
+    transform: rotateY(0deg);
   }
 
   .flip-card-back {
+    /* Start rotated 180 degrees */
     transform: rotateY(180deg);
     /* Ensure back is also opaque */
     background-color: #F5E6D3; /* warmBg-secondary */
+    /* Scrollable if content overflows */
+    overflow-y: auto;
+    padding: 8px;
   }
 }

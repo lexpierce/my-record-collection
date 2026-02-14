@@ -252,11 +252,16 @@ export default function SearchBar() {
                       {result.year}
                     </p>
                   )}
-                  {result.catno && (
-                    <p className="text-xs text-warmText-tertiary">
-                      Cat#: {result.catno}
-                    </p>
-                  )}
+                  <div className="flex gap-3 text-xs text-warmText-tertiary">
+                    {result.catno && <span>Cat#: {result.catno}</span>}
+                    {result.recordSize && <span>Size: {result.recordSize}</span>}
+                    {result.vinylColor && <span>Color: {result.vinylColor}</span>}
+                    {result.isShapedVinyl && (
+                      <span className="text-warmAccent-orange">
+                        ⭐ Shaped/Picture Disc
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <button
                   onClick={() => handleAddRecord(result.id)}
