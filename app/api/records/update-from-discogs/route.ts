@@ -34,8 +34,11 @@ export async function POST(request: NextRequest) {
     // Fetch fresh release details from Discogs
     const releaseData = await discogsClient.getRelease(parseInt(discogsId));
 
-    // Fetch updated marketplace stats for pricing information
+    // Fetch updated marketplace stats and price suggestions
     const marketStats = await discogsClient.getReleaseMarketStats(
+      parseInt(discogsId)
+    );
+    const priceSuggestions = await discogsClient.getPriceSuggestions(
       parseInt(discogsId)
     );
 
@@ -60,7 +63,7 @@ export async function POST(request: NextRequest) {
       catalogNumber,
       discogsUri: releaseData.uri,
       currentValueMinimum: marketStats.lowest_price?.value?.toString() || null,
-      currentValueMedian: null,
+      currentValueMedian: priceSuggestions.median?.toString() || null,
       currentValueMaximum: null,
       valueCurrency: marketStats.lowest_price?.currency || "USD",
       thumbnailUrl: releaseData.thumb,

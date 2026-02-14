@@ -355,6 +355,29 @@ export class DiscogsClient {
       return {};
     }
   }
+
+  /**
+   * Fetches price suggestions by condition for a release.
+   * Returns the VG+ value as a median proxy.
+   * Requires the authenticated user to have a seller profile.
+   */
+  async getPriceSuggestions(releaseId: number): Promise<{
+    median?: number;
+    currency?: string;
+  }> {
+    try {
+      const suggestions = await this.makeRequest<
+        Record<string, { value: number; currency: string }>
+      >(`/marketplace/price_suggestions/${releaseId}`);
+      const vgPlus = suggestions["Very Good Plus (VG+)"];
+      if (vgPlus) {
+        return { median: vgPlus.value, currency: vgPlus.currency };
+      }
+      return {};
+    } catch {
+      return {};
+    }
+  }
 }
 
 /**
