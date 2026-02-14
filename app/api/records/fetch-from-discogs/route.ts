@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import { createDiscogsClient } from "@/lib/discogs/client";
 import { database, schema } from "@/lib/db/client";
 
@@ -79,6 +80,31 @@ export async function POST(request: NextRequest) {
       .returning();
 
     const savedRecord = insertedRecords[0];
+
+    // Add to Discogs collection (best-effort, don't fail the request)
+    const username = process.env.DISCOGS_USERNAME;
+    if (username) {
+      try {
+        await discogsClient.addToCollection(username, releaseId);
+        await database
+          .update(schema.recordsTable)
+          .set({ isSyncedWithDiscogs: true })
+          .where(eq(schema.recordsTable.recordId, savedRecord.recordId));
+        savedRecord.isSyncedWithDiscogs = true;
+      } catch (err) {
+        const errWithStatus = err as Error & { status?: number };
+        if (errWithStatus.status === 409) {
+          // Already in collection — mark synced
+          await database
+            .update(schema.recordsTable)
+            .set({ isSyncedWithDiscogs: true })
+            .where(eq(schema.recordsTable.recordId, savedRecord.recordId));
+          savedRecord.isSyncedWithDiscogs = true;
+        } else {
+          console.warn("Failed to add to Discogs collection:", err);
+        }
+      }
+    }
 
     return NextResponse.json(
       {
