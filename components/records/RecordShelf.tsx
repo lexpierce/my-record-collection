@@ -40,7 +40,8 @@ export default function RecordShelf() {
     // Strip leading "The ", "A " and normalize accents for artist sorting
     const artistSortKey = (name: string) =>
       name.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/^(The|A)\s+/i, "");
+        .replace(/^(The|A)\s+/i, "")
+        .replace(/^[^a-zA-Z0-9]+/, "");
 
     const sorted = [...records];
     switch (sortBy) {
