@@ -32,8 +32,9 @@ services:
 databases:
   # Postgres 18 database
   - name: my-record-collection-db
-    plan: basic-256mb
+    plan: basic_256mb
     databaseName: my_record_collection
     region: oregon
     postgresMajorVersion: 18
     ipAllowList: []
+    diskSizeGB: 5
