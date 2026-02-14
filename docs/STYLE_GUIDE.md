@@ -217,7 +217,7 @@ interface RecordCardProps {
 - **Front side**: Shows 1" (96px) album art, title, and artist
 - **Back side**: Displays all record details and action buttons
 - **Interaction**: Click anywhere to flip between sides
-- **Flipped state**: Card scales 2x and elevates with drop shadow
+- **Flipped state**: Card widens (180px → 250px) and elevates with drop shadow
 
 ### Styling
 

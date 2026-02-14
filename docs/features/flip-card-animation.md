@@ -266,9 +266,10 @@ background-color: #FFF8F0; /* Solid color, not transparent */
 
 ### How it works
 
-When flipped, the card widens from 180px to 250px. Negative margins (-35px each side) keep it centered in the grid cell without shifting neighboring cards.
+When flipped, the card widens from 180px to 250px. Negative margins (totaling -70px) keep it centered in the grid cell without shifting neighboring cards. CSS sets the fallback (-35px each side), and JS overrides the margins at runtime to keep the card within viewport bounds — shifting more margin to one side when the card is near a screen edge.
 
 ```css
+/* CSS fallback */
 .flip-card.flipped {
   z-index: 1000;
   width: 250px;
@@ -278,7 +279,12 @@ When flipped, the card widens from 180px to 250px. Negative margins (-35px each 
 }
 ```
 
-The back face thumbnail uses `.album-art-size-lg` (216px) instead of `.album-art-size` (144px). Text stays at `text-[10px]`/`text-[11px]`.
+```tsx
+// JS viewport-aware override (RecordCard.tsx useEffect)
+// Computes available space on each side and shifts margins to avoid overflow
+```
+
+The back face thumbnail uses `.album-art-size-lg` (216px) instead of `.album-art-size` (144px). Text stays at `text-xs`/`text-[10px]`.
 
 ### Containing the overflow
 
@@ -506,7 +512,7 @@ backface-visibility: hidden;
 
 **Symptom:** Hard to read text on front or back
 
-**Solution:** Use `text-[11px]` for titles (front AND back), `text-[10px]` for dense metadata.
+**Solution:** Use `text-xs font-bold` for titles (front AND back), `text-xs` for artist, `text-[10px]` for dense metadata.
 
 ## Browser Compatibility
 

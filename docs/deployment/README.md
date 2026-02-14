@@ -24,6 +24,8 @@ This application is deployed on **Render** using Infrastructure as Code (Bluepri
 - **Runtime**: Node with Bun installed
 - **Region**: Oregon
 - **Auto Deploy**: Enabled on push to main
+- **Build Filter**: Skips rebuild on `docs/**`, `.beads/**`, `*.md` changes
+- **Pre-deploy**: `bun run db:push --force` (schema migrations before each deploy)
 
 ### Database Configuration
 - **Type**: PostgreSQL

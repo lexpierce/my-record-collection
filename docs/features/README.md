@@ -24,21 +24,20 @@ Documentation for key features of the My Record Collection application.
 
 ### User Interface
 - Warm color palette with Inter font
-- Flip card animation with 3D transforms
+- Flip card animation with 3D transforms and width expansion (180px → 250px on flip)
+- Sort by artist, title, or year (ascending/descending)
+- Filter by record size and shaped/picture disc
+- No-reload record adding (inline success toast)
 - Mobile-responsive layout
-- Action buttons for record management
 
 ## Detailed Feature Documentation
 
-Individual feature documentation will be added as separate files:
-
-- [ ] Flip card animation implementation
-- [ ] Vinyl-specific data model and extraction
+- [x] [Flip card animation](./flip-card-animation.md)
+- [x] [Vinyl-specific metadata](./vinyl-metadata.md)
 - [ ] Discogs search and integration workflow
 
 ## Planned Features
 
 Future enhancements tracked in beads:
 - Manual record entry (without Discogs)
-- Record filtering and sorting
 - Collection statistics
