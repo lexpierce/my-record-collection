@@ -14,7 +14,7 @@ export default function HomePage() {
   return (
     <main className="min-h-screen">
       {/* Header section */}
-      <header className="border-b border-warmBg-tertiary px-8 py-6">
+      <header className="bg-warmBg-primary border-b border-warmBg-tertiary px-8 py-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-warmText-primary tracking-tight">
@@ -26,7 +26,7 @@ export default function HomePage() {
           </div>
           <button
             onClick={() => setShowSearch(!showSearch)}
-            className="px-5 py-2.5 bg-warmAccent-orange text-white font-medium text-sm hover:bg-warmAccent-copper transition-colors"
+            className="px-5 py-2.5 bg-warmAccent-orange text-white font-medium text-sm hover:bg-warmAccent-copper transition-colors border-0"
           >
             {showSearch ? "Close" : "+ Add an album"}
           </button>
@@ -35,7 +35,7 @@ export default function HomePage() {
 
       {/* Collapsible search interface */}
       {showSearch && (
-        <section className="border-b border-warmBg-tertiary">
+        <section className="bg-warmBg-primary border-b border-warmBg-tertiary">
           <div className="max-w-7xl mx-auto px-8 py-6">
             <SearchBar />
           </div>

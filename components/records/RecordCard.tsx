@@ -131,10 +131,10 @@ export default function RecordCard({ record }: RecordCardProps) {
                 </div>
               )}
             </div>
-            <h3 className="text-[11px] font-semibold text-warmText-primary truncate leading-none w-full text-center mt-1">
+            <h3 className="text-xs font-semibold text-warmText-primary truncate leading-tight w-full text-center mt-1">
               {record.albumTitle}
             </h3>
-            <p className="text-[11px] text-warmText-secondary truncate leading-none w-full text-center">
+            <p className="text-[11px] text-warmText-secondary truncate leading-tight w-full text-center">
               {record.artistName}
             </p>
           </div>
@@ -163,7 +163,7 @@ export default function RecordCard({ record }: RecordCardProps) {
 
             {/* Album info */}
             <div className="space-y-1">
-              <h3 className="text-xs font-bold text-warmText-primary">
+              <h3 className="text-xs font-semibold text-warmText-primary">
                 {record.albumTitle}
               </h3>
               <p className="text-[10px] text-warmText-secondary">

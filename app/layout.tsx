@@ -34,7 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={interFont.variable}>
-      <body className="bg-warmBg-primary text-warmText-primary antialiased font-sans">
+      <body className="bg-warmBg-secondary text-warmText-primary antialiased font-sans">
         {children}
       </body>
     </html>

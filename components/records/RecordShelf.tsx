@@ -76,7 +76,7 @@ export default function RecordShelf() {
       </h2>
 
       {/* Grid layout for the record shelf */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-x-5 gap-y-8">
         {records.map((record) => (
           <RecordCard key={record.recordId} record={record} />
         ))}

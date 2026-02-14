@@ -124,15 +124,15 @@ export default function SearchBar() {
 
   return (
     <div className="space-y-4">
-      {/* Search method selector */}
-      <div className="flex gap-2">
+      {/* Search method tabs */}
+      <div className="flex border-b border-warmBg-tertiary">
         <button
           type="button"
           onClick={() => setSearchMethod("artistTitle")}
-          className={`px-4 py-2 text-sm font-medium transition-colors ${
+          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
             searchMethod === "artistTitle"
-              ? "bg-warmAccent-bronze text-white"
-              : "bg-warmBg-tertiary text-warmText-secondary hover:bg-warmBg-secondary"
+              ? "border-warmAccent-bronze text-warmText-primary"
+              : "border-transparent text-warmText-tertiary hover:text-warmText-secondary hover:border-warmBg-tertiary"
           }`}
         >
           Artist & Title
@@ -140,10 +140,10 @@ export default function SearchBar() {
         <button
           type="button"
           onClick={() => setSearchMethod("catalog")}
-          className={`px-4 py-2 text-sm font-medium transition-colors ${
+          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
             searchMethod === "catalog"
-              ? "bg-warmAccent-bronze text-white"
-              : "bg-warmBg-tertiary text-warmText-secondary hover:bg-warmBg-secondary"
+              ? "border-warmAccent-bronze text-warmText-primary"
+              : "border-transparent text-warmText-tertiary hover:text-warmText-secondary hover:border-warmBg-tertiary"
           }`}
         >
           Catalog #
@@ -151,10 +151,10 @@ export default function SearchBar() {
         <button
           type="button"
           onClick={() => setSearchMethod("upc")}
-          className={`px-4 py-2 text-sm font-medium transition-colors ${
+          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
             searchMethod === "upc"
-              ? "bg-warmAccent-bronze text-white"
-              : "bg-warmBg-tertiary text-warmText-secondary hover:bg-warmBg-secondary"
+              ? "border-warmAccent-bronze text-warmText-primary"
+              : "border-transparent text-warmText-tertiary hover:text-warmText-secondary hover:border-warmBg-tertiary"
           }`}
         >
           UPC
@@ -226,20 +226,17 @@ export default function SearchBar() {
           </div>
         )}
 
-        {/* Search button with Discogs vinyl icon */}
+        {/* Search button with Discogs vinyl icon only */}
         <button
           type="submit"
           disabled={isSearching}
-          className="px-4 py-2 bg-warmAccent-orange text-white hover:bg-warmAccent-copper transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          className="px-3 py-2 bg-warmAccent-orange text-white hover:bg-warmAccent-copper transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           title="Search Discogs"
         >
           {isSearching ? (
-            <span className="text-sm">Searching...</span>
+            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
-            <>
-              <DiscogsLogo className="w-5 h-5" />
-              <span className="text-sm font-medium">Search</span>
-            </>
+            <DiscogsLogo className="w-6 h-6" />
           )}
         </button>
       </form>
