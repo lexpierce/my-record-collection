@@ -3,10 +3,18 @@
 ## Current Status
 
 ✅ **GitHub Repository**: https://github.com/lexpierce/my-record-collection
-✅ **Render Web Service**: https://my-record-collection.onrender.com
-✅ **Render Dashboard**: https://dashboard.render.com/web/srv-d680i40gjchc73b98590
-✅ **Database Dashboard**: https://dashboard.render.com/d/dpg-d680hssr85hc73chs2c0-a
-⏳ **Database Status**: Creating (Postgres 16)
+✅ **Blueprint**: render.yaml (organized under Records project, Demo environment)
+✅ **Deployment Method**: Render Blueprint (Infrastructure as Code)
+
+## Blueprint Deployment URL
+
+**Click here to deploy**: https://dashboard.render.com/blueprint/new?repo=https://github.com/lexpierce/my-record-collection
+
+This will deploy:
+- **Project**: Records
+- **Environment**: Demo
+- **Web Service**: my-record-collection (Bun runtime, Starter plan)
+- **Database**: Postgres 18 (5GB disk, Basic 256MB plan)
 
 ## Next Steps to Complete Deployment
 
