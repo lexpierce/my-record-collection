@@ -47,12 +47,11 @@
   }
 
   /* When flipped, bring to front with 3D effect */
+  /* NOTE: filter must be on outer container, NOT on flip-card-inner.
+     filter on an element with transform-style: preserve-3d flattens 3D transforms,
+     breaking backface-visibility and the entire flip mechanism. */
   .flip-card.flipped {
     z-index: 1000;
-  }
-
-  /* Add 3D shadow and border to flipped card inner */
-  .flip-card.flipped .flip-card-inner {
     filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
   }
 
@@ -81,13 +80,12 @@
     -moz-backface-visibility: hidden;
     /* Make cards fully opaque with solid background */
     background-color: #FFF8F0; /* warmBg-primary */
-    /* Ensure proper rendering */
-    transform-style: preserve-3d;
+    /* NOTE: Do NOT add transform-style: preserve-3d here.
+       It creates nested 3D contexts that break backface-visibility.
+       preserve-3d belongs only on .flip-card-inner. */
   }
 
   .flip-card-front {
-    z-index: 2;
-    /* Ensure front stays in front */
     transform: rotateY(0deg);
     /* Add border for definition */
     border: 1px solid #E5D4BC; /* lighter border */
@@ -107,8 +105,4 @@
     overflow: visible;
   }
 
-  /* Ensure back appears above front when flipped */
-  .flip-card.flipped .flip-card-back {
-    z-index: 3;
-  }
 }
