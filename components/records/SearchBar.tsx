@@ -3,25 +3,6 @@
 import { useState } from "react";
 import Image from "next/image";
 
-/**
- * Inline Discogs "D" logo as SVG for the search button
- */
-function DiscogsLogo({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* Stylized "D" representing Discogs */}
-      <circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="1" />
-      <circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" strokeWidth="0.75" />
-      <circle cx="12" cy="12" r="2" fill="currentColor" />
-    </svg>
-  );
-}
 
 /**
  * Search bar component for finding records via Discogs API
@@ -226,17 +207,23 @@ export default function SearchBar() {
           </div>
         )}
 
-        {/* Search button with Discogs vinyl icon only */}
+        {/* Search button with Discogs logo */}
         <button
           type="submit"
           disabled={isSearching}
-          className="px-3 py-2 bg-warmAccent-orange text-white hover:bg-warmAccent-copper transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+          className="px-3 py-2 bg-warmAccent-orange hover:bg-warmAccent-copper transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           title="Search Discogs"
         >
           {isSearching ? (
-            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
-            <DiscogsLogo className="w-6 h-6" />
+            <Image
+              src="/discogs-logo.svg"
+              alt="Search Discogs"
+              width={32}
+              height={32}
+              className="w-8 h-8 invert brightness-200"
+            />
           )}
         </button>
       </form>

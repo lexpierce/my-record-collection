@@ -113,7 +113,7 @@ export default function RecordCard({ record }: RecordCardProps) {
     >
       <div className="flip-card-inner">
         {/* Front of card - Album art and basic info */}
-        <div className="flip-card-front p-2 pb-1.5">
+        <div className="flip-card-front p-1.5">
           <div className="flex flex-col items-center">
             <div className="album-art-size bg-warmBg-tertiary overflow-hidden">
               {record.thumbnailUrl ? (
@@ -131,10 +131,10 @@ export default function RecordCard({ record }: RecordCardProps) {
                 </div>
               )}
             </div>
-            <h3 className="text-xs font-semibold text-warmText-primary truncate leading-tight w-full text-center mt-1">
+            <h3 className="text-[11px] font-semibold text-warmText-primary truncate w-full text-center mt-1 leading-none">
               {record.albumTitle}
             </h3>
-            <p className="text-[11px] text-warmText-secondary truncate leading-tight w-full text-center">
+            <p className="text-[11px] text-warmText-secondary truncate w-full text-center leading-none mt-0.5">
               {record.artistName}
             </p>
           </div>
@@ -163,7 +163,7 @@ export default function RecordCard({ record }: RecordCardProps) {
 
             {/* Album info */}
             <div className="space-y-1">
-              <h3 className="text-xs font-semibold text-warmText-primary">
+              <h3 className="text-[11px] font-semibold text-warmText-primary">
                 {record.albumTitle}
               </h3>
               <p className="text-[10px] text-warmText-secondary">
