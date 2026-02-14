@@ -6,10 +6,17 @@ A modern web application for managing your vinyl record collection, powered by t
 
 - **Search Records**: Search for vinyl records by catalog number, artist/title, or UPC code
 - **Discogs Integration**: Automatically fetch detailed information from Discogs
+- **Vinyl Metadata**: Track record size (7", 10", 12"), vinyl color, and shaped/picture discs
+- **Search Preview**: View size, color, and vinyl type before adding to collection
 - **Beautiful UI**: Warm-toned interface with Inter font
 - **Record Shelf**: Display your collection with 1" album art thumbnails
-- **Flip Cards**: Click on any record to see detailed information (year, value, label)
-- **Manual Entry**: Add records manually if they can't be found on Discogs
+- **Interactive Flip Cards**:
+  - Click to flip and view complete record details
+  - Card scales up and elevates when flipped for better visibility
+  - Displays all information: year, size, color, value, label, genres, styles, UPC, Discogs ID
+- **Record Management**:
+  - Update records with latest Discogs data
+  - Delete records with confirmation dialog
 - **Non-ASCII Support**: Preserves special characters in artist names and titles (Björk, Motörhead, etc.)
 
 ## Tech Stack
@@ -81,30 +88,43 @@ bun run dev
 
 ## API Endpoints
 
-- `GET /api/am_i_evil`: Health check endpoint
-- `GET /api/records`: Fetch all records
-- `POST /api/records`: Add a record manually
-- `GET /api/records/[id]`: Get a specific record
-- `PUT /api/records/[id]`: Update a record
-- `DELETE /api/records/[id]`: Delete a record
-- `GET /api/records/search`: Search Discogs
-- `POST /api/records/fetch-from-discogs`: Fetch and save from Discogs
+### Health Check
+- `GET /api/am_i_evil` - Health check endpoint
+
+### Records Management
+- `GET /api/records` - Fetch all records from the collection
+- `DELETE /api/records/[recordId]` - Delete a record from the collection
+
+### Discogs Integration
+- `GET /api/records/search` - Search Discogs (returns vinyl details: size, color, shaped status)
+- `POST /api/records/fetch-from-discogs` - Fetch and save a record from Discogs
+- `POST /api/records/update-from-discogs` - Update an existing record with latest Discogs data
+
+See [API Documentation](./docs/api/README.md) for detailed endpoint information.
+
+## Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+- **[API Documentation](./docs/api/README.md)** - REST API endpoints and usage
+- **[Component Documentation](./docs/components/README.md)** - React component reference
+- **[Feature Documentation](./docs/features/README.md)** - Application features and workflows
+- **[Development Guidelines](./docs/development/README.md)** - Coding standards and patterns
+- **[Deployment Guide](./docs/deployment/README.md)** - Deployment instructions
 
 ## Deployment
 
-This application is configured for deployment on Render using Docker and Blueprints.
+This application is deployed on Render using Infrastructure as Code (Blueprint).
 
-1. Push your code to GitHub
-2. Connect your repository to Render
-3. Use the included `render.yaml` blueprint
-4. Set your environment variables in Render dashboard
-5. Deploy!
+**Quick Deploy**: [Deploy to Render](https://dashboard.render.com/blueprint/new?repo=https://github.com/lexpierce/my-record-collection)
 
 The application will be deployed with:
-- Starter service plan
-- Basic 256MB PostgreSQL database
-- 5GB disk space
-- Health check at `/api/am_i_evil`
+- **Service**: Starter plan with Bun runtime
+- **Database**: PostgreSQL 18 (Basic 256MB, 5GB disk)
+- **Health Check**: `/api/am_i_evil`
+- **Auto Deploy**: Enabled on push to main branch
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) or [Deployment Documentation](./docs/deployment/README.md) for detailed instructions.
 
 ## License
 
