@@ -23,7 +23,7 @@ projects:
               - key: NODE_ENV
                 value: production
               - key: BUN_VERSION
-                value: latest
+                value: 1.3.9
               - key: DATABASE_URL
                 fromDatabase:
                   name: my-record-collection-db
