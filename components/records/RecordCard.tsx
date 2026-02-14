@@ -138,7 +138,7 @@ export default function RecordCard({ record }: RecordCardProps) {
               <h3 className="text-xs font-semibold text-warmText-primary">
                 {record.albumTitle}
               </h3>
-              <p className="text-[10px] text-warmText-secondary">
+              <p className="text-xs text-warmText-secondary">
                 {record.artistName}
               </p>
             </div>
