@@ -8,7 +8,11 @@ import Image from "next/image";
  * Search bar component for finding records via Discogs API
  * Supports three search methods: catalog number, artist/title, and UPC code
  */
-export default function SearchBar() {
+interface SearchBarProps {
+  onRecordAdded?: () => void;
+}
+
+export default function SearchBar({ onRecordAdded }: SearchBarProps) {
   const [searchMethod, setSearchMethod] = useState<
     "catalog" | "artistTitle" | "upc"
   >("artistTitle");
@@ -20,6 +24,7 @@ export default function SearchBar() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   /**
    * Handles the search form submission
@@ -90,12 +95,12 @@ export default function SearchBar() {
         throw new Error(data.error || "Failed to add record");
       }
 
-      // Success - refresh the page to show the new record
-      alert("Record added to collection!");
-      window.location.reload();
+      setSuccessMessage(`Added "${data.record?.albumTitle ?? "record"}" to collection!`);
+      setTimeout(() => setSuccessMessage(""), 3000);
+      onRecordAdded?.();
     } catch (error) {
       console.error("Error adding record:", error);
-      alert(
+      setErrorMessage(
         error instanceof Error
           ? error.message
           : "Failed to add record. Please try manual entry."
@@ -227,6 +232,13 @@ export default function SearchBar() {
           )}
         </button>
       </form>
+
+      {/* Success message */}
+      {successMessage && (
+        <div className="p-3 bg-warmAccent-bronze/10 border border-warmAccent-bronze/30 text-warmAccent-bronze text-sm">
+          {successMessage}
+        </div>
+      )}
 
       {/* Error message */}
       {errorMessage && (

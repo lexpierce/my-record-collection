@@ -17,6 +17,11 @@ export default function HomePage() {
   const [showSearch, setShowSearch] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState<SyncProgress | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleRecordAdded = useCallback(() => {
+    setRefreshKey((k) => k + 1);
+  }, []);
 
   const handleSync = useCallback(async () => {
     setIsSyncing(true);
@@ -159,14 +164,14 @@ export default function HomePage() {
       {showSearch && (
         <section className="bg-warmBg-primary border-b border-warmBg-tertiary">
           <div className="max-w-7xl mx-auto px-8 py-6">
-            <SearchBar />
+            <SearchBar onRecordAdded={handleRecordAdded} />
           </div>
         </section>
       )}
 
       {/* Record shelf display */}
       <section className="max-w-7xl mx-auto px-8 py-8">
-        <RecordShelf />
+        <RecordShelf refreshKey={refreshKey} />
       </section>
     </main>
   );
