@@ -8,6 +8,17 @@
  */
 
 /**
+ * Interface for Discogs format information
+ * Contains vinyl-specific details like size and color
+ */
+export interface DiscogsFormat {
+  name: string; // e.g., "Vinyl", "CD"
+  qty: string; // quantity
+  descriptions?: string[]; // e.g., ["LP", "Album", "12\"", "33 ⅓ RPM", "Blue Vinyl"]
+  text?: string; // additional format text
+}
+
+/**
  * Interface for Discogs release data
  * Maps the relevant fields from the Discogs API response
  */
@@ -22,6 +33,7 @@ export interface DiscogsRelease {
   thumb: string;
   cover_image: string;
   uri: string;
+  formats?: DiscogsFormat[]; // vinyl format details
   lowest_price?: number;
   community?: {
     rating?: {
@@ -135,25 +147,25 @@ export class DiscogsClient {
   }
 
   /**
-   * Searches for releases by catalog number
+   * Searches for releases by catalog number (vinyl only)
    * @param catalogNumber - The catalog number to search for
-   * @returns Array of matching releases
+   * @returns Array of matching vinyl releases
    */
   async searchByCatalogNumber(
     catalogNumber: string
   ): Promise<DiscogsSearchResult[]> {
     const encodedCatalogNumber = encodeURIComponent(catalogNumber);
     const response = await this.makeRequest<{ results: DiscogsSearchResult[] }>(
-      `/database/search?catno=${encodedCatalogNumber}&type=release`
+      `/database/search?catno=${encodedCatalogNumber}&type=release&format=Vinyl`
     );
     return response.results;
   }
 
   /**
-   * Searches for releases by artist and title
+   * Searches for releases by artist and title (vinyl only)
    * @param artistName - The artist name
    * @param albumTitle - The album title
-   * @returns Array of matching releases
+   * @returns Array of matching vinyl releases
    */
   async searchByArtistAndTitle(
     artistName: string,
@@ -162,22 +174,83 @@ export class DiscogsClient {
     const encodedArtist = encodeURIComponent(artistName);
     const encodedTitle = encodeURIComponent(albumTitle);
     const response = await this.makeRequest<{ results: DiscogsSearchResult[] }>(
-      `/database/search?artist=${encodedArtist}&title=${encodedTitle}&type=release`
+      `/database/search?artist=${encodedArtist}&title=${encodedTitle}&type=release&format=Vinyl`
     );
     return response.results;
   }
 
   /**
-   * Searches for releases by UPC/barcode
+   * Searches for releases by UPC/barcode (vinyl only)
    * @param upcCode - The UPC/barcode to search for
-   * @returns Array of matching releases
+   * @returns Array of matching vinyl releases
    */
   async searchByUPC(upcCode: string): Promise<DiscogsSearchResult[]> {
     const encodedUPC = encodeURIComponent(upcCode);
     const response = await this.makeRequest<{ results: DiscogsSearchResult[] }>(
-      `/database/search?barcode=${encodedUPC}&type=release`
+      `/database/search?barcode=${encodedUPC}&type=release&format=Vinyl`
     );
     return response.results;
+  }
+
+  /**
+   * Extracts record size from format descriptions
+   * @param formats - Array of format objects from Discogs
+   * @returns Record size (e.g., "12\"", "7\"") or null
+   */
+  extractRecordSize(formats?: DiscogsFormat[]): string | null {
+    if (!formats) return null;
+
+    const vinylFormat = formats.find(f => f.name === "Vinyl");
+    if (!vinylFormat?.descriptions) return null;
+
+    // Look for size indicators in descriptions
+    const sizeMatch = vinylFormat.descriptions.find(d =>
+      d.includes('"') || d.includes('inch') || d.includes('7') || d.includes('10') || d.includes('12')
+    );
+
+    return sizeMatch || null;
+  }
+
+  /**
+   * Extracts vinyl color from format descriptions
+   * @param formats - Array of format objects from Discogs
+   * @returns Vinyl color description or null
+   */
+  extractVinylColor(formats?: DiscogsFormat[]): string | null {
+    if (!formats) return null;
+
+    const vinylFormat = formats.find(f => f.name === "Vinyl");
+    if (!vinylFormat?.descriptions) return null;
+
+    // Common color-related keywords
+    const colorKeywords = ['Vinyl', 'Colored', 'Clear', 'Transparent', 'Marble', 'Splatter',
+                           'White', 'Black', 'Red', 'Blue', 'Green', 'Yellow', 'Purple',
+                           'Pink', 'Orange', 'Grey', 'Gray'];
+
+    const colorDesc = vinylFormat.descriptions.find(d =>
+      colorKeywords.some(keyword => d.includes(keyword))
+    );
+
+    return colorDesc || (vinylFormat.text && colorKeywords.some(k => vinylFormat.text!.includes(k)) ? vinylFormat.text : null);
+  }
+
+  /**
+   * Determines if the vinyl is shaped (non-round)
+   * @param formats - Array of format objects from Discogs
+   * @returns true if shaped/picture disc, false otherwise
+   */
+  isShapedVinyl(formats?: DiscogsFormat[]): boolean {
+    if (!formats) return false;
+
+    const vinylFormat = formats.find(f => f.name === "Vinyl");
+    if (!vinylFormat?.descriptions) return false;
+
+    // Keywords indicating shaped/picture discs
+    const shapedKeywords = ['Picture Disc', 'Shaped', 'Shape', 'Picture'];
+
+    return vinylFormat.descriptions.some(d =>
+      shapedKeywords.some(keyword => d.includes(keyword))
+    );
   }
 
   /**

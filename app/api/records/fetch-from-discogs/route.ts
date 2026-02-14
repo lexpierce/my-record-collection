@@ -42,6 +42,11 @@ export async function POST(request: NextRequest) {
     const labelName = releaseData.labels[0]?.name || null;
     const catalogNumber = releaseData.labels[0]?.catno || null;
 
+    // Extract vinyl-specific information using helper methods
+    const recordSize = discogsClient.extractRecordSize(releaseData.formats);
+    const vinylColor = discogsClient.extractVinylColor(releaseData.formats);
+    const isShapedVinyl = discogsClient.isShapedVinyl(releaseData.formats);
+
     // Prepare record data for database insertion
     const newRecordData = {
       artistName,
@@ -59,6 +64,10 @@ export async function POST(request: NextRequest) {
       coverImageUrl: releaseData.cover_image,
       genres: releaseData.genres || [],
       styles: releaseData.styles || [],
+      // Vinyl-specific data
+      recordSize,
+      vinylColor,
+      isShapedVinyl,
       dataSource: "discogs" as const,
     };
 

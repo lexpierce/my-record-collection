@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, decimal, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, decimal, uuid, boolean } from "drizzle-orm/pg-core";
 
 /**
  * Database schema for the record collection
@@ -38,6 +38,11 @@ export const recordsTable = pgTable("records", {
   genres: text("genres").array(),
   styles: text("styles").array(),
   upcCode: text("upc_code"),
+
+  // Vinyl-specific information
+  recordSize: text("record_size"), // e.g., "12\"", "7\"", "10\""
+  vinylColor: text("vinyl_color"), // e.g., "Black", "Clear", "Blue Marble"
+  isShapedVinyl: boolean("is_shaped_vinyl").default(false), // true if not round (picture disc, shaped, etc.)
 
   // Data source tracking
   dataSource: text("data_source").notNull().default("discogs"), // 'discogs' or 'manual'
