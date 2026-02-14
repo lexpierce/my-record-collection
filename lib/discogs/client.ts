@@ -11,7 +11,7 @@
  * Interface for Discogs format information
  * Contains vinyl-specific details like size and color
  */
-export interface DiscogsFormat {
+interface DiscogsFormat {
   name: string; // e.g., "Vinyl", "CD"
   qty: string; // quantity
   descriptions?: string[]; // e.g., ["LP", "Album", "12\"", "33 ⅓ RPM", "Blue Vinyl"]
@@ -22,7 +22,7 @@ export interface DiscogsFormat {
  * Interface for Discogs release data
  * Maps the relevant fields from the Discogs API response
  */
-export interface DiscogsRelease {
+interface DiscogsRelease {
   id: number;
   title: string;
   artists: Array<{ name: string }>;
@@ -34,7 +34,6 @@ export interface DiscogsRelease {
   cover_image: string;
   uri: string;
   formats?: DiscogsFormat[]; // vinyl format details
-  lowest_price?: number;
   community?: {
     rating?: {
       average?: number;
@@ -61,13 +60,13 @@ export interface DiscogsCollectionBasicInfo {
   resource_url: string;
 }
 
-export interface DiscogsCollectionRelease {
+interface DiscogsCollectionRelease {
   id: number; // instance_id
   rating: number;
   basic_information: DiscogsCollectionBasicInfo;
 }
 
-export interface DiscogsCollectionResponse {
+interface DiscogsCollectionResponse {
   pagination: {
     page: number;
     pages: number;
@@ -80,7 +79,7 @@ export interface DiscogsCollectionResponse {
 /**
  * Interface for Discogs search result
  */
-export interface DiscogsSearchResult {
+interface DiscogsSearchResult {
   id: number;
   title: string;
   year: string;
@@ -311,11 +310,6 @@ export class DiscogsClient {
   }
 
   /**
-   * Fetches marketplace statistics for a release
-   * @param releaseId - The Discogs release ID
-   * @returns Marketplace statistics including pricing information
-   */
-  /**
    * Fetches a page of the user's Discogs collection (folder 0 = all)
    */
   async getUserCollection(
@@ -339,45 +333,6 @@ export class DiscogsClient {
     );
   }
 
-  async getReleaseMarketStats(releaseId: number): Promise<{
-    lowest_price?: { value: number; currency: string };
-    num_for_sale?: number;
-  }> {
-    try {
-      const stats = await this.makeRequest<{
-        lowest_price?: { value: number; currency: string };
-        num_for_sale?: number;
-      }>(`/marketplace/stats/${releaseId}`);
-      return stats;
-    } catch (error) {
-      // Marketplace stats may not be available for all releases
-      console.warn(`Marketplace stats not available for release ${releaseId}`);
-      return {};
-    }
-  }
-
-  /**
-   * Fetches price suggestions by condition for a release.
-   * Returns the VG+ value as a median proxy.
-   * Requires the authenticated user to have a seller profile.
-   */
-  async getPriceSuggestions(releaseId: number): Promise<{
-    median?: number;
-    currency?: string;
-  }> {
-    try {
-      const suggestions = await this.makeRequest<
-        Record<string, { value: number; currency: string }>
-      >(`/marketplace/price_suggestions/${releaseId}`);
-      const vgPlus = suggestions["Very Good Plus (VG+)"];
-      if (vgPlus) {
-        return { median: vgPlus.value, currency: vgPlus.currency };
-      }
-      return {};
-    } catch {
-      return {};
-    }
-  }
 }
 
 /**

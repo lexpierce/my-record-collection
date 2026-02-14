@@ -176,35 +176,6 @@ interface DiscogsRelease {
 }
 ```
 
-### Get Marketplace Statistics
-
-```typescript
-async getReleaseMarketStats(releaseId: number): Promise<{
-  lowest_price?: { value: number; currency: string };
-  num_for_sale?: number;
-}>
-```
-
-Fetches current marketplace pricing information.
-
-**Parameters:**
-- `releaseId` (number) - Discogs release ID
-
-**Returns:** Marketplace statistics or empty object if unavailable
-
-**API Call:**
-```
-GET /marketplace/stats/{releaseId}
-```
-
-**Example:**
-```typescript
-const stats = await discogsClient.getReleaseMarketStats(123456);
-console.log(stats.lowest_price); // { value: 15.99, currency: "USD" }
-```
-
-**Note:** Marketplace stats may not be available for all releases. Method returns `{}` on error rather than throwing.
-
 ## Vinyl Extraction Methods
 
 ### Extract Record Size
@@ -345,8 +316,6 @@ const discogsClient = createDiscogsClient();
 
 // Fetch release details
 const releaseData = await discogsClient.getRelease(releaseId);
-const marketStats = await discogsClient.getReleaseMarketStats(releaseId);
-
 // Extract vinyl metadata
 const recordSize = discogsClient.extractRecordSize(releaseData.formats);
 const vinylColor = discogsClient.extractVinylColor(releaseData.formats);

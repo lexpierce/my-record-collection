@@ -33,10 +33,6 @@ export async function POST(request: NextRequest) {
     // Fetch release details from Discogs
     const releaseData = await discogsClient.getRelease(releaseId);
 
-    // Fetch marketplace stats and price suggestions for pricing
-    const marketStats = await discogsClient.getReleaseMarketStats(releaseId);
-    const priceSuggestions = await discogsClient.getPriceSuggestions(releaseId);
-
     // Extract artist name (use first artist if multiple)
     const artistName = releaseData.artists[0]?.name || "Unknown Artist";
 
@@ -58,10 +54,6 @@ export async function POST(request: NextRequest) {
       catalogNumber,
       discogsId: releaseData.id.toString(),
       discogsUri: releaseData.uri,
-      currentValueMinimum: marketStats.lowest_price?.value?.toString() || null,
-      currentValueMedian: priceSuggestions.median?.toString() || null,
-      currentValueMaximum: null,
-      valueCurrency: marketStats.lowest_price?.currency || "USD",
       thumbnailUrl: releaseData.thumb,
       coverImageUrl: releaseData.cover_image,
       genres: releaseData.genres || [],

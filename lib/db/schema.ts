@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, decimal, uuid, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, uuid, boolean } from "drizzle-orm/pg-core";
 
 /**
  * Database schema for the record collection
@@ -24,12 +24,6 @@ export const recordsTable = pgTable("records", {
   discogsId: text("discogs_id").unique(),
   discogsUri: text("discogs_uri"),
   isSyncedWithDiscogs: boolean("is_synced_with_discogs").default(false).notNull(),
-
-  // Current market value from Discogs
-  currentValueMinimum: decimal("current_value_minimum", { precision: 10, scale: 2 }),
-  currentValueMedian: decimal("current_value_median", { precision: 10, scale: 2 }),
-  currentValueMaximum: decimal("current_value_maximum", { precision: 10, scale: 2 }),
-  valueCurrency: text("value_currency").default("USD"),
 
   // Album artwork
   thumbnailUrl: text("thumbnail_url"),

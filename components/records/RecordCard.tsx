@@ -59,21 +59,6 @@ export default function RecordCard({ record }: RecordCardProps) {
   };
 
   /**
-   * Formats the current value for display
-   */
-  const formatValue = () => {
-    if (!record.currentValueMinimum && !record.currentValueMedian) {
-      return "Value not available";
-    }
-
-    const valueToDisplay =
-      record.currentValueMedian || record.currentValueMinimum;
-    const currency = record.valueCurrency || "USD";
-
-    return `${currency} ${parseFloat(valueToDisplay || "0").toFixed(2)}`;
-  };
-
-  /**
    * Handles updating the record from Discogs
    * Fetches the latest information from Discogs and updates the database
    */
@@ -164,10 +149,10 @@ export default function RecordCard({ record }: RecordCardProps) {
                 </div>
               )}
             </div>
-            <h3 className="text-[11px] font-semibold text-warmText-primary truncate w-full text-center mt-1 leading-none">
+            <h3 className="text-xs font-bold text-warmText-primary truncate w-full text-center mt-1 leading-none">
               {record.albumTitle}
             </h3>
-            <p className="text-[11px] text-warmText-secondary truncate w-full text-center leading-none mt-0.5">
+            <p className="text-xs text-warmText-secondary truncate w-full text-center leading-none mt-0.5">
               {record.artistName}
             </p>
           </div>
@@ -196,10 +181,10 @@ export default function RecordCard({ record }: RecordCardProps) {
 
             {/* Album info */}
             <div className="space-y-1">
-              <h3 className="text-[11px] font-semibold text-warmText-primary">
+              <h3 className="text-xs font-bold text-warmText-primary">
                 {record.albumTitle}
               </h3>
-              <p className="text-[10px] text-warmText-secondary">
+              <p className="text-xs text-warmText-secondary">
                 {record.artistName}
               </p>
 
@@ -251,14 +236,6 @@ export default function RecordCard({ record }: RecordCardProps) {
                     </span>
                   </div>
                 )}
-
-                {/* Current value range */}
-                <div className="text-[10px]">
-                  <span className="font-semibold text-warmText-primary">
-                    Value:
-                  </span>{" "}
-                  <span className="text-warmText-secondary">{formatValue()}</span>
-                </div>
 
                 {/* Label name */}
                 {record.labelName && (

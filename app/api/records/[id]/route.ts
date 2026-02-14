@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { database, schema } from "@/lib/db/client";
 import { eq } from "drizzle-orm";
-import { createDiscogsClient } from "@/lib/discogs/client";
 
 /**
  * API route for individual record operations

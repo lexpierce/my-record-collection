@@ -41,5 +41,4 @@ Individual feature documentation will be added as separate files:
 Future enhancements tracked in beads:
 - Manual record entry (without Discogs)
 - Record filtering and sorting
-- Value tracking over time
 - Collection statistics

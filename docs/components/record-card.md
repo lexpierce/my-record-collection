@@ -135,7 +135,6 @@ Deletes record after user confirmation.
 3. **Artist name**: `text-[10px]`
 4. **All metadata** (`text-[10px]`):
    - Year, size, color, shaped vinyl status
-   - Value (minimum or median)
    - Label, catalog number, UPC
    - Genres, styles
    - Data source, Discogs ID
