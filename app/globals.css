@@ -98,11 +98,11 @@
     /* Ensure back is fully opaque with solid background */
     background-color: #F5E6D3; /* warmBg-secondary */
     opacity: 1;
+    /* Override height: 100% so background covers ALL content, not just 240px */
+    height: auto;
     /* Add border for definition */
     border: 2px solid #C9A876; /* warmAccent-bronze */
     border-radius: 0px;
-    /* Allow content to be visible */
-    overflow: visible;
   }
 
 }
