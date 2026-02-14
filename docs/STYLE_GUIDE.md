@@ -323,7 +323,7 @@ Warning signs that docs need updating:
 
 - Use markdownlint for consistency
 - Configuration in `.markdownlint.json`
-- Run `npm run lint:docs` before committing
+- Run `bun run lint` before committing
 
 ### Documentation TODOs
 

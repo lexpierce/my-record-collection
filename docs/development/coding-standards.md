@@ -241,6 +241,49 @@ Apply custom fonts globally via the `body` element:
 
 **Why**: Applying fonts at the body level ensures consistency across the entire application without needing to specify font-family on each component.
 
+### CSS 3D Transform Anti-Patterns
+
+These rules prevent silent breakage of CSS 3D flip animations:
+
+**Never put `transform-style: preserve-3d` on card faces:**
+```css
+/* WRONG */
+.flip-card-front, .flip-card-back {
+  transform-style: preserve-3d;
+}
+
+/* CORRECT - only on inner container */
+.flip-card-inner {
+  transform-style: preserve-3d;
+}
+```
+Creates nested 3D contexts that break `backface-visibility: hidden`.
+
+**Never put `filter` on an element with `preserve-3d`:**
+```css
+/* WRONG - flattens 3D transforms */
+.flip-card.flipped .flip-card-inner {
+  filter: drop-shadow(...);
+}
+
+/* CORRECT - put on outer container */
+.flip-card.flipped {
+  filter: drop-shadow(...);
+}
+```
+CSS `filter` flattens 3D transforms on the element, destroying the 3D context entirely.
+
+**Use `height: auto` on back face for full background coverage:**
+```css
+/* WRONG - bg stops at 240px, content overflows transparently */
+.flip-card-back { height: 100%; overflow: visible; }
+
+/* CORRECT - bg grows with content */
+.flip-card-back { height: auto; }
+```
+
+See [Flip Card Animation](../features/flip-card-animation.md) for full details.
+
 ### CSS Layout Anti-Patterns
 
 Avoid complex flex layouts that hide content:
@@ -292,26 +335,30 @@ Never use `flex-1` on buttons:
 
 **Why**: `flex-1` causes buttons to grow and fill available space, creating oversized buttons that dominate the UI. Use natural sizing with shorter labels and `whitespace-nowrap` to keep buttons compact.
 
+### Border Radius
+
+All elements use `border-radius: 0px` (sharp edges). Do not use Tailwind `rounded` classes.
+
 ### Text Size Guidelines
 
-**Minimum readable sizes**:
-- **Primary content** (titles, artist names, labels): `text-xs` (12px) minimum
-- **Dense information cards** (detailed metadata): `text-[10px]` acceptable
+**Sizes in use**:
+- **Card front titles**: `text-[11px]` with `leading-tight` and `truncate`
+- **Card front artist**: `text-[11px]` with `leading-tight` and `truncate`
+- **Card back titles**: `text-xs` (12px)
+- **Dense information cards** (detailed metadata): `text-[10px]`
 - **Body text**: `text-sm` (14px) or larger
 
 ```tsx
-// ✅ Good: Readable artist name
-<p className="text-xs text-warmText-secondary">
-  {record.artistName}
-</p>
+// ✅ Good: Front card title with truncation
+<h3 className="text-[11px] font-semibold text-warmText-primary truncate leading-tight">
+  {record.albumTitle}
+</h3>
 
-// ❌ Bad: Artist name too small
-<p className="text-[10px] text-warmText-secondary">
-  {record.artistName}
-</p>
+// ✅ Good: Dense metadata on back card
+<span className="text-[10px]">{record.yearReleased}</span>
 ```
 
-**Rationale**: Text smaller than `text-xs` is difficult to read, especially for primary content. Reserve `text-[10px]` for dense detail cards where space is limited.
+**Rationale**: `text-[11px]` balances readability with space on card fronts. `text-[10px]` is acceptable for dense metadata on the back card.
 
 ### Grid Layout Spacing
 

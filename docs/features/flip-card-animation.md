@@ -14,6 +14,7 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 - **Z-Index Elevation**: Flipped card appears above other cards
 - **Border and Shadow**: Layered drop-shadow and bronze border for 3D depth
 - **Smooth Animation**: 0.6s transition for flip
+- **Sharp Edges**: All elements use border-radius: 0px
 
 ## CSS Implementation
 
@@ -40,11 +41,11 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 ### Flipped State
 
 ```css
+/* CRITICAL: filter MUST be on .flip-card, NOT on .flip-card-inner.
+   filter on an element with transform-style: preserve-3d flattens
+   3D transforms, breaking backface-visibility entirely. */
 .flip-card.flipped {
   z-index: 1000;
-}
-
-.flip-card.flipped .flip-card-inner {
   filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25))
           drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
 }
@@ -52,8 +53,8 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 
 **Key Properties:**
 - `z-index: 1000` - Brings card to front, above all other cards
-- Layered `drop-shadow` - Creates depth with multiple shadow layers for 3D effect
-- **No scaling** - Card remains at natural size for better UX (per user feedback: "scaling is ugly")
+- `filter` on **outer container** - Creates depth without breaking 3D context
+- **No scaling** - Card remains at natural size for better UX
 
 ### Inner Container
 
@@ -73,9 +74,9 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 ```
 
 **Key Properties:**
-- `transform-style: preserve-3d` - Maintains 3D positioning of children
+- `transform-style: preserve-3d` - Maintains 3D positioning of children. **This is the ONLY element that should have this property.**
 - `transition: transform 0.6s` - 0.6 second flip animation
-- `rotateY(180deg)` - Rotates 180° around Y-axis when flipped
+- `rotateY(180deg)` - Rotates 180 degrees around Y-axis when flipped
 
 ### Card Faces
 
@@ -86,14 +87,11 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
   width: 100%;
   height: 100%;
   min-height: 240px;
-  /* CRITICAL: Hide back face to prevent text bleed-through */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   -moz-backface-visibility: hidden;
-  /* Make cards fully opaque with solid background */
   background-color: #FFF8F0; /* warmBg-primary */
-  /* Ensure proper rendering */
-  transform-style: preserve-3d;
+  /* Do NOT add transform-style: preserve-3d here. See anti-patterns below. */
 }
 ```
 
@@ -102,24 +100,21 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 - `backface-visibility: hidden` - **Critical for preventing text bleed-through**
 - Vendor prefixes (`-webkit-`, `-moz-`) - Browser compatibility
 - `background-color` - Solid opaque background
-- `transform-style: preserve-3d` - Maintains 3D context
 
 ### Front Face
 
 ```css
 .flip-card-front {
-  z-index: 2;
   transform: rotateY(0deg);
-  border: 1px solid #E5D4BC; /* Subtle border for definition */
-  border-radius: 8px;
+  border: 1px solid #E5D4BC;
+  border-radius: 0px;
 }
 ```
 
 **Key Properties:**
-- `z-index: 2` - Front face appears above back face initially
 - `transform: rotateY(0deg)` - Explicit starting position
 - `border` - Subtle 1px border for card definition
-- `border-radius` - Rounded corners for polish
+- No z-index needed - 3D context handles face ordering
 
 ### Back Face
 
@@ -127,18 +122,18 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 .flip-card-back {
   transform: rotateY(180deg);
   background-color: #F5E6D3; /* warmBg-secondary */
-  opacity: 1; /* Explicitly opaque */
-  border: 2px solid #C9A876; /* Bronze border for emphasis */
-  border-radius: 8px;
-  overflow: visible;
+  opacity: 1;
+  height: auto;
+  border: 2px solid #C9A876; /* warmAccent-bronze */
+  border-radius: 0px;
 }
 ```
 
 **Key Properties:**
-- `transform: rotateY(180deg)` - Starts rotated 180°, faces correct direction when flipped
+- `transform: rotateY(180deg)` - Starts rotated 180 degrees, faces correct direction when flipped
 - `opacity: 1` - Explicitly fully opaque (no transparency)
+- `height: auto` - **Overrides `height: 100%` from shared rules so background covers ALL content**, not just the first 240px
 - `border: 2px solid #C9A876` - Thicker bronze border for 3D depth
-- `overflow: visible` - Allows content to flow naturally
 - Component handles internal padding (not CSS)
 
 ## React Component Implementation
@@ -160,10 +155,10 @@ export default function RecordCard({ record }: RecordCardProps) {
       onClick={handleCardClick}
     >
       <div className="flip-card-inner">
-        <div className="flip-card-front">
+        <div className="flip-card-front pt-2">
           {/* Album art and basic info */}
         </div>
-        <div className="flip-card-back">
+        <div className="flip-card-back bg-warmBg-secondary p-3">
           {/* Detailed information */}
         </div>
       </div>
@@ -212,7 +207,7 @@ Without proper configuration, the back face text shows through the front face in
 
 ```
 Front Face (Visible)
-    ↓
+    |
 Back Face Text (Reversed, Showing Through)
 ```
 
@@ -255,11 +250,6 @@ Back Face Text (Reversed, Showing Through)
 background-color: #FFF8F0; /* Solid color, not transparent */
 ```
 
-**Preserve 3D:**
-```css
-transform-style: preserve-3d; /* Maintains 3D positioning */
-```
-
 ## Visual Depth Without Scaling
 
 ### Why No Scaling?
@@ -267,7 +257,7 @@ transform-style: preserve-3d; /* Maintains 3D positioning */
 **User feedback:** "Scaling is ugly" - scaling creates jarring UX
 
 When the card flips to show detailed information:
-- Card is already sized appropriately (200px × 240px)
+- Card is already sized appropriately (200px x 240px)
 - Scaling creates abrupt, disorienting visual changes
 - Natural sizing provides smoother, more professional experience
 
@@ -278,9 +268,6 @@ When the card flips to show detailed information:
 ```css
 .flip-card.flipped {
   z-index: 1000;
-}
-
-.flip-card.flipped .flip-card-inner {
   filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25))
           drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
 }
@@ -333,6 +320,60 @@ filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25))
 - Adds tactile, physical appearance
 - Thicker (2px) than front border (1px) for emphasis
 
+## CSS 3D Anti-Patterns
+
+These patterns silently break the flip animation. Avoid them.
+
+### Never put `transform-style: preserve-3d` on card faces
+
+```css
+/* WRONG - creates nested 3D contexts that break backface-visibility */
+.flip-card-front,
+.flip-card-back {
+  transform-style: preserve-3d;
+}
+
+/* CORRECT - preserve-3d belongs ONLY on the inner container */
+.flip-card-inner {
+  transform-style: preserve-3d;
+}
+```
+
+**Why it breaks:** Each face becomes its own 3D rendering context. The browser evaluates `backface-visibility` relative to the face's own context rather than the parent's, causing the back face to be invisible when it should be visible.
+
+### Never put `filter` on an element with `preserve-3d`
+
+```css
+/* WRONG - filter flattens 3D transforms */
+.flip-card.flipped .flip-card-inner {
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25));
+}
+
+/* CORRECT - put filter on the outer container */
+.flip-card.flipped {
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25));
+}
+```
+
+**Why it breaks:** CSS `filter` creates a new stacking context and flattens 3D transforms on the element. When applied to `.flip-card-inner` (which has `transform-style: preserve-3d`), the 3D context is destroyed and `backface-visibility` stops working entirely.
+
+### Never use `height: 100%` on the back face
+
+```css
+/* WRONG - background only covers 240px, content overflows transparently */
+.flip-card-back {
+  height: 100%;
+  overflow: visible;
+}
+
+/* CORRECT - background grows with content */
+.flip-card-back {
+  height: auto;
+}
+```
+
+**Why it breaks:** The back card content (all metadata fields) often exceeds the 240px min-height. With `height: 100%`, the background stops at 240px but content overflows transparently, creating a translucent lower section.
+
 ## Animation Timing
 
 ### Flip Animation
@@ -365,13 +406,6 @@ min-height: 240px; /* Enough space for image + text without overlap */
 width: 200px; /* Wide enough for all content */
 ```
 
-**Natural Content Flow:**
-```css
-.flip-card-back {
-  overflow: visible; /* Content flows naturally */
-}
-```
-
 ### Layout in Grid
 
 Cards are displayed in a grid layout:
@@ -391,11 +425,34 @@ Cards are displayed in a grid layout:
 - Desktop: 6 columns
 
 **Gap spacing:**
-- `gap-4` (1rem) provides space for scaled cards
+- `gap-4` (1rem) provides space between cards
 
 ## Common Issues and Solutions
 
-### Issue: Text Shows Through in Reverse
+### Issue: Card back invisible when flipped
+
+**Symptom:** Back face invisible when flipped, flashes briefly when flipping back
+
+**Cause:** One of two CSS anti-patterns (see CSS 3D Anti-Patterns above):
+1. `transform-style: preserve-3d` on card faces
+2. `filter` on `.flip-card-inner`
+
+**Solution:** Remove `transform-style` from faces, move `filter` to `.flip-card`.
+
+### Issue: Card back translucent at bottom
+
+**Symptom:** Lower portion of flipped card is see-through, overlapping content below shows through
+
+**Cause:** `height: 100%` limits background to 240px while content overflows
+
+**Solution:**
+```css
+.flip-card-back {
+  height: auto; /* Background grows with content */
+}
+```
+
+### Issue: Text shows through in reverse
 
 **Symptom:** Back face text visible (reversed) when viewing front
 
@@ -406,9 +463,9 @@ backface-visibility: hidden;
 -moz-backface-visibility: hidden;
 ```
 
-### Issue: Cards Overlap When Scaled
+### Issue: Cards overlap when flipped
 
-**Symptom:** Scaled card hidden behind adjacent cards
+**Symptom:** Flipped card hidden behind adjacent cards
 
 **Solution:**
 ```css
@@ -417,63 +474,36 @@ backface-visibility: hidden;
 }
 ```
 
-### Issue: No 3D Effect
+### Issue: No 3D effect
 
 **Symptom:** Card rotates flat, no perspective
 
 **Solution:**
 ```css
 .flip-card {
-  perspective: 1500px; /* Add 3D perspective */
+  perspective: 1500px;
 }
 
 .flip-card-inner {
-  transform-style: preserve-3d; /* Maintain 3D context */
+  transform-style: preserve-3d; /* ONLY on inner container */
 }
 ```
 
-### Issue: Text Too Small on Card
+### Issue: Text too small on card
 
 **Symptom:** Hard to read text on front or back
 
-**Solution:**
-```css
-/* Increase card size, not scale */
-.flip-card {
-  min-height: 240px;
-  width: 200px;
-}
-```
-
-```tsx
-/* Use appropriate text sizes */
-<p className="text-xs">Artist Name</p> /* Not text-[10px] */
-```
-
-**Why:** Natural sizing is better UX than scaling. Make cards appropriately sized from the start.
-
-### Issue: Cards Overlap Other Content
-
-**Symptom:** Artist text on front covered by card below
-
-**Solution:**
-```css
-.flip-card {
-  min-height: 240px; /* Sufficient for 96px image + text */
-}
-```
-
-**Calculation:** 96px image + ~36px title (2 lines) + ~18px artist + ~30px spacing = ~240px
+**Solution:** Use `text-[11px]` for front titles, `text-xs` for back titles, `text-[10px]` for dense metadata. Increase card size rather than scaling.
 
 ## Browser Compatibility
 
 ### Modern Browsers
 
 Full support in:
-- ✅ Chrome 36+
-- ✅ Firefox 16+
-- ✅ Safari 9+
-- ✅ Edge 12+
+- Chrome 36+
+- Firefox 16+
+- Safari 9+
+- Edge 12+
 
 ### Vendor Prefixes
 
@@ -503,27 +533,20 @@ CSS transforms use GPU acceleration:
 ### Repaints and Reflows
 
 Efficient animation properties:
-- `transform` - No reflow, GPU accelerated ✅
-- `z-index` - No reflow when changed ✅
-- `opacity` - No reflow, GPU accelerated ✅
+- `transform` - No reflow, GPU accelerated
+- `z-index` - No reflow when changed
+- `opacity` - No reflow, GPU accelerated
 
 Avoid animating:
-- `width`/`height` - Triggers reflow ❌
-- `top`/`left` - Triggers reflow ❌
-
-## Future Enhancements
-
-Potential improvements:
-
-- **Double-Click to Flip**: Prevent accidental flips
-- **Keyboard Navigation**: Flip with Space/Enter
-- **Gesture Support**: Swipe to flip on mobile
-- **Auto-Flip Back**: Return to front after delay
-- **Flip Direction**: Randomize flip axis for variety
-- **Accessibility**: Announce content changes to screen readers
+- `width`/`height` - Triggers reflow
+- `top`/`left` - Triggers reflow
 
 ## Related Documentation
 
-- [RecordCard Component](../components/record-card.md) (future)
+- [RecordCard Component](../components/record-card.md)
 - [Component Architecture](../components/README.md)
-- [Tailwind Configuration](../development/tailwind-config.md) (future)
+- [Coding Standards](../development/coding-standards.md)
+
+---
+
+**Last Updated**: 2026-02-14

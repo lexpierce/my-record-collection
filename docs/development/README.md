@@ -66,7 +66,7 @@ Development standards and patterns for the My Record Collection project.
 - `bun run dev` - Development server with Turbopack
 - `bun run build` - Production build
 - `bun run start` - Start production server
-- `bun run lint` - Run ESLint
+- `bun run lint` - Run ESLint (uses `eslint .`, migrated from `next lint` for Next.js 16)
 - `bun run type-check` - TypeScript type checking
 - `bun run db:generate` - Generate Drizzle migrations
 - `bun run db:push` - Push schema changes to database
@@ -76,7 +76,15 @@ Development standards and patterns for the My Record Collection project.
 
 Individual guideline documents will be added as separate files:
 
-- [ ] Coding standards and patterns
+- [x] [Coding standards and patterns](./coding-standards.md)
 - [ ] Database schema guidelines
 - [ ] API design patterns
 - [ ] Testing strategy
+
+## Design Decisions
+
+- **Border radius**: 0px on all elements (sharp, square edges)
+- **Package manager**: bun (not npm)
+- **Linting**: ESLint CLI (`eslint .`) instead of `next lint` (migrated for Next.js 16 compatibility)
+- **Card sizing**: Natural sizing (200px x 240px), no scaling on flip
+- **Font sizes**: `text-[11px]` for card front titles, `text-xs` for back titles, `text-[10px]` for dense metadata
