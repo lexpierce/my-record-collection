@@ -75,7 +75,8 @@ export async function executeSync(
     existingRecords.map((r) => r.discogsId).filter(Boolean),
   );
 
-  // Paginate through Discogs collection
+  // Paginate through Discogs collection, track which IDs are actually on Discogs
+  const discogsCollectionIds = new Set<string>();
   let page = 1;
   let totalPages = 1;
 
@@ -86,6 +87,7 @@ export async function executeSync(
 
     for (const release of response.releases) {
       const discogsId = release.basic_information.id.toString();
+      discogsCollectionIds.add(discogsId);
 
       if (existingIds.has(discogsId)) {
         progress.skipped++;
@@ -99,7 +101,6 @@ export async function executeSync(
         existingIds.add(discogsId);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
-        // Skip unique constraint violations (duplicate discogsId)
         if (msg.includes("unique") || msg.includes("duplicate")) {
           progress.skipped++;
         } else {
@@ -112,17 +113,14 @@ export async function executeSync(
     page++;
   }
 
-  // Mark all records with a matching discogsId as synced
-  const allDiscogsIds = [...existingIds].filter(Boolean) as string[];
-  if (allDiscogsIds.length > 0) {
-    // Batch update in chunks of 500 to avoid query size limits
-    for (let i = 0; i < allDiscogsIds.length; i += 500) {
-      const chunk = allDiscogsIds.slice(i, i + 500);
-      await database
-        .update(schema.recordsTable)
-        .set({ isSyncedWithDiscogs: true })
-        .where(inArray(schema.recordsTable.discogsId, chunk));
-    }
+  // Only mark records as synced if they actually exist in the Discogs collection
+  const idsToMarkSynced = [...discogsCollectionIds];
+  for (let i = 0; i < idsToMarkSynced.length; i += 500) {
+    const chunk = idsToMarkSynced.slice(i, i + 500);
+    await database
+      .update(schema.recordsTable)
+      .set({ isSyncedWithDiscogs: true })
+      .where(inArray(schema.recordsTable.discogsId, chunk));
   }
 
   // --- PUSH phase: Local DB → Discogs ---
