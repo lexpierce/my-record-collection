@@ -34,6 +34,13 @@ projects:
                 value: Lexpierce
               - key: DISCOGS_USER_AGENT
                 value: MyRecordCollection/1.0
+            buildFilter:
+              paths:
+                - "**"
+              ignoredPaths:
+                - docs/**
+                - .beads/**
+                - "*.md"
             # Bun is available by default on Render when BUN_VERSION is set
             buildCommand: bun install && bun run build
             startCommand: bun run start
