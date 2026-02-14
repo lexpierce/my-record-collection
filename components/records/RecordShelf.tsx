@@ -37,11 +37,18 @@ export default function RecordShelf() {
   }, []);
 
   const sortedRecords = useMemo(() => {
+    // Strip leading "The ", "A " and normalize accents for artist sorting
+    const artistSortKey = (name: string) =>
+      name.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/^(The|A)\s+/i, "");
+
     const sorted = [...records];
     switch (sortBy) {
       case "artist":
         return sorted.sort((a, b) => {
-          const cmp = a.artistName.localeCompare(b.artistName);
+          const cmp = artistSortKey(a.artistName).localeCompare(
+            artistSortKey(b.artistName),
+          );
           if (cmp !== 0) return cmp;
           return (a.yearReleased ?? 9999) - (b.yearReleased ?? 9999);
         });
