@@ -1,0 +1,36 @@
+# Render Blueprint for deploying the record collection application
+# Deploys to Records project, Production environment
+# Uses starter service plan and basic-256mb database plan
+
+services:
+  # Web service for the Next.js application
+  - type: web
+    name: my-record-collection
+    runtime: docker
+    plan: starter
+    region: oregon
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/am_i_evil
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: my-record-collection-db
+          property: connectionString
+      - key: DISCOGS_TOKEN
+        sync: false
+      - key: DISCOGS_USER_AGENT
+        value: MyRecordCollection/1.0
+    buildCommand: bun install && bun run build
+    startCommand: bun run start
+
+databases:
+  # Postgres 18 database
+  - name: my-record-collection-db
+    plan: basic-256mb
+    databaseName: my_record_collection
+    region: oregon
+    postgresMajorVersion: 18
+    ipAllowList: []

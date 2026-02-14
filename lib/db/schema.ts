@@ -1,0 +1,58 @@
+import { pgTable, text, integer, timestamp, decimal, uuid } from "drizzle-orm/pg-core";
+
+/**
+ * Database schema for the record collection
+ * Stores information about vinyl records fetched from Discogs or entered manually
+ *
+ * Important: This schema preserves non-ASCII characters in artist names and album titles
+ */
+export const recordsTable = pgTable("records", {
+  // Primary key - UUID for unique identification
+  recordId: uuid("record_id").primaryKey().defaultRandom(),
+
+  // Core record information
+  // Note: text type is used to preserve non-ASCII characters (e.g., Björk, Motörhead, etc.)
+  artistName: text("artist_name").notNull(),
+  albumTitle: text("album_title").notNull(),
+
+  // Release information
+  yearReleased: integer("year_released"),
+  labelName: text("label_name"),
+
+  // Discogs-specific data
+  catalogNumber: text("catalog_number"),
+  discogsId: text("discogs_id").unique(),
+  discogsUri: text("discogs_uri"),
+
+  // Current market value from Discogs
+  currentValueMinimum: decimal("current_value_minimum", { precision: 10, scale: 2 }),
+  currentValueMedian: decimal("current_value_median", { precision: 10, scale: 2 }),
+  currentValueMaximum: decimal("current_value_maximum", { precision: 10, scale: 2 }),
+  valueCurrency: text("value_currency").default("USD"),
+
+  // Album artwork
+  thumbnailUrl: text("thumbnail_url"),
+  coverImageUrl: text("cover_image_url"),
+
+  // Additional metadata
+  genres: text("genres").array(),
+  styles: text("styles").array(),
+  upcCode: text("upc_code"),
+
+  // Data source tracking
+  dataSource: text("data_source").notNull().default("discogs"), // 'discogs' or 'manual'
+
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+/**
+ * TypeScript type for a record in the database
+ */
+export type Record = typeof recordsTable.$inferSelect;
+
+/**
+ * TypeScript type for inserting a new record into the database
+ */
+export type NewRecord = typeof recordsTable.$inferInsert;
