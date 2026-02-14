@@ -149,7 +149,7 @@ export default function RecordCard({ record }: RecordCardProps) {
         <div className="flip-card-back bg-warmBg-secondary rounded shadow-md p-4">
           <div className="h-full flex flex-col justify-between">
             {/* Album info */}
-            <div className="space-y-2 overflow-y-auto">
+            <div className="flex-1 space-y-2 overflow-y-auto max-h-[calc(100%-60px)]">
               <h3 className="text-sm font-bold text-warmText-primary line-clamp-2">
                 {record.albumTitle}
               </h3>

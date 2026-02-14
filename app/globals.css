@@ -35,7 +35,7 @@
   .flip-card {
     perspective: 1500px;
     /* Fixed height to prevent overlap - allows space for image + text */
-    min-height: 160px;
+    min-height: 180px;
     width: 120px;
     /* Transition for scaling effect */
     transition: transform 0.3s ease, z-index 0s;
@@ -55,7 +55,7 @@
     position: relative;
     width: 100%;
     height: 100%;
-    min-height: 160px;
+    min-height: 180px;
     transition: transform 0.6s;
     transform-style: preserve-3d;
   }
@@ -69,7 +69,7 @@
     position: absolute;
     width: 100%;
     height: 100%;
-    min-height: 160px;
+    min-height: 180px;
     /* CRITICAL: Hide back face to prevent text bleed-through */
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
@@ -91,8 +91,8 @@
     transform: rotateY(180deg);
     /* Ensure back is also opaque */
     background-color: #F5E6D3; /* warmBg-secondary */
-    /* Scrollable if content overflows */
-    overflow-y: auto;
+    /* Remove overflow here - handled in component */
+    overflow: hidden;
     padding: 8px;
   }
 }
