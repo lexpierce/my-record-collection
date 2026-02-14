@@ -223,6 +223,123 @@ Use custom colors from `tailwind.config.ts`:
 </div>
 ```
 
+### Font Application
+
+Apply custom fonts globally via the `body` element:
+
+```css
+@layer base {
+  :root {
+    --font-inter: 'Inter', system-ui, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-inter);
+  }
+}
+```
+
+**Why**: Applying fonts at the body level ensures consistency across the entire application without needing to specify font-family on each component.
+
+### CSS Layout Anti-Patterns
+
+Avoid complex flex layouts that hide content:
+
+```tsx
+// ❌ Bad: h-full + justify-between hides content
+<div className="h-full flex flex-col justify-between">
+  <div className="flex-1 overflow-y-auto max-h-[calc(100%-60px)]">
+    {/* Content gets hidden by constraints */}
+  </div>
+  <div className="mt-3">
+    {/* Buttons */}
+  </div>
+</div>
+
+// ✅ Good: Simple flex flow lets content be visible
+<div className="flex flex-col space-y-2">
+  <div className="space-y-1">
+    {/* Content flows naturally */}
+  </div>
+  <div className="mt-2">
+    {/* Buttons */}
+  </div>
+</div>
+```
+
+**Common issues**:
+- `h-full` + `justify-between` creates rigid spacing that hides overflow content
+- `flex-1` + `max-h-[calc(...)]` creates height constraints that clip content
+- Double overflow handling (CSS `overflow-y: auto` + component `overflow-y-auto`) conflicts
+
+**Solution**: Use simple flex layouts with natural spacing (`space-y-*`, `gap-*`). Let content determine size, not arbitrary constraints.
+
+### Button Sizing
+
+Never use `flex-1` on buttons:
+
+```tsx
+// ❌ Bad: flex-1 makes buttons huge
+<button className="flex-1 px-2 py-1 text-xs">
+  Update from Discogs
+</button>
+
+// ✅ Good: Natural sizing with whitespace-nowrap
+<button className="px-2 py-1 text-xs whitespace-nowrap">
+  Update
+</button>
+```
+
+**Why**: `flex-1` causes buttons to grow and fill available space, creating oversized buttons that dominate the UI. Use natural sizing with shorter labels and `whitespace-nowrap` to keep buttons compact.
+
+### Text Size Guidelines
+
+**Minimum readable sizes**:
+- **Primary content** (titles, artist names, labels): `text-xs` (12px) minimum
+- **Dense information cards** (detailed metadata): `text-[10px]` acceptable
+- **Body text**: `text-sm` (14px) or larger
+
+```tsx
+// ✅ Good: Readable artist name
+<p className="text-xs text-warmText-secondary">
+  {record.artistName}
+</p>
+
+// ❌ Bad: Artist name too small
+<p className="text-[10px] text-warmText-secondary">
+  {record.artistName}
+</p>
+```
+
+**Rationale**: Text smaller than `text-xs` is difficult to read, especially for primary content. Reserve `text-[10px]` for dense detail cards where space is limited.
+
+### Grid Layout Spacing
+
+Cards in grid layouts need sufficient `min-height` to prevent text overlap:
+
+```css
+/* ❌ Bad: Cards overlap, artist text covered */
+.card {
+  min-height: 160px;
+  width: 120px;
+}
+
+/* ✅ Good: Sufficient height for image + text */
+.card {
+  min-height: 240px;
+  width: 200px;
+}
+```
+
+**Calculation**: For cards with 96px image + title (2 lines) + artist (1 line):
+- Image: 96px
+- Title: ~36px (2 lines at 18px line-height)
+- Artist: ~18px (1 line)
+- Spacing: ~30px (margins/padding)
+- **Total: ~240px minimum**
+
+**Why**: Insufficient `min-height` causes text to extend beyond card bounds and overlap with cards in the next row.
+
 ## File Organization
 
 ```
