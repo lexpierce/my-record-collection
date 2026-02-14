@@ -39,8 +39,6 @@
   /* Flip card animation utilities */
   .flip-card {
     perspective: 1500px;
-    /* Fixed height to prevent overlap - allows space for image + text */
-    min-height: 240px;
     width: 200px;
     position: relative;
     z-index: 1;
@@ -58,8 +56,6 @@
   .flip-card-inner {
     position: relative;
     width: 100%;
-    height: 100%;
-    min-height: 240px;
     transition: transform 0.6s;
     transform-style: preserve-3d;
   }
@@ -70,37 +66,28 @@
 
   .flip-card-front,
   .flip-card-back {
-    position: absolute;
     width: 100%;
-    height: 100%;
-    min-height: 240px;
-    /* CRITICAL: Hide back face to prevent text bleed-through */
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
     -moz-backface-visibility: hidden;
-    /* Make cards fully opaque with solid background */
     background-color: #FFF8F0; /* warmBg-primary */
-    /* NOTE: Do NOT add transform-style: preserve-3d here.
-       It creates nested 3D contexts that break backface-visibility.
-       preserve-3d belongs only on .flip-card-inner. */
   }
 
+  /* Front face is position: relative so it sets the container height naturally.
+     Back face is position: absolute so it overlays the front. */
   .flip-card-front {
+    position: relative;
     transform: rotateY(0deg);
-    /* Add border for definition */
-    border: 1px solid #E5D4BC; /* lighter border */
+    border: 1px solid #E5D4BC;
     border-radius: 0px;
   }
 
   .flip-card-back {
-    /* Start rotated 180 degrees */
+    position: absolute;
+    top: 0;
+    left: 0;
     transform: rotateY(180deg);
-    /* Ensure back is fully opaque with solid background */
     background-color: #F5E6D3; /* warmBg-secondary */
-    opacity: 1;
-    /* Override height: 100% so background covers ALL content, not just 240px */
-    height: auto;
-    /* Add border for definition */
     border: 2px solid #C9A876; /* warmAccent-bronze */
     border-radius: 0px;
   }
