@@ -308,6 +308,14 @@ export default function RecordCard({ record }: RecordCardProps) {
                     </span>
                   </div>
                 )}
+
+                {/* Synced with Discogs */}
+                {record.isSyncedWithDiscogs && (
+                  <div className="text-[10px]">
+                    <span className="font-semibold text-warmText-primary">Synced:</span>{" "}
+                    <span className="text-warmAccent-bronze">&#10003;</span>
+                  </div>
+                )}
               </div>
             </div>
 

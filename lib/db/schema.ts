@@ -23,6 +23,7 @@ export const recordsTable = pgTable("records", {
   catalogNumber: text("catalog_number"),
   discogsId: text("discogs_id").unique(),
   discogsUri: text("discogs_uri"),
+  isSyncedWithDiscogs: boolean("is_synced_with_discogs").default(false).notNull(),
 
   // Current market value from Discogs
   currentValueMinimum: decimal("current_value_minimum", { precision: 10, scale: 2 }),

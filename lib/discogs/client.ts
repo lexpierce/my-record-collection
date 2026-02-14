@@ -44,6 +44,40 @@ export interface DiscogsRelease {
 }
 
 /**
+ * Basic release info returned by the Discogs collection API
+ * Subset of full release — enough to create a DB record without per-item getRelease()
+ */
+export interface DiscogsCollectionBasicInfo {
+  id: number;
+  title: string;
+  year: number;
+  thumb: string;
+  cover_image: string;
+  formats: DiscogsFormat[];
+  labels: Array<{ name: string; catno: string }>;
+  genres: string[];
+  styles: string[];
+  artists: Array<{ name: string }>;
+  resource_url: string;
+}
+
+export interface DiscogsCollectionRelease {
+  id: number; // instance_id
+  rating: number;
+  basic_information: DiscogsCollectionBasicInfo;
+}
+
+export interface DiscogsCollectionResponse {
+  pagination: {
+    page: number;
+    pages: number;
+    per_page: number;
+    items: number;
+  };
+  releases: DiscogsCollectionRelease[];
+}
+
+/**
  * Interface for Discogs search result
  */
 export interface DiscogsSearchResult {
@@ -118,32 +152,46 @@ export class DiscogsClient {
    * @param endpoint - API endpoint to call
    * @returns Parsed JSON response
    */
-  private async makeRequest<T>(endpoint: string): Promise<T> {
-    // Wait for rate limiter before making request
+  async makeRequest<T>(
+    endpoint: string,
+    options?: { method?: string; body?: unknown },
+  ): Promise<T & { _status?: number }> {
     await this.rateLimiter.waitForNextRequest();
 
     const headers: HeadersInit = {
       "User-Agent": this.userAgent,
     };
 
-    // Add authorization header if token is provided
     if (this.token) {
       headers["Authorization"] = `Discogs token=${this.token}`;
     }
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+    const fetchOptions: RequestInit & { next?: { revalidate: number } } = {
+      method: options?.method || "GET",
       headers,
-      // Cache responses for 1 hour to reduce API calls
-      next: { revalidate: 3600 },
-    });
+    };
 
-    if (!response.ok) {
-      throw new Error(
-        `Discogs API error: ${response.status} ${response.statusText}`
-      );
+    if (options?.body) {
+      headers["Content-Type"] = "application/json";
+      fetchOptions.body = JSON.stringify(options.body);
+    } else if (fetchOptions.method === "GET") {
+      fetchOptions.next = { revalidate: 3600 };
     }
 
-    return response.json();
+    const response = await fetch(`${this.baseUrl}${endpoint}`, fetchOptions);
+
+    if (!response.ok) {
+      const err = new Error(
+        `Discogs API error: ${response.status} ${response.statusText}`,
+      ) as Error & { status: number };
+      err.status = response.status;
+      throw err;
+    }
+
+    // Some POST endpoints return 201 with empty body
+    const text = await response.text();
+    if (!text) return { _status: response.status } as T & { _status?: number };
+    return JSON.parse(text);
   }
 
   /**
@@ -267,6 +315,30 @@ export class DiscogsClient {
    * @param releaseId - The Discogs release ID
    * @returns Marketplace statistics including pricing information
    */
+  /**
+   * Fetches a page of the user's Discogs collection (folder 0 = all)
+   */
+  async getUserCollection(
+    username: string,
+    page = 1,
+    perPage = 100,
+  ): Promise<DiscogsCollectionResponse> {
+    return this.makeRequest<DiscogsCollectionResponse>(
+      `/users/${encodeURIComponent(username)}/collection/folders/0/releases?page=${page}&per_page=${perPage}&sort=added&sort_order=desc`,
+    );
+  }
+
+  /**
+   * Adds a release to the user's Discogs collection (folder 1 = uncategorized)
+   * Returns 201 on success, throws 409 if already in collection
+   */
+  async addToCollection(username: string, releaseId: number): Promise<void> {
+    await this.makeRequest(
+      `/users/${encodeURIComponent(username)}/collection/folders/1/releases/${releaseId}`,
+      { method: "POST" },
+    );
+  }
+
   async getReleaseMarketStats(releaseId: number): Promise<{
     lowest_price?: { value: number; currency: string };
     num_for_sale?: number;

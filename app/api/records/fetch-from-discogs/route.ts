@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
       vinylColor,
       isShapedVinyl,
       dataSource: "discogs" as const,
+      isSyncedWithDiscogs: false,
     };
 
     // Insert the record into the database
