@@ -5,11 +5,11 @@ React components for the My Record Collection application.
 ## Component Overview
 
 ### Record Display Components
-- **RecordCard**: Flip card displaying album art and detailed information
-- **RecordShelf**: Grid layout for displaying the record collection
+- **RecordCard**: Flip card with width expansion (180px → 250px), 216px back thumbnail
+- **RecordShelf**: Grid layout with sort (artist/title/year) and filters (size, shaped/picture disc)
 
 ### Search Components
-- **SearchBar**: Search interface for finding records on Discogs
+- **SearchBar**: Search Discogs by artist/title, catalog #, or UPC. Accepts `onRecordAdded` callback for no-reload updates.
 
 ## Component Architecture
 
@@ -31,7 +31,7 @@ All components follow these patterns:
 
 Individual component documentation will be added as separate files:
 
-- [ ] RecordCard component
+- [x] RecordCard component — see [record-card.md](./record-card.md)
 - [ ] RecordShelf component
 - [ ] SearchBar component
 

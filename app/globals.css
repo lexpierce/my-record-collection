@@ -56,8 +56,7 @@
 .flip-card.flipped {
   z-index: 1000;
   width: 250px;
-  margin-left: -35px;
-  margin-right: -35px;
+  /* margin-left/right set dynamically by RecordCard JS to stay within viewport */
   filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
 }
 

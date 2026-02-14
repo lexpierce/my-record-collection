@@ -26,8 +26,9 @@ interface RecordCardProps {
 - **Back Side**: Thumbnail, all record details, update/delete buttons
 - **Interaction**: Click anywhere to flip, hover lifts card
 - **Animation**: 3D transform with border and shadow effects (no scaling)
+- **Width expansion**: Card widens 180px → 250px on flip for larger back thumbnail
 - **Actions**: Update from Discogs, delete with confirmation
-- **Dimensions**: 180px wide, content-driven height (no min-height)
+- **Dimensions**: 180px wide (250px flipped), content-driven height (no min-height)
 - **Sharp Edges**: All elements use border-radius: 0px
 
 ## State Management
@@ -129,7 +130,7 @@ Deletes record after user confirmation.
 **Structure:** Thumbnail -> Info -> Buttons
 
 **Content:**
-1. **Album thumbnail**: 144x144px at top (centered)
+1. **Album thumbnail**: 216x216px at top (centered, `.album-art-size-lg`)
 2. **Album title**: `text-[11px] font-semibold` (matches front)
 3. **Artist name**: `text-[10px]`
 4. **All metadata** (`text-[10px]`):
@@ -144,7 +145,7 @@ Deletes record after user confirmation.
 ```tsx
 <div className="flip-card-back bg-warmBg-secondary p-3">
   <div className="flex flex-col space-y-2">
-    <div className="album-art-size mx-auto">{/* Thumbnail */}</div>
+    <div className="album-art-size-lg mx-auto">{/* Thumbnail — 216px on back */}</div>
     <div className="space-y-1">
       <h3 className="text-[11px] font-semibold">{title}</h3>
       <p className="text-[10px]">{artist}</p>
@@ -161,8 +162,9 @@ Deletes record after user confirmation.
 ## Styling
 
 ### Card Dimensions
-- **Width**: 180px
+- **Width**: 180px (expands to 250px when flipped via negative margins)
 - **Height**: Content-driven (no min-height)
+- **Back thumbnail**: 216x216px (`.album-art-size-lg`)
 
 ### Design Principles
 - **Border Radius**: 0px on all elements (sharp edges)

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import type { Record } from "@/lib/db/schema";
 
@@ -18,6 +18,41 @@ interface RecordCardProps {
  */
 export default function RecordCard({ record }: RecordCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+
+    if (isFlipped) {
+      const rect = el.getBoundingClientRect();
+      const extra = 70; // 250px - 180px
+      const half = extra / 2;
+
+      let ml = -half;
+      let mr = -half;
+
+      // Shift expansion away from whichever edge is too close
+      const spaceRight = window.innerWidth - rect.right;
+      if (spaceRight < half) {
+        const shift = half - spaceRight;
+        ml -= shift;
+        mr += shift;
+      }
+      const spaceLeft = rect.left;
+      if (spaceLeft < Math.abs(ml)) {
+        const shift = Math.abs(ml) - spaceLeft;
+        ml += shift;
+        mr -= shift;
+      }
+
+      el.style.marginLeft = `${ml}px`;
+      el.style.marginRight = `${mr}px`;
+    } else {
+      el.style.marginLeft = "";
+      el.style.marginRight = "";
+    }
+  }, [isFlipped]);
 
   const handleCardClick = () => {
     setIsFlipped(!isFlipped);
@@ -105,6 +140,7 @@ export default function RecordCard({ record }: RecordCardProps) {
 
   return (
     <div
+      ref={cardRef}
       className={`flip-card cursor-pointer ${isFlipped ? "flipped" : ""}`}
       onClick={handleCardClick}
     >

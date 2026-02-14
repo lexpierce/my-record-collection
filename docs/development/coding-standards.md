@@ -379,7 +379,7 @@ Cards use **content-driven height** — NO min-height. The front face uses `posi
 **Current card dimensions**:
 - Card width: 180px
 - Album art: 144px × 144px (`.album-art-size`)
-- Grid gap: `gap-x-5 gap-y-8` for vertical breathing room
+- Grid gap: `gap-x-5 gap-y-0`
 
 ## File Organization
 

@@ -44,10 +44,13 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
     fetchRecords();
   }, [refreshKey]);
 
+  const effectiveSize = (r: Record) =>
+    r.recordSize || (r.isShapedVinyl ? "Unknown" : '12"');
+
   const uniqueSizes = useMemo(() => {
     const sizes = new Set<string>();
     for (const r of records) {
-      sizes.add(r.recordSize || "Unknown");
+      sizes.add(effectiveSize(r));
     }
     return [...sizes].sort();
   }, [records]);
@@ -55,7 +58,7 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
   const filteredRecords = useMemo(() => {
     let result = records;
     if (sizeFilter.size > 0) {
-      result = result.filter((r) => sizeFilter.has(r.recordSize || "Unknown"));
+      result = result.filter((r) => sizeFilter.has(effectiveSize(r)));
     }
     if (shapedOnly) {
       result = result.filter((r) => r.isShapedVinyl);
@@ -148,13 +151,21 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
         <div className="relative">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`text-sm px-2 py-1 border transition-colors ${
+            className={`relative px-2 py-1 border transition-colors ${
               activeFilterCount > 0
                 ? "border-warmAccent-bronze text-warmAccent-bronze"
                 : "border-warmBg-tertiary text-warmText-secondary hover:text-warmText-primary"
             }`}
+            title="Filter"
           >
-            Filter{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
+            {activeFilterCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-warmAccent-bronze text-white text-[9px] flex items-center justify-center leading-none">
+                {activeFilterCount}
+              </span>
+            )}
           </button>
           {showFilters && (
             <div className="absolute top-full left-0 mt-1 bg-warmBg-primary border border-warmBg-tertiary shadow-lg p-3 z-50 min-w-[180px]">

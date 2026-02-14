@@ -28,7 +28,7 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
   width: 180px;
   position: relative;
   z-index: 1;
-  transition: transform 0.2s ease;
+  transition: transform 0.4s ease, width 0.4s ease, margin 0.4s ease;
 }
 
 .flip-card:hover:not(.flipped) {
@@ -40,6 +40,7 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 - `perspective: 1500px` - Creates 3D space for transform
 - `width: 180px` - Card width; height is content-driven (no min-height)
 - `position: relative` - Enables z-index control
+- Transition includes `width` and `margin` for the width-expansion on flip
 - Hover lift provides subtle interactivity feedback
 
 ### Flipped State
@@ -50,6 +51,9 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
    3D transforms, breaking backface-visibility entirely. */
 .flip-card.flipped {
   z-index: 1000;
+  width: 250px;
+  margin-left: -35px;
+  margin-right: -35px;
   filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25))
           drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
 }
@@ -57,8 +61,10 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 
 **Key Properties:**
 - `z-index: 1000` - Brings card to front, above all other cards
+- `width: 250px` - Widens card to fit 216px back thumbnail
+- `margin-left/right: -35px` - Negative margins center the wider card without shifting the grid layout
 - `filter` on **outer container** - Creates depth without breaking 3D context
-- **No scaling** - Card remains at natural size for better UX
+- **No scaling** - Text stays at original size. Width-only expansion, never `transform: scale()`
 
 ### Inner Container
 
@@ -252,30 +258,41 @@ Back Face Text (Reversed, Showing Through)
 background-color: #FFF8F0; /* Solid color, not transparent */
 ```
 
-## Visual Depth Without Scaling
+## Width expansion on flip
 
-### Why No Scaling?
+### Why width expansion, not scaling?
 
-**User feedback:** "Scaling is ugly" - scaling creates jarring UX
+**NEVER use `transform: scale()` on flip cards.** Scaling enlarges all text content, making the card too tall and hard to read. Width expansion gives the back face a larger thumbnail without changing any text sizes.
 
-When the card flips to show detailed information:
-- Card is already sized appropriately (180px wide, content-driven height)
-- Scaling creates abrupt, disorienting visual changes
-- Natural sizing provides smoother, more professional experience
+### How it works
 
-**Solution:** Use border and layered shadows for 3D depth instead of scaling
-
-### Implementation
+When flipped, the card widens from 180px to 250px. Negative margins (-35px each side) keep it centered in the grid cell without shifting neighboring cards.
 
 ```css
 .flip-card.flipped {
   z-index: 1000;
-  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25))
-          drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+  width: 250px;
+  margin-left: -35px;
+  margin-right: -35px;
+  filter: drop-shadow(...);
 }
 ```
 
-### Z-Index Elevation
+The back face thumbnail uses `.album-art-size-lg` (216px) instead of `.album-art-size` (144px). Text stays at `text-[10px]`/`text-[11px]`.
+
+### Containing the overflow
+
+The wider flipped card can extend beyond the page container at grid edges. The shelf section uses `overflow-x-clip` to prevent horizontal scrollbar:
+
+```tsx
+<section className="max-w-7xl mx-auto px-8 py-8 overflow-x-clip">
+  <RecordShelf />
+</section>
+```
+
+`overflow-x-clip` is preferred over `overflow-x-hidden` because it does not create a scroll container (avoids side effects on stacking contexts and `position: sticky`).
+
+### Z-index elevation
 
 ```css
 .flip-card {
@@ -290,7 +307,7 @@ When the card flips to show detailed information:
 **Why elevate:**
 - Creates visual hierarchy (flipped card is "active")
 - Prevents card from being hidden behind neighboring cards
-- Maintains layering without scale transform
+- Wider card overlaps neighbors safely due to z-index
 
 ### Layered Drop Shadow
 
@@ -413,7 +430,7 @@ Cards are displayed in a responsive grid:
 
 ```tsx
 // components/records/RecordShelf.tsx
-<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-x-5 gap-y-8">
+<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-x-5 gap-y-0">
   {records.map((record) => (
     <RecordCard key={record.recordId} record={record} />
   ))}
@@ -533,9 +550,10 @@ Efficient animation properties:
 - `z-index` - No reflow when changed
 - `opacity` - No reflow, GPU accelerated
 
-Avoid animating:
-- `width`/`height` - Triggers reflow
-- `top`/`left` - Triggers reflow
+The `width` and `margin` transitions on `.flip-card` do trigger reflow, but:
+- Only one card is flipped at a time
+- The 3D flip animation (GPU-accelerated `transform`) is the dominant visual
+- Width/margin reflow cost is negligible for a single 250px element
 
 ## Related Documentation
 
