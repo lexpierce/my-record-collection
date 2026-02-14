@@ -127,16 +127,20 @@ export async function executeSync(
   progress.phase = "push";
   onProgress({ ...progress });
 
-  // Find local records with a discogsId that aren't yet synced
-  const unsyncedRecords = await database
+  // Find local records with a discogsId that's NOT in the Discogs collection
+  // Uses actual collection contents rather than the flag (handles stale flag data)
+  const allLocalRecords = await database
     .select({
       recordId: schema.recordsTable.recordId,
       discogsId: schema.recordsTable.discogsId,
     })
-    .from(schema.recordsTable)
-    .where(eq(schema.recordsTable.isSyncedWithDiscogs, false));
+    .from(schema.recordsTable);
 
-  for (const record of unsyncedRecords) {
+  const recordsToPush = allLocalRecords.filter(
+    (r) => r.discogsId && !discogsCollectionIds.has(r.discogsId),
+  );
+
+  for (const record of recordsToPush) {
     if (!record.discogsId) continue;
 
     try {
