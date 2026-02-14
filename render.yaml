@@ -35,8 +35,8 @@ projects:
             # Bun is available by default on Render when BUN_VERSION is set
             buildCommand: bun install && bun run build
             startCommand: bun run start
-            # Run database migrations before each deployment (non-interactive)
-            preDeployCommand: yes | bun run db:push
+            # Run database migrations before each deployment (force non-interactive mode)
+            preDeployCommand: bun run db:push --force
 
         databases:
           # Postgres 18 database with 256MB RAM
