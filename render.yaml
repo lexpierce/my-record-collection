@@ -9,15 +9,12 @@ services:
   # Web service for the Next.js application
   - type: web
     name: my-record-collection
-    runtime: bun
+    runtime: node
     plan: starter
     region: oregon
     branch: main
     repo: https://github.com/lexpierce/my-record-collection
     healthCheckPath: /api/am_i_evil
-    # Project and environment organization
-    project: Records
-    environment: Demo
     envVars:
       - key: NODE_ENV
         value: production
@@ -29,18 +26,16 @@ services:
         sync: false
       - key: DISCOGS_USER_AGENT
         value: MyRecordCollection/1.0
-    buildCommand: bun install && bun run build
-    startCommand: bun run start
+    # Install Bun and use it for build and start (Bun not yet a recognized runtime in validator)
+    buildCommand: curl -fsSL https://bun.sh/install | bash && export BUN_INSTALL="$HOME/.bun" && export PATH="$BUN_INSTALL/bin:$PATH" && bun install && bun run build
+    startCommand: export BUN_INSTALL="$HOME/.bun" && export PATH="$BUN_INSTALL/bin:$PATH" && bun run start
 
 databases:
-  # Postgres 18 database
+  # Postgres 18 database (using free plan with 1GB storage)
+  # Note: After deployment, organize under Records project and Demo environment via Dashboard
   - name: my-record-collection-db
-    plan: basic_256mb
+    plan: free
     databaseName: my_record_collection
     region: oregon
     postgresMajorVersion: 18
-    # Project and environment organization
-    project: Records
-    environment: Demo
     ipAllowList: []
-    diskSizeGB: 5
