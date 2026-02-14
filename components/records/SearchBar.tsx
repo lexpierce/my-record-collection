@@ -103,7 +103,7 @@ export default function SearchBar() {
   };
 
   return (
-    <div className="bg-warmBg-secondary p-6 rounded-lg shadow-md">
+    <div className="bg-warmBg-secondary p-6 border-2 border-warmAccent-bronze shadow-md">
       {/* Search method selector */}
       <div className="mb-4">
         <label className="block text-warmText-primary font-semibold mb-2">
@@ -113,7 +113,7 @@ export default function SearchBar() {
           <button
             type="button"
             onClick={() => setSearchMethod("artistTitle")}
-            className={`px-4 py-2 rounded transition ${
+            className={`px-4 py-2 transition ${
               searchMethod === "artistTitle"
                 ? "bg-warmAccent-orange text-white"
                 : "bg-warmBg-tertiary text-warmText-secondary hover:bg-warmAccent-gold"
@@ -124,7 +124,7 @@ export default function SearchBar() {
           <button
             type="button"
             onClick={() => setSearchMethod("catalog")}
-            className={`px-4 py-2 rounded transition ${
+            className={`px-4 py-2 transition ${
               searchMethod === "catalog"
                 ? "bg-warmAccent-orange text-white"
                 : "bg-warmBg-tertiary text-warmText-secondary hover:bg-warmAccent-gold"
@@ -135,7 +135,7 @@ export default function SearchBar() {
           <button
             type="button"
             onClick={() => setSearchMethod("upc")}
-            className={`px-4 py-2 rounded transition ${
+            className={`px-4 py-2 transition ${
               searchMethod === "upc"
                 ? "bg-warmAccent-orange text-white"
                 : "bg-warmBg-tertiary text-warmText-secondary hover:bg-warmAccent-gold"
@@ -158,7 +158,7 @@ export default function SearchBar() {
                 type="text"
                 value={artistName}
                 onChange={(e) => setArtistName(e.target.value)}
-                className="w-full px-4 py-2 rounded border border-warmAccent-bronze focus:outline-none focus:ring-2 focus:ring-warmAccent-orange"
+                className="w-full px-4 py-2 bg-warmBg-primary border-2 border-warmAccent-bronze focus:outline-none focus:ring-2 focus:ring-warmAccent-orange text-warmText-primary"
                 placeholder="e.g., Pink Floyd"
                 required
               />
@@ -171,7 +171,7 @@ export default function SearchBar() {
                 type="text"
                 value={albumTitle}
                 onChange={(e) => setAlbumTitle(e.target.value)}
-                className="w-full px-4 py-2 rounded border border-warmAccent-bronze focus:outline-none focus:ring-2 focus:ring-warmAccent-orange"
+                className="w-full px-4 py-2 bg-warmBg-primary border-2 border-warmAccent-bronze focus:outline-none focus:ring-2 focus:ring-warmAccent-orange text-warmText-primary"
                 placeholder="e.g., The Dark Side of the Moon"
                 required
               />
@@ -188,7 +188,7 @@ export default function SearchBar() {
               type="text"
               value={catalogNumber}
               onChange={(e) => setCatalogNumber(e.target.value)}
-              className="w-full px-4 py-2 rounded border border-warmAccent-bronze focus:outline-none focus:ring-2 focus:ring-warmAccent-orange"
+              className="w-full px-4 py-2 bg-warmBg-primary border-2 border-warmAccent-bronze focus:outline-none focus:ring-2 focus:ring-warmAccent-orange text-warmText-primary"
               placeholder="e.g., SHVL 804"
               required
             />
@@ -202,7 +202,7 @@ export default function SearchBar() {
               type="text"
               value={upcCode}
               onChange={(e) => setUpcCode(e.target.value)}
-              className="w-full px-4 py-2 rounded border border-warmAccent-bronze focus:outline-none focus:ring-2 focus:ring-warmAccent-orange"
+              className="w-full px-4 py-2 bg-warmBg-primary border-2 border-warmAccent-bronze focus:outline-none focus:ring-2 focus:ring-warmAccent-orange text-warmText-primary"
               placeholder="e.g., 724384260804"
               required
             />
@@ -212,7 +212,7 @@ export default function SearchBar() {
         <button
           type="submit"
           disabled={isSearching}
-          className="w-full bg-warmAccent-orange text-white py-3 rounded font-semibold hover:bg-warmAccent-copper transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-warmAccent-orange text-white py-3 font-semibold hover:bg-warmAccent-copper transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSearching ? "Searching..." : "Search Discogs"}
         </button>
@@ -220,7 +220,7 @@ export default function SearchBar() {
 
       {/* Error message */}
       {errorMessage && (
-        <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700">
           {errorMessage}
         </div>
       )}
@@ -235,7 +235,7 @@ export default function SearchBar() {
             {searchResults.map((result) => (
               <div
                 key={result.id}
-                className="flex items-center gap-4 p-3 bg-warmBg-primary rounded border border-warmAccent-bronze hover:shadow-md transition"
+                className="flex items-center gap-4 p-3 bg-warmBg-primary border border-warmAccent-bronze hover:shadow-md transition"
               >
                 {result.thumb && (
                   <Image
@@ -243,7 +243,7 @@ export default function SearchBar() {
                     alt={result.title}
                     width={64}
                     height={64}
-                    className="w-16 h-16 object-cover rounded"
+                    className="w-16 h-16 object-cover"
                     unoptimized
                   />
                 )}
@@ -269,7 +269,7 @@ export default function SearchBar() {
                 </div>
                 <button
                   onClick={() => handleAddRecord(result.id)}
-                  className="px-4 py-2 bg-warmAccent-orange text-white rounded hover:bg-warmAccent-copper transition"
+                  className="px-4 py-2 bg-warmAccent-orange text-white hover:bg-warmAccent-copper transition"
                 >
                   Add
                 </button>

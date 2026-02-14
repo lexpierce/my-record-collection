@@ -91,7 +91,7 @@
     transform: rotateY(0deg);
     /* Add border for definition */
     border: 1px solid #E5D4BC; /* lighter border */
-    border-radius: 8px;
+    border-radius: 0px;
   }
 
   .flip-card-back {
@@ -102,8 +102,13 @@
     opacity: 1;
     /* Add border for definition */
     border: 2px solid #C9A876; /* warmAccent-bronze */
-    border-radius: 8px;
+    border-radius: 0px;
     /* Allow content to be visible */
     overflow: visible;
+  }
+
+  /* Ensure back appears above front when flipped */
+  .flip-card.flipped .flip-card-back {
+    z-index: 3;
   }
 }

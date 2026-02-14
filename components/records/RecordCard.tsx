@@ -116,7 +116,7 @@ export default function RecordCard({ record }: RecordCardProps) {
         <div className="flip-card-front">
           <div className="flex flex-col items-center">
             {/* Album art - 1 inch (96px) square */}
-            <div className="album-art-size mb-2 bg-warmBg-tertiary rounded shadow-md overflow-hidden">
+            <div className="album-art-size mt-3 mb-2 bg-warmBg-tertiary shadow-md overflow-hidden">
               {record.thumbnailUrl ? (
                 <Image
                   src={record.thumbnailUrl}
@@ -135,7 +135,7 @@ export default function RecordCard({ record }: RecordCardProps) {
 
             {/* Title and artist */}
             <div className="text-center px-1 w-full">
-              <h3 className="text-xs font-semibold text-warmText-primary truncate w-full">
+              <h3 className="text-[10px] font-semibold text-warmText-primary truncate w-full">
                 {record.albumTitle}
               </h3>
               <p className="text-xs text-warmText-secondary truncate w-full">
@@ -149,7 +149,7 @@ export default function RecordCard({ record }: RecordCardProps) {
         <div className="flip-card-back bg-warmBg-secondary p-3">
           <div className="flex flex-col space-y-2">
             {/* Album thumbnail */}
-            <div className="album-art-size mx-auto mb-2 bg-warmBg-tertiary rounded shadow-sm overflow-hidden">
+            <div className="album-art-size mx-auto mb-2 bg-warmBg-tertiary shadow-sm overflow-hidden">
               {record.thumbnailUrl ? (
                 <Image
                   src={record.thumbnailUrl}
@@ -323,7 +323,7 @@ export default function RecordCard({ record }: RecordCardProps) {
                   e.stopPropagation();
                   handleUpdateFromDiscogs();
                 }}
-                className="px-2 py-1 text-[10px] bg-warmAccent-bronze text-white rounded hover:bg-warmAccent-bronze/80 transition-colors whitespace-nowrap"
+                className="px-2 py-1 text-[10px] bg-warmAccent-bronze text-white hover:bg-warmAccent-bronze/80 transition-colors whitespace-nowrap"
               >
                 Update
               </button>
@@ -332,7 +332,7 @@ export default function RecordCard({ record }: RecordCardProps) {
                   e.stopPropagation();
                   handleDeleteAlbum();
                 }}
-                className="px-2 py-1 text-[10px] bg-red-600 text-white rounded hover:bg-red-700 transition-colors whitespace-nowrap"
+                className="px-2 py-1 text-[10px] bg-red-600 text-white hover:bg-red-700 transition-colors whitespace-nowrap"
               >
                 Delete
               </button>
