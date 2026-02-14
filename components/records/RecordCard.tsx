@@ -89,6 +89,7 @@ export default function RecordCard({ record }: RecordCardProps) {
     }
 
     try {
+      // Use the correct endpoint path with [id] parameter
       const response = await fetch(`/api/records/${record.recordId}`, {
         method: "DELETE",
       });
