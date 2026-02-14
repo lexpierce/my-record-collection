@@ -11,6 +11,7 @@ export default function RecordShelf() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [sortBy, setSortBy] = useState<SortBy>("artist");
+  const [sortAsc, setSortAsc] = useState(true);
 
   useEffect(() => {
     async function fetchRecords() {
@@ -43,6 +44,7 @@ export default function RecordShelf() {
         .replace(/^(The|A)\s+/i, "")
         .replace(/^[^a-zA-Z0-9]+/, "");
 
+    const dir = sortAsc ? 1 : -1;
     const sorted = [...records];
     switch (sortBy) {
       case "artist":
@@ -50,17 +52,19 @@ export default function RecordShelf() {
           const cmp = artistSortKey(a.artistName).localeCompare(
             artistSortKey(b.artistName),
           );
-          if (cmp !== 0) return cmp;
-          return (a.yearReleased ?? 9999) - (b.yearReleased ?? 9999);
+          if (cmp !== 0) return cmp * dir;
+          return ((a.yearReleased ?? 9999) - (b.yearReleased ?? 9999)) * dir;
         });
       case "title":
-        return sorted.sort((a, b) => a.albumTitle.localeCompare(b.albumTitle));
+        return sorted.sort(
+          (a, b) => a.albumTitle.localeCompare(b.albumTitle) * dir,
+        );
       case "year":
         return sorted.sort(
-          (a, b) => (b.yearReleased ?? 0) - (a.yearReleased ?? 0),
+          (a, b) => ((b.yearReleased ?? 0) - (a.yearReleased ?? 0)) * dir,
         );
     }
-  }, [records, sortBy]);
+  }, [records, sortBy, sortAsc]);
 
   if (isLoading) {
     return (
@@ -106,6 +110,13 @@ export default function RecordShelf() {
           <option value="title">Title</option>
           <option value="year">Year</option>
         </select>
+        <button
+          onClick={() => setSortAsc(!sortAsc)}
+          className="text-sm text-warmText-secondary hover:text-warmText-primary transition-colors px-1"
+          title={sortAsc ? "Ascending" : "Descending"}
+        >
+          {sortAsc ? "\u25B2" : "\u25BC"}
+        </button>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-x-5 gap-y-0">
