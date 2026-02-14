@@ -1,16 +1,19 @@
 # Render Blueprint for deploying the record collection application
 # Deploys to Records project, Production environment
 # Uses starter service plan and basic-256mb database plan
+#
+# Note: This blueprint uses Bun runtime for the web service.
+# The Dockerfile is provided for alternative Docker-based deployments.
 
 services:
   # Web service for the Next.js application
   - type: web
     name: my-record-collection
-    runtime: docker
+    runtime: bun
     plan: starter
     region: oregon
     branch: main
-    dockerfilePath: ./Dockerfile
+    repo: https://github.com/lexpierce/my-record-collection
     healthCheckPath: /api/am_i_evil
     envVars:
       - key: NODE_ENV
