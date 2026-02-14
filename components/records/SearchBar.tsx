@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 /**
  * Search bar component for finding records via Discogs API
@@ -237,10 +238,13 @@ export default function SearchBar() {
                 className="flex items-center gap-4 p-3 bg-warmBg-primary rounded border border-warmAccent-bronze hover:shadow-md transition"
               >
                 {result.thumb && (
-                  <img
+                  <Image
                     src={result.thumb}
                     alt={result.title}
+                    width={64}
+                    height={64}
                     className="w-16 h-16 object-cover rounded"
+                    unoptimized
                   />
                 )}
                 <div className="flex-1">
