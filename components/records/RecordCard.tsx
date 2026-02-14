@@ -134,11 +134,11 @@ export default function RecordCard({ record }: RecordCardProps) {
             </div>
 
             {/* Title and artist */}
-            <div className="text-center">
-              <h3 className="text-sm font-semibold text-warmText-primary line-clamp-2">
+            <div className="text-center px-1">
+              <h3 className="text-xs font-semibold text-warmText-primary">
                 {record.albumTitle}
               </h3>
-              <p className="text-xs text-warmText-secondary line-clamp-1">
+              <p className="text-[10px] text-warmText-secondary">
                 {record.artistName}
               </p>
             </div>
@@ -146,21 +146,39 @@ export default function RecordCard({ record }: RecordCardProps) {
         </div>
 
         {/* Back of card - Detailed information */}
-        <div className="flip-card-back bg-warmBg-secondary rounded shadow-md p-4">
-          <div className="h-full flex flex-col justify-between">
+        <div className="flip-card-back bg-warmBg-secondary rounded shadow-md p-3">
+          <div className="flex flex-col space-y-2">
+            {/* Album thumbnail */}
+            <div className="album-art-size mx-auto mb-2 bg-warmBg-tertiary rounded shadow-sm overflow-hidden">
+              {record.thumbnailUrl ? (
+                <Image
+                  src={record.thumbnailUrl}
+                  alt={`${record.albumTitle} by ${record.artistName}`}
+                  width={96}
+                  height={96}
+                  className="w-full h-full object-cover"
+                  unoptimized
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-warmAccent-bronze text-white text-xs">
+                  No Image
+                </div>
+              )}
+            </div>
+
             {/* Album info */}
-            <div className="flex-1 space-y-2 overflow-y-auto max-h-[calc(100%-60px)]">
-              <h3 className="text-sm font-bold text-warmText-primary line-clamp-2">
+            <div className="space-y-1">
+              <h3 className="text-xs font-bold text-warmText-primary">
                 {record.albumTitle}
               </h3>
-              <p className="text-xs text-warmText-secondary line-clamp-1">
+              <p className="text-[10px] text-warmText-secondary">
                 {record.artistName}
               </p>
 
-              <div className="border-t border-warmAccent-bronze pt-2 space-y-1">
+              <div className="border-t border-warmAccent-bronze pt-1 space-y-0.5">
                 {/* Year released */}
                 {record.yearReleased && (
-                  <div className="text-xs">
+                  <div className="text-[10px]">
                     <span className="font-semibold text-warmText-primary">
                       Year:
                     </span>{" "}
@@ -172,7 +190,7 @@ export default function RecordCard({ record }: RecordCardProps) {
 
                 {/* Record size */}
                 {record.recordSize && (
-                  <div className="text-xs">
+                  <div className="text-[10px]">
                     <span className="font-semibold text-warmText-primary">
                       Size:
                     </span>{" "}
@@ -184,7 +202,7 @@ export default function RecordCard({ record }: RecordCardProps) {
 
                 {/* Vinyl color */}
                 {record.vinylColor && (
-                  <div className="text-xs">
+                  <div className="text-[10px]">
                     <span className="font-semibold text-warmText-primary">
                       Color:
                     </span>{" "}
@@ -196,7 +214,7 @@ export default function RecordCard({ record }: RecordCardProps) {
 
                 {/* Shaped vinyl */}
                 {record.isShapedVinyl && (
-                  <div className="text-xs">
+                  <div className="text-[10px]">
                     <span className="font-semibold text-warmText-primary">
                       Type:
                     </span>{" "}
@@ -207,7 +225,7 @@ export default function RecordCard({ record }: RecordCardProps) {
                 )}
 
                 {/* Current value range */}
-                <div className="text-xs">
+                <div className="text-[10px]">
                   <span className="font-semibold text-warmText-primary">
                     Value:
                   </span>{" "}
@@ -216,11 +234,11 @@ export default function RecordCard({ record }: RecordCardProps) {
 
                 {/* Label name */}
                 {record.labelName && (
-                  <div className="text-xs">
+                  <div className="text-[10px]">
                     <span className="font-semibold text-warmText-primary">
                       Label:
                     </span>{" "}
-                    <span className="text-warmText-secondary line-clamp-1">
+                    <span className="text-warmText-secondary">
                       {record.labelName}
                     </span>
                   </div>
@@ -228,7 +246,7 @@ export default function RecordCard({ record }: RecordCardProps) {
 
                 {/* Catalog number */}
                 {record.catalogNumber && (
-                  <div className="text-xs">
+                  <div className="text-[10px]">
                     <span className="font-semibold text-warmText-primary">
                       Cat#:
                     </span>{" "}
@@ -240,7 +258,7 @@ export default function RecordCard({ record }: RecordCardProps) {
 
                 {/* UPC code */}
                 {record.upcCode && (
-                  <div className="text-xs">
+                  <div className="text-[10px]">
                     <span className="font-semibold text-warmText-primary">
                       UPC:
                     </span>{" "}
@@ -252,7 +270,7 @@ export default function RecordCard({ record }: RecordCardProps) {
 
                 {/* Genres */}
                 {record.genres && record.genres.length > 0 && (
-                  <div className="text-xs">
+                  <div className="text-[10px]">
                     <span className="font-semibold text-warmText-primary">
                       Genres:
                     </span>{" "}
@@ -264,7 +282,7 @@ export default function RecordCard({ record }: RecordCardProps) {
 
                 {/* Styles */}
                 {record.styles && record.styles.length > 0 && (
-                  <div className="text-xs">
+                  <div className="text-[10px]">
                     <span className="font-semibold text-warmText-primary">
                       Styles:
                     </span>{" "}
@@ -275,7 +293,7 @@ export default function RecordCard({ record }: RecordCardProps) {
                 )}
 
                 {/* Data source */}
-                <div className="text-xs">
+                <div className="text-[10px]">
                   <span className="font-semibold text-warmText-primary">
                     Source:
                   </span>{" "}
@@ -286,7 +304,7 @@ export default function RecordCard({ record }: RecordCardProps) {
 
                 {/* Discogs ID */}
                 {record.discogsId && (
-                  <div className="text-xs">
+                  <div className="text-[10px]">
                     <span className="font-semibold text-warmText-primary">
                       Discogs ID:
                     </span>{" "}
@@ -299,31 +317,26 @@ export default function RecordCard({ record }: RecordCardProps) {
             </div>
 
             {/* Action buttons */}
-            <div className="mt-3 pt-2 border-t border-warmAccent-bronze flex gap-2">
+            <div className="mt-2 pt-2 border-t border-warmAccent-bronze flex gap-1">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleUpdateFromDiscogs();
                 }}
-                className="flex-1 px-2 py-1 text-xs bg-warmAccent-bronze text-white rounded hover:bg-warmAccent-bronze/80 transition-colors"
+                className="px-2 py-1 text-[10px] bg-warmAccent-bronze text-white rounded hover:bg-warmAccent-bronze/80 transition-colors whitespace-nowrap"
               >
-                Update from Discogs
+                Update
               </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDeleteAlbum();
                 }}
-                className="flex-1 px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                className="px-2 py-1 text-[10px] bg-red-600 text-white rounded hover:bg-red-700 transition-colors whitespace-nowrap"
               >
-                Delete Album
+                Delete
               </button>
             </div>
-
-            {/* Click hint */}
-            <p className="text-xs text-warmText-tertiary italic mt-2">
-              Click to flip back
-            </p>
           </div>
         </div>
       </div>
