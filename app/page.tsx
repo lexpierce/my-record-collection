@@ -170,7 +170,7 @@ export default function HomePage() {
       )}
 
       {/* Record shelf display */}
-      <section className="max-w-7xl mx-auto px-8 py-8">
+      <section className="max-w-7xl mx-auto px-8 py-8 overflow-x-clip">
         <RecordShelf refreshKey={refreshKey} />
       </section>
     </main>
