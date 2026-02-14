@@ -4,6 +4,26 @@ import { useState } from "react";
 import Image from "next/image";
 
 /**
+ * Inline Discogs "D" logo as SVG for the search button
+ */
+function DiscogsLogo({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Stylized "D" representing Discogs */}
+      <circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="1" />
+      <circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" strokeWidth="0.75" />
+      <circle cx="12" cy="12" r="2" fill="currentColor" />
+    </svg>
+  );
+}
+
+/**
  * Search bar component for finding records via Discogs API
  * Supports three search methods: catalog number, artist/title, and UPC code
  */
@@ -103,75 +123,70 @@ export default function SearchBar() {
   };
 
   return (
-    <div className="bg-warmBg-secondary p-6 border-2 border-warmAccent-bronze shadow-md">
+    <div className="space-y-4">
       {/* Search method selector */}
-      <div className="mb-4">
-        <label className="block text-warmText-primary font-semibold mb-2">
-          Search Method
-        </label>
-        <div className="flex gap-4">
-          <button
-            type="button"
-            onClick={() => setSearchMethod("artistTitle")}
-            className={`px-4 py-2 transition ${
-              searchMethod === "artistTitle"
-                ? "bg-warmAccent-orange text-white"
-                : "bg-warmBg-tertiary text-warmText-secondary hover:bg-warmAccent-gold"
-            }`}
-          >
-            Artist & Title
-          </button>
-          <button
-            type="button"
-            onClick={() => setSearchMethod("catalog")}
-            className={`px-4 py-2 transition ${
-              searchMethod === "catalog"
-                ? "bg-warmAccent-orange text-white"
-                : "bg-warmBg-tertiary text-warmText-secondary hover:bg-warmAccent-gold"
-            }`}
-          >
-            Catalog Number
-          </button>
-          <button
-            type="button"
-            onClick={() => setSearchMethod("upc")}
-            className={`px-4 py-2 transition ${
-              searchMethod === "upc"
-                ? "bg-warmAccent-orange text-white"
-                : "bg-warmBg-tertiary text-warmText-secondary hover:bg-warmAccent-gold"
-            }`}
-          >
-            UPC Code
-          </button>
-        </div>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setSearchMethod("artistTitle")}
+          className={`px-4 py-2 text-sm font-medium transition-colors ${
+            searchMethod === "artistTitle"
+              ? "bg-warmAccent-bronze text-white"
+              : "bg-warmBg-tertiary text-warmText-secondary hover:bg-warmBg-secondary"
+          }`}
+        >
+          Artist & Title
+        </button>
+        <button
+          type="button"
+          onClick={() => setSearchMethod("catalog")}
+          className={`px-4 py-2 text-sm font-medium transition-colors ${
+            searchMethod === "catalog"
+              ? "bg-warmAccent-bronze text-white"
+              : "bg-warmBg-tertiary text-warmText-secondary hover:bg-warmBg-secondary"
+          }`}
+        >
+          Catalog #
+        </button>
+        <button
+          type="button"
+          onClick={() => setSearchMethod("upc")}
+          className={`px-4 py-2 text-sm font-medium transition-colors ${
+            searchMethod === "upc"
+              ? "bg-warmAccent-bronze text-white"
+              : "bg-warmBg-tertiary text-warmText-secondary hover:bg-warmBg-secondary"
+          }`}
+        >
+          UPC
+        </button>
       </div>
 
       {/* Search form */}
-      <form onSubmit={handleSearchSubmit} className="space-y-4">
+      <form onSubmit={handleSearchSubmit} className="flex gap-3 items-end">
         {searchMethod === "artistTitle" && (
           <>
-            <div>
-              <label className="block text-warmText-primary mb-1">
-                Artist Name
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-warmText-tertiary mb-1">
+                Artist
               </label>
               <input
                 type="text"
                 value={artistName}
                 onChange={(e) => setArtistName(e.target.value)}
-                className="w-full px-4 py-2 bg-warmBg-primary border-2 border-warmAccent-bronze focus:outline-none focus:ring-2 focus:ring-warmAccent-orange text-warmText-primary"
+                className="w-full px-3 py-2 bg-warmBg-primary border border-warmBg-tertiary focus:outline-none focus:border-warmAccent-bronze text-warmText-primary text-sm"
                 placeholder="e.g., Pink Floyd"
                 required
               />
             </div>
-            <div>
-              <label className="block text-warmText-primary mb-1">
-                Album Title
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-warmText-tertiary mb-1">
+                Album
               </label>
               <input
                 type="text"
                 value={albumTitle}
                 onChange={(e) => setAlbumTitle(e.target.value)}
-                className="w-full px-4 py-2 bg-warmBg-primary border-2 border-warmAccent-bronze focus:outline-none focus:ring-2 focus:ring-warmAccent-orange text-warmText-primary"
+                className="w-full px-3 py-2 bg-warmBg-primary border border-warmBg-tertiary focus:outline-none focus:border-warmAccent-bronze text-warmText-primary text-sm"
                 placeholder="e.g., The Dark Side of the Moon"
                 required
               />
@@ -180,15 +195,15 @@ export default function SearchBar() {
         )}
 
         {searchMethod === "catalog" && (
-          <div>
-            <label className="block text-warmText-primary mb-1">
+          <div className="flex-1">
+            <label className="block text-xs font-medium text-warmText-tertiary mb-1">
               Catalog Number
             </label>
             <input
               type="text"
               value={catalogNumber}
               onChange={(e) => setCatalogNumber(e.target.value)}
-              className="w-full px-4 py-2 bg-warmBg-primary border-2 border-warmAccent-bronze focus:outline-none focus:ring-2 focus:ring-warmAccent-orange text-warmText-primary"
+              className="w-full px-3 py-2 bg-warmBg-primary border border-warmBg-tertiary focus:outline-none focus:border-warmAccent-bronze text-warmText-primary text-sm"
               placeholder="e.g., SHVL 804"
               required
             />
@@ -196,82 +211,87 @@ export default function SearchBar() {
         )}
 
         {searchMethod === "upc" && (
-          <div>
-            <label className="block text-warmText-primary mb-1">UPC Code</label>
+          <div className="flex-1">
+            <label className="block text-xs font-medium text-warmText-tertiary mb-1">
+              UPC Code
+            </label>
             <input
               type="text"
               value={upcCode}
               onChange={(e) => setUpcCode(e.target.value)}
-              className="w-full px-4 py-2 bg-warmBg-primary border-2 border-warmAccent-bronze focus:outline-none focus:ring-2 focus:ring-warmAccent-orange text-warmText-primary"
+              className="w-full px-3 py-2 bg-warmBg-primary border border-warmBg-tertiary focus:outline-none focus:border-warmAccent-bronze text-warmText-primary text-sm"
               placeholder="e.g., 724384260804"
               required
             />
           </div>
         )}
 
+        {/* Search button with Discogs vinyl icon */}
         <button
           type="submit"
           disabled={isSearching}
-          className="w-full bg-warmAccent-orange text-white py-3 font-semibold hover:bg-warmAccent-copper transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 bg-warmAccent-orange text-white hover:bg-warmAccent-copper transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          title="Search Discogs"
         >
-          {isSearching ? "Searching..." : "Search Discogs"}
+          {isSearching ? (
+            <span className="text-sm">Searching...</span>
+          ) : (
+            <>
+              <DiscogsLogo className="w-5 h-5" />
+              <span className="text-sm font-medium">Search</span>
+            </>
+          )}
         </button>
       </form>
 
       {/* Error message */}
       {errorMessage && (
-        <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700">
+        <div className="p-3 bg-warmAccent-orange/10 border border-warmAccent-orange/30 text-warmAccent-copper text-sm">
           {errorMessage}
         </div>
       )}
 
       {/* Search results */}
       {showResults && searchResults.length > 0 && (
-        <div className="mt-6">
-          <h3 className="text-xl font-semibold text-warmText-primary mb-3">
-            Search Results
+        <div className="mt-4">
+          <h3 className="text-sm font-semibold text-warmText-primary mb-3">
+            Results ({searchResults.length})
           </h3>
-          <div className="space-y-3 max-h-96 overflow-y-auto">
+          <div className="space-y-2 max-h-80 overflow-y-auto">
             {searchResults.map((result) => (
               <div
                 key={result.id}
-                className="flex items-center gap-4 p-3 bg-warmBg-primary border border-warmAccent-bronze hover:shadow-md transition"
+                className="flex items-center gap-3 p-3 bg-warmBg-primary border border-warmBg-tertiary hover:border-warmAccent-bronze transition-colors"
               >
                 {result.thumb && (
                   <Image
                     src={result.thumb}
                     alt={result.title}
-                    width={64}
-                    height={64}
-                    className="w-16 h-16 object-cover"
+                    width={48}
+                    height={48}
+                    className="w-12 h-12 object-cover"
                     unoptimized
                   />
                 )}
-                <div className="flex-1">
-                  <h4 className="font-semibold text-warmText-primary">
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-sm text-warmText-primary truncate">
                     {result.title}
                   </h4>
-                  {result.year && (
-                    <p className="text-sm text-warmText-secondary">
-                      {result.year}
-                    </p>
-                  )}
                   <div className="flex gap-3 text-xs text-warmText-tertiary">
+                    {result.year && <span>{result.year}</span>}
                     {result.catno && <span>Cat#: {result.catno}</span>}
-                    {result.recordSize && <span>Size: {result.recordSize}</span>}
-                    {result.vinylColor && <span>Color: {result.vinylColor}</span>}
+                    {result.recordSize && <span>{result.recordSize}</span>}
+                    {result.vinylColor && <span>{result.vinylColor}</span>}
                     {result.isShapedVinyl && (
-                      <span className="text-warmAccent-orange">
-                        ⭐ Shaped/Picture Disc
-                      </span>
+                      <span className="text-warmAccent-orange">Picture Disc</span>
                     )}
                   </div>
                 </div>
                 <button
                   onClick={() => handleAddRecord(result.id)}
-                  className="px-4 py-2 bg-warmAccent-orange text-white hover:bg-warmAccent-copper transition"
+                  className="px-3 py-1.5 bg-warmAccent-bronze text-white text-xs font-medium hover:bg-warmAccent-copper transition-colors"
                 >
-                  Add
+                  + Add
                 </button>
               </div>
             ))}

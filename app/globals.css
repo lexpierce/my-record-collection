@@ -30,18 +30,23 @@
 }
 
 @layer utilities {
-  /* Custom utility class for album art sizing (1 inch at 96 DPI) */
+  /* Custom utility class for album art sizing (1.5 inches at 96 DPI) */
   .album-art-size {
-    width: 96px;
-    height: 96px;
+    width: 144px;
+    height: 144px;
   }
 
   /* Flip card animation utilities */
   .flip-card {
     perspective: 1500px;
-    width: 200px;
+    width: 180px;
     position: relative;
     z-index: 1;
+    transition: transform 0.2s ease;
+  }
+
+  .flip-card:hover:not(.flipped) {
+    transform: translateY(-2px);
   }
 
   /* When flipped, bring to front with 3D effect */
@@ -78,8 +83,9 @@
   .flip-card-front {
     position: relative;
     transform: rotateY(0deg);
-    border: 1px solid #E5D4BC;
+    border: 1px solid #E8D4BA;
     border-radius: 0px;
+    box-shadow: 0 1px 3px rgba(139, 69, 19, 0.08);
   }
 
   .flip-card-back {

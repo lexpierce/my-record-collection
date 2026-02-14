@@ -42,8 +42,9 @@ export default function RecordShelf() {
 
   if (isLoading) {
     return (
-      <div className="text-center py-12">
-        <p className="text-warmText-secondary text-lg">
+      <div className="text-center py-16">
+        <div className="w-8 h-8 border-3 border-warmBg-tertiary border-t-warmAccent-bronze rounded-full animate-spin mx-auto mb-3" />
+        <p className="text-sm text-warmText-tertiary">
           Loading your collection...
         </p>
       </div>
@@ -52,17 +53,17 @@ export default function RecordShelf() {
 
   if (errorMessage) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-600">{errorMessage}</p>
+      <div className="text-center py-16">
+        <p className="text-warmAccent-copper text-sm">{errorMessage}</p>
       </div>
     );
   }
 
   if (records.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-warmText-secondary text-lg">
-          Your collection is empty. Search for records above to get started!
+      <div className="text-center py-16">
+        <p className="text-warmText-tertiary">
+          Your collection is empty. Click <strong>&ldquo;+ Add an album&rdquo;</strong> to get started.
         </p>
       </div>
     );
@@ -70,12 +71,12 @@ export default function RecordShelf() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-warmText-primary mb-6">
-        Your Collection ({records.length} {records.length === 1 ? "record" : "records"})
+      <h2 className="text-sm font-medium text-warmText-tertiary mb-4">
+        {records.length} {records.length === 1 ? "record" : "records"}
       </h2>
 
       {/* Grid layout for the record shelf */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-5">
         {records.map((record) => (
           <RecordCard key={record.recordId} record={record} />
         ))}
