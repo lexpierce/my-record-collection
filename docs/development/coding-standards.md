@@ -346,14 +346,14 @@ All elements use `border-radius: 0px` (sharp edges). Do not use Tailwind `rounde
 ### Text Size Guidelines
 
 **Sizes in use**:
-- **Card titles (front AND back)**: `text-[11px]` with `truncate` — matched on both faces
-- **Card front artist**: `text-[11px]` with `truncate`
+- **Card titles (front AND back)**: `text-xs font-bold` with `truncate` — matched on both faces
+- **Card artist (front AND back)**: `text-xs` with `truncate`
 - **Dense metadata** (back card details): `text-[10px]`
 - **Body text**: `text-sm` (14px) or larger
 
 ```tsx
 // ✅ Good: Card title (same size on front and back)
-<h3 className="text-[11px] font-semibold text-warmText-primary truncate leading-none">
+<h3 className="text-xs font-bold text-warmText-primary truncate leading-none">
   {record.albumTitle}
 </h3>
 
@@ -361,7 +361,7 @@ All elements use `border-radius: 0px` (sharp edges). Do not use Tailwind `rounde
 <span className="text-[10px]">{record.yearReleased}</span>
 ```
 
-**Rationale**: `text-[11px]` balances readability with space. Matching front/back title sizes keeps the flip transition visually consistent. `text-[10px]` is acceptable for dense metadata.
+**Rationale**: `text-xs` (12px) balances readability with space. `font-bold` on titles distinguishes them from artist names. Matching front/back sizes keeps the flip transition visually consistent. `text-[10px]` is acceptable for dense metadata.
 
 ### Card Sizing
 

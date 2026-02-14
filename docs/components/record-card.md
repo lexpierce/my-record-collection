@@ -105,8 +105,8 @@ Deletes record after user confirmation.
 
 ### Front Face
 - **Album art**: 144x144px (`.album-art-size`)
-- **Album title**: `text-[11px]`, truncated, `leading-none`
-- **Artist name**: `text-[11px]`, truncated, `leading-none`
+- **Album title**: `text-xs font-bold`, truncated, `leading-none`
+- **Artist name**: `text-xs`, truncated, `leading-none`
 
 **Layout:**
 ```tsx
@@ -115,10 +115,10 @@ Deletes record after user confirmation.
     <div className="album-art-size bg-warmBg-tertiary overflow-hidden">
       {/* Image */}
     </div>
-    <h3 className="text-[11px] font-semibold text-warmText-primary truncate w-full text-center mt-1 leading-none">
+    <h3 className="text-xs font-bold text-warmText-primary truncate w-full text-center mt-1 leading-none">
       {title}
     </h3>
-    <p className="text-[11px] text-warmText-secondary truncate w-full text-center leading-none mt-0.5">
+    <p className="text-xs text-warmText-secondary truncate w-full text-center leading-none mt-0.5">
       {artist}
     </p>
   </div>
@@ -131,8 +131,8 @@ Deletes record after user confirmation.
 
 **Content:**
 1. **Album thumbnail**: 216x216px at top (centered, `.album-art-size-lg`)
-2. **Album title**: `text-[11px] font-semibold` (matches front)
-3. **Artist name**: `text-[10px]`
+2. **Album title**: `text-xs font-bold` (matches front)
+3. **Artist name**: `text-xs`
 4. **All metadata** (`text-[10px]`):
    - Year, size, color, shaped vinyl status
    - Label, catalog number, UPC
@@ -146,8 +146,8 @@ Deletes record after user confirmation.
   <div className="flex flex-col space-y-2">
     <div className="album-art-size-lg mx-auto">{/* Thumbnail — 216px on back */}</div>
     <div className="space-y-1">
-      <h3 className="text-[11px] font-semibold">{title}</h3>
-      <p className="text-[10px]">{artist}</p>
+      <h3 className="text-xs font-bold">{title}</h3>
+      <p className="text-xs">{artist}</p>
       {/* All metadata fields */}
     </div>
     <div className="mt-2 border-t flex gap-1">
@@ -187,10 +187,10 @@ Deletes record after user confirmation.
   ```
 
 ### Font Sizing
-- **Front - Title**: `text-[11px]` with `leading-none`
-- **Front - Artist**: `text-[11px]` with `leading-none`
-- **Back - Title**: `text-[11px] font-semibold` (matches front)
-- **Back - Artist**: `text-[10px]`
+- **Front - Title**: `text-xs font-bold` with `leading-none`
+- **Front - Artist**: `text-xs` with `leading-none`
+- **Back - Title**: `text-xs font-bold` (matches front)
+- **Back - Artist**: `text-xs`
 - **Back - Details**: `text-[10px]`
 - **Back - Buttons**: `text-[10px]`
 
