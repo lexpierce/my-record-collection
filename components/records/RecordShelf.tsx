@@ -1,21 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import RecordCard from "./RecordCard";
 import type { Record } from "@/lib/db/schema";
 
-/**
- * Record shelf component that displays all records in a grid layout
- * Shows album art as 1-inch squares (96px at 96 DPI) with title and artist
- */
+type SortBy = "artist" | "title" | "year";
+
 export default function RecordShelf() {
   const [records, setRecords] = useState<Record[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [sortBy, setSortBy] = useState<SortBy>("artist");
 
-  /**
-   * Fetches all records from the database on component mount
-   */
   useEffect(() => {
     async function fetchRecords() {
       try {
@@ -39,6 +35,24 @@ export default function RecordShelf() {
 
     fetchRecords();
   }, []);
+
+  const sortedRecords = useMemo(() => {
+    const sorted = [...records];
+    switch (sortBy) {
+      case "artist":
+        return sorted.sort((a, b) => {
+          const cmp = a.artistName.localeCompare(b.artistName);
+          if (cmp !== 0) return cmp;
+          return (a.yearReleased ?? 9999) - (b.yearReleased ?? 9999);
+        });
+      case "title":
+        return sorted.sort((a, b) => a.albumTitle.localeCompare(b.albumTitle));
+      case "year":
+        return sorted.sort(
+          (a, b) => (b.yearReleased ?? 0) - (a.yearReleased ?? 0),
+        );
+    }
+  }, [records, sortBy]);
 
   if (isLoading) {
     return (
@@ -71,13 +85,23 @@ export default function RecordShelf() {
 
   return (
     <div>
-      <h2 className="text-sm font-medium text-warmText-tertiary mb-4">
-        {records.length} {records.length === 1 ? "record" : "records"}
-      </h2>
+      <div className="flex items-center gap-4 mb-4">
+        <h2 className="text-sm font-medium text-warmText-tertiary">
+          {records.length} {records.length === 1 ? "record" : "records"}
+        </h2>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as SortBy)}
+          className="text-sm bg-warmBg-primary border border-warmBg-tertiary text-warmText-secondary px-2 py-1 focus:outline-none focus:border-warmAccent-bronze"
+        >
+          <option value="artist">Artist</option>
+          <option value="title">Title</option>
+          <option value="year">Year</option>
+        </select>
+      </div>
 
-      {/* Grid layout for the record shelf */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-x-5 gap-y-8">
-        {records.map((record) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-x-5 gap-y-0">
+        {sortedRecords.map((record) => (
           <RecordCard key={record.recordId} record={record} />
         ))}
       </div>

@@ -69,7 +69,7 @@
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   -moz-backface-visibility: hidden;
-  background-color: #FFF8F0; /* warmBg-primary */
+  background-color: #F7F9F2; /* warmBg-primary */
 }
 
 /* Front face is position: relative so it sets the container height naturally.
@@ -77,9 +77,9 @@
 .flip-card-front {
   position: relative;
   transform: rotateY(0deg);
-  border: 1px solid #E8D4BA;
+  border: 1px solid #D8DECC;
   border-radius: 0px;
-  box-shadow: 0 1px 3px rgba(139, 69, 19, 0.08);
+  box-shadow: 0 1px 3px rgba(62, 92, 47, 0.08);
 }
 
 .flip-card-back {
@@ -87,7 +87,7 @@
   top: 0;
   left: 0;
   transform: rotateY(180deg);
-  background-color: #F5E6D3; /* warmBg-secondary */
-  border: 2px solid #C9A876; /* warmAccent-bronze */
+  background-color: #ECF0E3; /* warmBg-secondary */
+  border: 2px solid #8BA87A; /* warm sage border */
   border-radius: 0px;
 }

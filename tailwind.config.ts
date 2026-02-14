@@ -13,22 +13,22 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Warm color palette for the UI
+        // Warm green palette for the UI
         warmBg: {
-          primary: "#FFF8F0", // Warm off-white
-          secondary: "#F5E6D3", // Light tan
-          tertiary: "#E8D4BA", // Beige
+          primary: "#F7F9F2", // Warm cream with green tint
+          secondary: "#ECF0E3", // Light sage cream
+          tertiary: "#D8DECC", // Warm sage beige
         },
         warmAccent: {
-          orange: "#D97742", // Burnt orange
-          copper: "#B85C38", // Copper
-          bronze: "#8B4513", // Bronze
-          gold: "#DAA520", // Goldenrod
+          orange: "#6B8E5A", // Warm sage
+          copper: "#527542", // Forest
+          bronze: "#3E5C2F", // Dark moss
+          gold: "#8B9E4A", // Olive gold
         },
         warmText: {
-          primary: "#3E2723", // Dark brown
-          secondary: "#5D4037", // Medium brown
-          tertiary: "#795548", // Light brown
+          primary: "#2F3327", // Dark olive-brown
+          secondary: "#4A5040", // Medium olive
+          tertiary: "#687060", // Light olive
         },
       },
       fontFamily: {
