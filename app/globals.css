@@ -30,13 +30,19 @@
   height: 144px;
 }
 
+/* Larger album art for flipped card back — 216px (1.5× standard) */
+.album-art-size-lg {
+  width: 216px;
+  height: 216px;
+}
+
 /* Flip card animation styles */
 .flip-card {
   perspective: 1500px;
   width: 180px;
   position: relative;
   z-index: 1;
-  transition: transform 0.4s ease;
+  transition: transform 0.4s ease, width 0.4s ease, margin 0.4s ease;
 }
 
 .flip-card:hover:not(.flipped) {
@@ -49,7 +55,9 @@
    breaking backface-visibility and the entire flip mechanism. */
 .flip-card.flipped {
   z-index: 1000;
-  transform: scale(1.5);
+  width: 250px;
+  margin-left: -35px;
+  margin-right: -35px;
   filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
 }
 

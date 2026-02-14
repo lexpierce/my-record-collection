@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import type { Record } from "@/lib/db/schema";
 
@@ -18,37 +18,6 @@ interface RecordCardProps {
  */
 export default function RecordCard({ record }: RecordCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = cardRef.current;
-    if (!el) return;
-
-    if (isFlipped) {
-      const rect = el.getBoundingClientRect();
-      const scale = 1.5;
-      const extraW = rect.width * (scale - 1);
-      const extraH = rect.height * (scale - 1);
-
-      // Default origin is center (50% 50%). Shift if scaled card overflows viewport.
-      let originX = 50;
-      let originY = 50;
-
-      const overflowLeft = -(rect.left - extraW / 2);
-      const overflowRight = (rect.right + extraW / 2) - window.innerWidth;
-      if (overflowLeft > 0) originX = Math.max(0, 50 - (overflowLeft / rect.width) * 100);
-      if (overflowRight > 0) originX = Math.min(100, 50 + (overflowRight / rect.width) * 100);
-
-      const overflowTop = -(rect.top - extraH / 2);
-      const overflowBottom = (rect.bottom + extraH / 2) - window.innerHeight;
-      if (overflowTop > 0) originY = Math.max(0, 50 - (overflowTop / rect.height) * 100);
-      if (overflowBottom > 0) originY = Math.min(100, 50 + (overflowBottom / rect.height) * 100);
-
-      el.style.transformOrigin = `${originX}% ${originY}%`;
-    } else {
-      el.style.transformOrigin = "";
-    }
-  }, [isFlipped]);
 
   const handleCardClick = () => {
     setIsFlipped(!isFlipped);
@@ -136,7 +105,6 @@ export default function RecordCard({ record }: RecordCardProps) {
 
   return (
     <div
-      ref={cardRef}
       className={`flip-card cursor-pointer ${isFlipped ? "flipped" : ""}`}
       onClick={handleCardClick}
     >
@@ -173,13 +141,13 @@ export default function RecordCard({ record }: RecordCardProps) {
         <div className="flip-card-back bg-warmBg-secondary p-3">
           <div className="flex flex-col space-y-2">
             {/* Album thumbnail */}
-            <div className="album-art-size mx-auto mb-2 bg-warmBg-tertiary overflow-hidden">
+            <div className="album-art-size-lg mx-auto mb-2 bg-warmBg-tertiary overflow-hidden">
               {record.thumbnailUrl ? (
                 <Image
                   src={record.thumbnailUrl}
                   alt={`${record.albumTitle} by ${record.artistName}`}
-                  width={144}
-                  height={144}
+                  width={216}
+                  height={216}
                   className="w-full h-full object-cover"
                   unoptimized
                 />
