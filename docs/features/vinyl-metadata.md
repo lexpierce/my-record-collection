@@ -255,7 +255,7 @@ User refreshes to see updated data
 // components/records/SearchBar.tsx
 {result.recordSize && <span>Size: {result.recordSize}</span>}
 {result.vinylColor && <span>Color: {result.vinylColor}</span>}
-{result.isShapedVinyl && <span className="text-warmAccent-orange">⭐ Shaped/Picture Disc</span>}
+{result.isShapedVinyl && <span className={styles.resultPicDisc}>Picture Disc</span>}
 ```
 
 ### On Record Card Back

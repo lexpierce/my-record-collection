@@ -190,60 +190,87 @@ return NextResponse.json({
 
 ## Styling Patterns
 
-### Tailwind Utilities
+### Sass CSS Modules
 
-Use Tailwind for all styling:
+Every component has a co-located `.module.scss` file. Import and reference via the `styles` object:
 
 ```tsx
-<div className="flex flex-col items-center gap-2 p-4">
+import styles from "./RecordCard.module.scss";
+
+<div className={styles.card}>
   {/* content */}
 </div>
 ```
 
-### Custom CSS Classes
-
-Define in `globals.css` as regular CSS (NOT inside `@layer utilities` — Tailwind v4 manages that layer internally):
-
-```css
-/* ✅ Correct for Tailwind v4: regular CSS */
-.flip-card {
-  perspective: 1500px;
-  width: 180px;
-}
-
-/* ❌ Wrong for Tailwind v4: @layer utilities blocks are managed by Tailwind */
-@layer utilities {
-  .flip-card { ... }
-}
-```
-
-### Warm Color Palette
-
-Use custom colors from `tailwind.config.ts`:
+Conditional classes use template literals:
 
 ```tsx
-<div className="bg-warmBg-primary text-warmText-primary">
-  {/* content */}
-</div>
+<div className={`${styles.filterBtn}${isActive ? ` ${styles.active}` : ""}`}>
 ```
 
-### Font Application
+### Global styles
 
-Apply custom fonts globally via the `body` element:
+Three layers, in `styles/`:
 
-```css
-@layer base {
-  :root {
-    --font-inter: 'Inter', system-ui, sans-serif;
-  }
+| File | Purpose |
+|------|---------|
+| `_variables.scss` | CSS custom properties (color tokens, font) |
+| `_reset.scss` | `box-sizing`, `scroll-behavior`, `body` font |
+| `_animations.scss` | `@keyframes` (e.g. `spin`) |
+| `globals.scss` | `@use` all partials + global classes that JS toggles by string (flip-card, album-art-size) |
 
-  body {
-    font-family: var(--font-inter);
-  }
+Import once in `app/layout.tsx`:
+
+```tsx
+import "@/styles/globals.scss";
+```
+
+### Warm color palette
+
+All color tokens are CSS custom properties defined in `styles/_variables.scss`. Reference them everywhere via `var(--token)`:
+
+```scss
+// styles/_variables.scss
+:root {
+  --warm-bg-primary:   #F7F9F2;
+  --warm-accent-bronze: #3E5C2F;
+  --warm-text-primary:  #2F3327;
+  // ...
 }
 ```
 
-**Why**: Applying fonts at the body level ensures consistency across the entire application without needing to specify font-family on each component.
+```scss
+// In a .module.scss
+.card {
+  background-color: var(--warm-bg-primary);
+  color: var(--warm-text-primary);
+}
+```
+
+Do not hardcode hex values in component modules — always use the token.
+
+### Font application
+
+Font is set via CSS custom property from Next.js font variable, applied in `layout.module.scss`:
+
+```scss
+.body {
+  font-family: var(--font-sans); // resolves to var(--font-inter) via _variables.scss
+}
+```
+
+**Why**: Applying font at the body level ensures consistency without per-component repetition.
+
+### When to use global vs module classes
+
+Use **global classes** (in `globals.scss`) only when JavaScript toggles the class by string at runtime:
+
+```tsx
+// RecordCard.tsx — JS toggles "flipped" string, must be global
+<div className={`flip-card${isFlipped ? " flipped" : ""}`}>
+```
+
+Everything else belongs in a `.module.scss`.
 
 ### CSS 3D Transform Anti-Patterns
 
@@ -288,115 +315,129 @@ CSS `filter` flattens 3D transforms on the element, destroying the 3D context en
 
 See [Flip Card Animation](../features/flip-card-animation.md) for full details.
 
-### CSS Layout Anti-Patterns
+**Never use `overflow-x: clip` (or `overflow: clip`) on any ancestor of the flip card grid:**
 
-Avoid complex flex layouts that hide content:
+```scss
+// ❌ Bad: clips BOTH axes — rightmost cards are truncated vertically and
+//         the expanded flipped card (180px → 250px) is cut off horizontally
+.shelfSection {
+  overflow-x: clip;
+}
 
-```tsx
-// ❌ Bad: h-full + justify-between hides content
-<div className="h-full flex flex-col justify-between">
-  <div className="flex-1 overflow-y-auto max-h-[calc(100%-60px)]">
-    {/* Content gets hidden by constraints */}
-  </div>
-  <div className="mt-3">
-    {/* Buttons */}
-  </div>
-</div>
+// ✅ Good: no clipping needed — RecordCard JS adjusts margins dynamically
+//         to keep flipped cards within the viewport
+.shelfSection {
+  // no overflow rule
+}
+```
 
-// ✅ Good: Simple flex flow lets content be visible
-<div className="flex flex-col space-y-2">
-  <div className="space-y-1">
-    {/* Content flows naturally */}
-  </div>
-  <div className="mt-2">
-    {/* Buttons */}
-  </div>
-</div>
+CSS `overflow-x: clip` implicitly clips the y-axis too in most browsers (per spec, setting one axis to a value other than `visible` forces the other axis). This causes the rightmost grid column to be vertically truncated even before any flip occurs.
+
+### CSS layout anti-patterns
+
+Avoid layouts that constrain height and clip content:
+
+```scss
+// ❌ Bad: fixed height + justify-between hides overflow content
+.card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+// ✅ Good: natural flow, content determines height
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 ```
 
 **Common issues**:
-- `h-full` + `justify-between` creates rigid spacing that hides overflow content
-- `flex-1` + `max-h-[calc(...)]` creates height constraints that clip content
-- Double overflow handling (CSS `overflow-y: auto` + component `overflow-y-auto`) conflicts
+- `height: 100%` + `justify-content: space-between` creates rigid spacing that clips overflow
+- `flex: 1` + `max-height: calc(...)` introduces height constraints that hide content
+- Double overflow handling (`overflow-y: auto` at two levels) causes conflicts
 
-**Solution**: Use simple flex layouts with natural spacing (`space-y-*`, `gap-*`). Let content determine size, not arbitrary constraints.
+**Solution**: Let content determine size. Use `gap` and `margin` for spacing.
 
-### Button Sizing
+### Button sizing
 
-Never use `flex-1` on buttons:
+Never use `flex: 1` on buttons:
 
-```tsx
-// ❌ Bad: flex-1 makes buttons huge
-<button className="flex-1 px-2 py-1 text-xs">
-  Update from Discogs
-</button>
+```scss
+// ❌ Bad: flex-grow fills container, creates oversized button
+.btn { flex: 1; }
 
-// ✅ Good: Natural sizing with whitespace-nowrap
-<button className="px-2 py-1 text-xs whitespace-nowrap">
-  Update
-</button>
+// ✅ Good: natural sizing
+.btn {
+  padding: 0.25rem 0.5rem;
+  white-space: nowrap;
+}
 ```
 
-**Why**: `flex-1` causes buttons to grow and fill available space, creating oversized buttons that dominate the UI. Use natural sizing with shorter labels and `whitespace-nowrap` to keep buttons compact.
+### Border radius
 
-### Border Radius
+All elements use `border-radius: 0` (sharp edges). Do not add `border-radius` anywhere.
 
-All elements use `border-radius: 0px` (sharp edges). Do not use Tailwind `rounded` classes.
-
-### Text Size Guidelines
+### Text size guidelines
 
 **Sizes in use**:
-- **Card titles (front AND back)**: `text-xs font-bold` with `truncate` — matched on both faces
-- **Card artist (front AND back)**: `text-xs` with `truncate`
-- **Dense metadata** (back card details): `text-[10px]`
-- **Body text**: `text-sm` (14px) or larger
+- **Card titles (front AND back)**: `0.75rem` bold with `text-overflow: ellipsis` — matched on both faces
+- **Card artist (front AND back)**: `0.75rem` with ellipsis
+- **Dense metadata** (back card details): `0.625rem` (10px)
+- **Body text**: `0.875rem` (14px) or larger
 
-```tsx
-// ✅ Good: Card title (same size on front and back)
-<h3 className="text-xs font-bold text-warmText-primary truncate leading-none">
-  {record.albumTitle}
-</h3>
+**Rationale**: 12px balances readability with card space. Bold titles distinguish from artist names. Matching front/back sizes keeps the flip transition visually consistent.
 
-// ✅ Good: Dense metadata on back card
-<span className="text-[10px]">{record.yearReleased}</span>
-```
-
-**Rationale**: `text-xs` (12px) balances readability with space. `font-bold` on titles distinguishes them from artist names. Matching front/back sizes keeps the flip transition visually consistent. `text-[10px]` is acceptable for dense metadata.
-
-### Card Sizing
+### Card sizing
 
 Cards use **content-driven height** — NO min-height. The front face uses `position: relative` to set natural height; the back face uses `position: absolute` to overlay.
 
-```css
-/* ❌ Bad: Fixed min-height creates whitespace */
-.flip-card { min-height: 240px; }
+```scss
+// ❌ Bad: fixed min-height creates whitespace
+.flipCard { min-height: 240px; }
 
-/* ✅ Good: Content determines height */
-.flip-card-front { position: relative; }
-.flip-card-back { position: absolute; top: 0; left: 0; }
+// ✅ Good: content determines height
+.flipCardFront { position: relative; }
+.flipCardBack  { position: absolute; top: 0; left: 0; }
 ```
 
 **Current card dimensions**:
-- Card width: 180px
-- Album art: 144px × 144px (`.album-art-size`)
-- Grid gap: `gap-x-5 gap-y-0`
+- Card width: 180px (250px when flipped)
+- Album art front: 144px × 144px (`.album-art-size` global class)
+- Album art back: 216px × 216px (`.album-art-size-lg` global class)
+- Grid column gap: `1.25rem`, row gap: `0`
 
 ## File Organization
 
 ```
 app/
-├── api/              # API routes
-│   └── */route.ts    # Each route in its own directory
-├── page.tsx          # Main page
-└── globals.css       # Global styles
+├── api/                    # API routes
+│   └── */route.ts          # Each route in its own directory
+├── layout.tsx              # Root layout
+├── layout.module.scss      # Layout-scoped styles
+├── page.tsx                # Main page
+└── page.module.scss        # Page-scoped styles
 
 components/
-└── */                # Organized by feature
-    └── *.tsx
+└── records/                # Organized by feature
+    ├── RecordCard.tsx
+    ├── RecordCard.module.scss
+    ├── RecordShelf.tsx
+    ├── RecordShelf.module.scss
+    ├── SearchBar.tsx
+    └── SearchBar.module.scss
+
+styles/
+├── _variables.scss         # CSS custom properties (color tokens, font)
+├── _reset.scss             # Base reset (box-sizing, scroll-behavior)
+├── _animations.scss        # @keyframes
+└── globals.scss            # @use partials + global classes (flip-card, album-art-size)
 
 lib/
-├── db/               # Database client and schema
-└── */                # External API clients
+├── db/                     # Database client and schema
+└── */                      # External API clients
     └── client.ts
 ```
 

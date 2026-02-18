@@ -16,7 +16,7 @@ Development standards and patterns for the My Record Collection project.
 - **Runtime**: Bun 1.3.9
 - **Language**: TypeScript (strict mode)
 - **Database**: PostgreSQL 18 with Drizzle ORM
-- **Styling**: Tailwind CSS v4
+- **Styling**: Sass (CSS Modules per component + global partials)
 - **API Integration**: Discogs API
 
 ## Coding Standards
@@ -86,9 +86,11 @@ Individual guideline documents will be added as separate files:
 - **Border radius**: 0px on all elements (sharp, square edges)
 - **Package manager**: bun (not npm)
 - **Linting**: ESLint CLI (`eslint .`) instead of `next lint` (migrated for Next.js 16 compatibility)
-- **Tailwind CSS v4**: Uses `@import "tailwindcss"` + `@config` in CSS (NOT v3 `@tailwind` directives)
-- **Card sizing**: 180px wide, content-driven height (no min-height), 144px album art
-- **Font sizes**: `text-[11px]` for card titles (front AND back matched), `text-[10px]` for dense metadata
-- **Color family**: Warm browns/bronzes only — no red/blue for errors or buttons
-- **Page layout**: `max-w-7xl` centered container, `bg-warmBg-secondary` page background
+- **Styling**: Sass CSS Modules (`.module.scss` per component) + global partials in `styles/`
+- **Color tokens**: CSS custom properties in `styles/_variables.scss` (e.g. `--warm-bg-primary`)
+- **Card sizing**: 180px wide (250px flipped), content-driven height (no min-height), 144px album art
+- **Font sizes**: `0.75rem` for card titles (front AND back matched), `0.625rem` (10px) for dense metadata
+- **Color family**: Warm greens/olives only — no red/blue for errors or buttons
+- **Page layout**: `max-width: 80rem` centered container, `var(--warm-bg-secondary)` page background
+- **No overflow clipping on grid container**: `overflow-x: clip` clips both axes and truncates flipped cards
 - **Search**: Behind collapsible "Add an album" button in header

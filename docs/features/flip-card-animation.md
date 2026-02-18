@@ -21,7 +21,7 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 ### Container Setup
 
 ```css
-/* app/globals.css — regular CSS, NOT inside @layer utilities (Tailwind v4) */
+/* styles/globals.scss */
 
 .flip-card {
   perspective: 1500px;
@@ -95,7 +95,7 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   -moz-backface-visibility: hidden;
-  background-color: #FFF8F0; /* warmBg-primary */
+  background-color: var(--warm-bg-primary);
   /* Do NOT add transform-style: preserve-3d here. See anti-patterns below. */
 }
 ```
@@ -113,9 +113,9 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 .flip-card-front {
   position: relative;
   transform: rotateY(0deg);
-  border: 1px solid #E8D4BA;
-  border-radius: 0px;
-  box-shadow: 0 1px 3px rgba(139, 69, 19, 0.08);
+  border: 1px solid var(--warm-bg-tertiary);
+  border-radius: 0;
+  box-shadow: 0 1px 3px rgba(62, 92, 47, 0.08);
 }
 ```
 
@@ -132,9 +132,9 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
   top: 0;
   left: 0;
   transform: rotateY(180deg);
-  background-color: #F5E6D3; /* warmBg-secondary */
-  border: 2px solid #C9A876; /* warmAccent-bronze */
-  border-radius: 0px;
+  background-color: var(--warm-bg-secondary);
+  border: 2px solid #8BA87A; /* warm sage */
+  border-radius: 0;
 }
 ```
 
@@ -150,6 +150,8 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 
 ```tsx
 // components/records/RecordCard.tsx
+// flip-card / flipped are global classes (styles/globals.scss) — JS toggles
+// them by string so they cannot be CSS Modules scoped classes.
 export default function RecordCard({ record }: RecordCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
 
@@ -159,15 +161,16 @@ export default function RecordCard({ record }: RecordCardProps) {
 
   return (
     <div
-      className={`flip-card cursor-pointer ${isFlipped ? "flipped" : ""}`}
+      className={`flip-card${isFlipped ? " flipped" : ""}`}
+      style={{ cursor: "pointer" }}
       onClick={handleCardClick}
     >
       <div className="flip-card-inner">
-        <div className="flip-card-front p-1.5">
-          {/* Album art and basic info */}
+        <div className="flip-card-front">
+          {/* Album art and basic info — inner layout via RecordCard.module.scss */}
         </div>
-        <div className="flip-card-back bg-warmBg-secondary p-3">
-          {/* Detailed information */}
+        <div className="flip-card-back">
+          {/* Detailed information — inner layout via RecordCard.module.scss */}
         </div>
       </div>
     </div>
@@ -255,7 +258,7 @@ Back Face Text (Reversed, Showing Through)
 
 **Opaque Background:**
 ```css
-background-color: #FFF8F0; /* Solid color, not transparent */
+background-color: var(--warm-bg-primary); /* Solid color, not transparent */
 ```
 
 ## Width expansion on flip
@@ -284,19 +287,27 @@ When flipped, the card widens from 180px to 250px. Negative margins (totaling -7
 // Computes available space on each side and shifts margins to avoid overflow
 ```
 
-The back face thumbnail uses `.album-art-size-lg` (216px) instead of `.album-art-size` (144px). Text stays at `text-xs`/`text-[10px]`.
+The back face thumbnail uses `.album-art-size-lg` (216px) instead of `.album-art-size` (144px). Text stays at `0.75rem`/`0.625rem` (10px).
 
 ### Containing the overflow
 
-The wider flipped card can extend beyond the page container at grid edges. The shelf section uses `overflow-x-clip` to prevent horizontal scrollbar:
+The wider flipped card can extend beyond the page container at grid edges. The JS in `RecordCard.tsx` handles this by computing available space on each side and adjusting `marginLeft`/`marginRight` dynamically to keep the card within viewport bounds.
 
-```tsx
-<section className="max-w-7xl mx-auto px-8 py-8 overflow-x-clip">
-  <RecordShelf />
-</section>
+**Do not use `overflow-x: clip` (or `overflow: clip`) on any ancestor of the grid.** Per CSS spec, setting one overflow axis to a value other than `visible` forces the other axis to clip as well. This causes the rightmost grid column to be visually truncated — vertically and horizontally — even before a flip occurs. The shelf section intentionally has no overflow rule:
+
+```scss
+// ✅ Correct: no overflow clipping; JS keeps cards in bounds
+.shelfSection {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+// ❌ Wrong: clips both axes, rightmost cards truncated
+.shelfSection {
+  overflow-x: clip;
+}
 ```
-
-`overflow-x-clip` is preferred over `overflow-x-hidden` because it does not create a scroll container (avoids side effects on stacking contexts and `position: sticky`).
 
 ### Z-index elevation
 
@@ -335,11 +346,11 @@ filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25))
 
 ```css
 .flip-card-back {
-  border: 2px solid #C9A876; /* Bronze */
+  border: 2px solid #8BA87A; /* warm sage */
 }
 ```
 
-**Bronze border benefits:**
+**Sage border benefits:**
 - Defines card edges clearly
 - Complements warm color palette
 - Adds tactile, physical appearance
@@ -436,15 +447,29 @@ Cards are displayed in a responsive grid:
 
 ```tsx
 // components/records/RecordShelf.tsx
-<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-x-5 gap-y-0">
+<div className={styles.grid}>
   {records.map((record) => (
     <RecordCard key={record.recordId} record={record} />
   ))}
 </div>
 ```
 
-**Gap spacing:**
-- `gap-x-5` horizontal, `gap-y-8` vertical for breathing room between rows
+```scss
+// RecordShelf.module.scss
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 1.25rem;
+  row-gap: 0;
+
+  @media (min-width: 640px)  { grid-template-columns: repeat(3, 1fr); }
+  @media (min-width: 768px)  { grid-template-columns: repeat(4, 1fr); }
+  @media (min-width: 1024px) { grid-template-columns: repeat(5, 1fr); }
+  @media (min-width: 1280px) { grid-template-columns: repeat(7, 1fr); }
+}
+```
+
+**Gap spacing:** `1.25rem` column gap, `0` row gap.
 
 ## Common Issues and Solutions
 
@@ -493,6 +518,14 @@ backface-visibility: hidden;
 }
 ```
 
+### Issue: Rightmost column cards are truncated (vertically and/or horizontally)
+
+**Symptom:** Cards in the last grid column are clipped at the bottom; flipped cards in that column are also cut off horizontally.
+
+**Cause:** `overflow-x: clip` (or `overflow: clip`) on an ancestor of the grid. Per CSS spec, setting one overflow axis forces the other to clip too.
+
+**Solution:** Remove the overflow rule from the shelf container. The `RecordCard` JS already handles viewport edge detection via `getBoundingClientRect()` and adjusts `marginLeft`/`marginRight` to keep flipped cards in bounds.
+
 ### Issue: No 3D effect
 
 **Symptom:** Card rotates flat, no perspective
@@ -512,7 +545,7 @@ backface-visibility: hidden;
 
 **Symptom:** Hard to read text on front or back
 
-**Solution:** Use `text-xs font-bold` for titles (front AND back), `text-xs` for artist, `text-[10px]` for dense metadata.
+**Solution:** Use `0.75rem bold` for titles (front AND back), `0.75rem` for artist, `0.625rem` (10px) for dense metadata.
 
 ## Browser Compatibility
 

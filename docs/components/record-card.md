@@ -103,24 +103,22 @@ Deletes record after user confirmation.
 
 ## Display Fields
 
-### Front Face
-- **Album art**: 144x144px (`.album-art-size`)
-- **Album title**: `text-xs font-bold`, truncated, `leading-none`
-- **Artist name**: `text-xs`, truncated, `leading-none`
+### Front face
+- **Album art**: 144x144px (`.album-art-size` global class)
+- **Album title**: `0.75rem` bold, truncated, `line-height: 1`
+- **Artist name**: `0.75rem`, truncated, `line-height: 1`
 
 **Layout:**
 ```tsx
-<div className="flip-card-front p-1.5">
-  <div className="flex flex-col items-center">
-    <div className="album-art-size bg-warmBg-tertiary overflow-hidden">
+// Global classes (flip-card-front, album-art-size) are in styles/globals.scss.
+// Inner layout classes come from RecordCard.module.scss.
+<div className="flip-card-front">
+  <div className={styles.cardFrontContent}>
+    <div className={`album-art-size ${styles.albumArtWrapper}`}>
       {/* Image */}
     </div>
-    <h3 className="text-xs font-bold text-warmText-primary truncate w-full text-center mt-1 leading-none">
-      {title}
-    </h3>
-    <p className="text-xs text-warmText-secondary truncate w-full text-center leading-none mt-0.5">
-      {artist}
-    </p>
+    <h3 className={styles.albumTitle}>{title}</h3>
+    <p className={styles.albumArtist}>{artist}</p>
   </div>
 </div>
 ```
@@ -130,29 +128,31 @@ Deletes record after user confirmation.
 **Structure:** Thumbnail -> Info -> Buttons
 
 **Content:**
-1. **Album thumbnail**: 216x216px at top (centered, `.album-art-size-lg`)
-2. **Album title**: `text-xs font-bold` (matches front)
-3. **Artist name**: `text-xs`
-4. **All metadata** (`text-[10px]`):
+1. **Album thumbnail**: 216x216px at top (centered, `.album-art-size-lg` global class)
+2. **Album title**: `0.75rem` bold (matches front)
+3. **Artist name**: `0.75rem`
+4. **All metadata** (`0.625rem` / 10px):
    - Year, size, color, shaped vinyl status
    - Label, catalog number, UPC
    - Genres, styles
    - Data source, Discogs ID
-5. **Action buttons**: `text-[10px]` with `whitespace-nowrap`
+5. **Action buttons**: `0.625rem` with `white-space: nowrap`
 
 **Layout:**
 ```tsx
-<div className="flip-card-back bg-warmBg-secondary p-3">
-  <div className="flex flex-col space-y-2">
-    <div className="album-art-size-lg mx-auto">{/* Thumbnail — 216px on back */}</div>
-    <div className="space-y-1">
-      <h3 className="text-xs font-bold">{title}</h3>
-      <p className="text-xs">{artist}</p>
-      {/* All metadata fields */}
+// Global classes (flip-card-back, album-art-size-lg) are in styles/globals.scss.
+// Inner layout classes come from RecordCard.module.scss.
+<div className="flip-card-back">
+  <div className={styles.cardBack}>
+    <div className={`album-art-size-lg ${styles.albumArtWrapperLg}`}>{/* Thumbnail */}</div>
+    <div>
+      <h3 className={styles.metaTitle}>{title}</h3>
+      <p className={styles.metaArtist}>{artist}</p>
+      <div className={styles.metaSection}>{/* metadata rows */}</div>
     </div>
-    <div className="mt-2 border-t flex gap-1">
-      <button className="px-2 py-1 text-[10px]">Update</button>
-      <button className="px-2 py-1 text-[10px]">Delete</button>
+    <div className={styles.actions}>
+      <button className={styles.btnUpdate}>Update</button>
+      <button className={styles.btnDelete}>Delete</button>
     </div>
   </div>
 </div>
@@ -169,15 +169,15 @@ Deletes record after user confirmation.
 - **Border Radius**: 0px on all elements (sharp edges)
 - **No border-radius** anywhere in the component (sharp edges throughout)
 
-### Front Card
-- **Background**: `#FFF8F0` (warmBg-primary)
-- **Border**: 1px solid `#E8D4BA` (subtle)
+### Front card
+- **Background**: `var(--warm-bg-primary)` (warm cream)
+- **Border**: `1px solid var(--warm-bg-tertiary)` (subtle)
 - **Padding**: `0.375rem` for border-to-image spacing
-- **Text Colors**: warmText-primary, warmText-secondary
+- **Text Colors**: `var(--warm-text-primary)`, `var(--warm-text-secondary)`
 
-### Back Card (Flipped)
-- **Background**: `var(--warm-bg-secondary)` (light sage cream) - set via CSS custom property
-- **Border**: 2px solid `#C9A876` (bronze, thicker for emphasis)
+### Back card (flipped)
+- **Background**: `var(--warm-bg-secondary)` (light sage cream)
+- **Border**: `2px solid #8BA87A` (warm sage, thicker for emphasis)
 - **Height**: `auto` (background covers all content, not just 240px)
 - **Opacity**: 1 (explicitly fully opaque)
 - **Shadow**: Layered drop-shadow on `.flip-card` (outer container):
@@ -186,16 +186,16 @@ Deletes record after user confirmation.
           drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
   ```
 
-### Font Sizing
-- **Front - Title**: `text-xs font-bold` with `leading-none`
-- **Front - Artist**: `text-xs` with `leading-none`
-- **Back - Title**: `text-xs font-bold` (matches front)
-- **Back - Artist**: `text-xs`
-- **Back - Details**: `text-[10px]`
-- **Back - Buttons**: `text-[10px]`
+### Font sizing
+- **Front - Title**: `0.75rem` bold, `line-height: 1`
+- **Front - Artist**: `0.75rem`, `line-height: 1`
+- **Back - Title**: `0.75rem` bold (matches front)
+- **Back - Artist**: `0.75rem`
+- **Back - Details**: `0.625rem` (10px)
+- **Back - Buttons**: `0.625rem` (10px)
 
 ### Custom CSS
-- Custom `.flip-card` utilities in `app/globals.css`
+- Global `.flip-card` classes in `styles/globals.scss`
 - 3D transform perspective and backface-visibility
 - No scaling transforms (natural sizing approach)
 - See [Flip Card Animation](../features/flip-card-animation.md) for CSS anti-patterns
