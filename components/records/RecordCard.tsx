@@ -12,8 +12,8 @@
  * Actions (back of card):
  *   Update — re-fetches data from Discogs and saves it to the DB.
  *   Delete  — removes the record from the DB after a confirmation prompt.
- *   Both use window.location.reload() because RecordCard has no access to the
- *   parent's refreshKey setter. (TODO: lift state or use a context.)
+ *   Both call onRecordMutated() on success so the parent shelf re-fetches
+ *   without a full page reload.
  */
 
 "use client";
@@ -28,6 +28,7 @@ import styles from "./RecordCard.module.scss";
  */
 interface RecordCardProps {
   record: Record;
+  onRecordMutated: () => void;
 }
 
 /**
@@ -35,7 +36,7 @@ interface RecordCardProps {
  * Front: Shows 1" album art with title and artist
  * Back: Shows detailed information (year, value, label)
  */
-export default function RecordCard({ record }: RecordCardProps) {
+export default function RecordCard({ record, onRecordMutated }: RecordCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -103,8 +104,7 @@ export default function RecordCard({ record }: RecordCardProps) {
         throw new Error("Failed to update from Discogs");
       }
 
-      alert("Record updated successfully! Refresh the page to see changes.");
-      window.location.reload();
+      onRecordMutated();
     } catch (error) {
       console.error("Error updating from Discogs:", error);
       alert("Failed to update record from Discogs. Please try again.");
@@ -133,8 +133,7 @@ export default function RecordCard({ record }: RecordCardProps) {
         throw new Error("Failed to delete record");
       }
 
-      alert("Record deleted successfully! Refresh the page to see changes.");
-      window.location.reload();
+      onRecordMutated();
     } catch (error) {
       console.error("Error deleting record:", error);
       alert("Failed to delete record. Please try again.");

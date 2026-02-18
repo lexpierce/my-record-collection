@@ -11,7 +11,7 @@
  */
 
 import { eq, inArray } from "drizzle-orm";
-import { database, schema } from "@/lib/db/client";
+import { getDatabase, schema } from "@/lib/db/client";
 import {
   createDiscogsClient,
   type DiscogsCollectionBasicInfo,
@@ -80,7 +80,7 @@ export async function executeSync(
   onProgress({ ...progress });
 
   // Build a Set of existing discogsIds for fast lookup
-  const existingRecords = await database
+  const existingRecords = await getDatabase()
     .select({ discogsId: schema.recordsTable.discogsId })
     .from(schema.recordsTable);
   const existingIds = new Set(
@@ -108,7 +108,7 @@ export async function executeSync(
 
       try {
         const newRecord = collectionReleaseToRecord(release.basic_information);
-        await database.insert(schema.recordsTable).values(newRecord);
+        await getDatabase().insert(schema.recordsTable).values(newRecord);
         progress.pulled++;
         existingIds.add(discogsId);
       } catch (err) {
@@ -129,7 +129,7 @@ export async function executeSync(
   const idsToMarkSynced = [...discogsCollectionIds];
   for (let i = 0; i < idsToMarkSynced.length; i += 500) {
     const chunk = idsToMarkSynced.slice(i, i + 500);
-    await database
+    await getDatabase()
       .update(schema.recordsTable)
       .set({ isSyncedWithDiscogs: true })
       .where(inArray(schema.recordsTable.discogsId, chunk));
@@ -141,7 +141,7 @@ export async function executeSync(
 
   // Find local records with a discogsId that's NOT in the Discogs collection
   // Uses actual collection contents rather than the flag (handles stale flag data)
-  const allLocalRecords = await database
+  const allLocalRecords = await getDatabase()
     .select({
       recordId: schema.recordsTable.recordId,
       discogsId: schema.recordsTable.discogsId,
@@ -157,7 +157,7 @@ export async function executeSync(
 
     try {
       await client.addToCollection(username, parseInt(record.discogsId, 10));
-      await database
+      await getDatabase()
         .update(schema.recordsTable)
         .set({ isSyncedWithDiscogs: true })
         .where(eq(schema.recordsTable.recordId, record.recordId));
@@ -166,7 +166,7 @@ export async function executeSync(
       const errWithStatus = err as Error & { status?: number };
       // 409 = already in collection — mark as synced
       if (errWithStatus.status === 409) {
-        await database
+        await getDatabase()
           .update(schema.recordsTable)
           .set({ isSyncedWithDiscogs: true })
           .where(eq(schema.recordsTable.recordId, record.recordId));

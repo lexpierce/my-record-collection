@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createDiscogsClient } from "@/lib/discogs/client";
-import { database, schema } from "@/lib/db/client";
+import { getDatabase, schema } from "@/lib/db/client";
 import { eq } from "drizzle-orm";
 
 /**
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Update the record in the database
-    const updatedRecords = await database
+    const updatedRecords = await getDatabase()
       .update(schema.recordsTable)
       .set(updatedRecordData)
       .where(eq(schema.recordsTable.recordId, recordId))

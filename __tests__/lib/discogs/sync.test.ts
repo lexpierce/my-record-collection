@@ -31,11 +31,11 @@ const {
 }));
 
 vi.mock("@/lib/db/client", () => ({
-  database: {
+  getDatabase: () => ({
     insert: mockInsert,
     update: mockUpdate,
     select: mockSelect,
-  },
+  }),
   schema: {
     recordsTable: {
       discogsId: "discogs_id",

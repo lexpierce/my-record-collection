@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { database, schema } from "@/lib/db/client";
+import { getDatabase, schema } from "@/lib/db/client";
 
 /**
  * API route for managing records in the collection
@@ -14,7 +14,7 @@ import { database, schema } from "@/lib/db/client";
  */
 export async function GET() {
   try {
-    const allRecords = await database
+    const allRecords = await getDatabase()
       .select()
       .from(schema.recordsTable)
       .orderBy(schema.recordsTable.createdAt);
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert the new record into the database
-    const insertedRecords = await database
+    const insertedRecords = await getDatabase()
       .insert(schema.recordsTable)
       .values({
         ...recordData,

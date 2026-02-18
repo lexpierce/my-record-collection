@@ -20,7 +20,7 @@
 
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import RecordCard from "./RecordCard";
 import type { Record } from "@/lib/db/schema";
 import styles from "./RecordShelf.module.scss";
@@ -40,6 +40,12 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
   const [showFilters, setShowFilters] = useState(false);
   const [sizeFilter, setSizeFilter] = useState<Set<string>>(new Set());
   const [shapedOnly, setShapedOnly] = useState(false);
+  // Bumped by onRecordMutated to re-fetch after a card update or delete
+  const [mutationKey, setMutationKey] = useState(0);
+
+  const handleRecordMutated = useCallback(() => {
+    setMutationKey((k) => k + 1);
+  }, []);
 
   useEffect(() => {
     async function fetchRecords() {
@@ -63,7 +69,7 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
     }
 
     fetchRecords();
-  }, [refreshKey]);
+  }, [refreshKey, mutationKey]);
 
   const effectiveSize = (r: Record) =>
     r.recordSize || (r.isShapedVinyl ? "Unknown" : '12"');
@@ -231,7 +237,7 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
 
       <div className={styles.grid}>
         {sortedRecords.map((record) => (
-          <RecordCard key={record.recordId} record={record} />
+          <RecordCard key={record.recordId} record={record} onRecordMutated={handleRecordMutated} />
         ))}
       </div>
     </div>

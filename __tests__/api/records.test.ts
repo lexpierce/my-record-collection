@@ -18,10 +18,10 @@ const { mockSelect, mockInsert } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/db/client", () => ({
-  database: {
+  getDatabase: () => ({
     select: mockSelect,
     insert: mockInsert,
-  },
+  }),
   schema: {
     recordsTable: {
       createdAt: "created_at",

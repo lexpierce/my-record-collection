@@ -38,10 +38,10 @@ vi.mock("@/lib/discogs/client", () => ({
 }));
 
 vi.mock("@/lib/db/client", () => ({
-  database: {
+  getDatabase: () => ({
     insert: mockInsert,
     update: mockUpdate,
-  },
+  }),
   schema: {
     recordsTable: { recordId: "record_id", isSyncedWithDiscogs: "is_synced_with_discogs" },
   },

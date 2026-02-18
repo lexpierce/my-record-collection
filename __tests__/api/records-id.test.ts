@@ -16,11 +16,11 @@ const { mockSelect, mockUpdate, mockDelete } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/db/client", () => ({
-  database: {
+  getDatabase: () => ({
     select: mockSelect,
     update: mockUpdate,
     delete: mockDelete,
-  },
+  }),
   schema: {
     recordsTable: { recordId: "record_id" },
   },

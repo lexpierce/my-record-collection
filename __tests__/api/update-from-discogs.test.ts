@@ -33,7 +33,7 @@ vi.mock("@/lib/discogs/client", () => ({
 }));
 
 vi.mock("@/lib/db/client", () => ({
-  database: { update: mockUpdate },
+  getDatabase: () => ({ update: mockUpdate }),
   schema: { recordsTable: { recordId: "record_id" } },
 }));
 

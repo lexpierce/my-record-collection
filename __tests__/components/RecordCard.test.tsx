@@ -93,27 +93,29 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("RecordCard — rendering", () => {
+  const noop = vi.fn();
+
   it("renders album title and artist on the front", () => {
-    render(<RecordCard record={baseRecord} />);
+    render(<RecordCard record={baseRecord} onRecordMutated={noop} />);
     // Title and artist appear on both front and back — just assert presence
     expect(screen.getAllByText("Nevermind").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Nirvana").length).toBeGreaterThan(0);
   });
 
   it("renders album art when thumbnailUrl is provided", () => {
-    render(<RecordCard record={baseRecord} />);
+    render(<RecordCard record={baseRecord} onRecordMutated={noop} />);
     const img = screen.getAllByAltText(/Nevermind by Nirvana/)[0];
     expect(img).toBeInTheDocument();
   });
 
   it("renders 'No Image' placeholder when thumbnailUrl is null", () => {
-    render(<RecordCard record={{ ...baseRecord, thumbnailUrl: null }} />);
+    render(<RecordCard record={{ ...baseRecord, thumbnailUrl: null }} onRecordMutated={noop} />);
     // Both front and back may show this
     expect(screen.getAllByText("No Image").length).toBeGreaterThan(0);
   });
 
   it("renders metadata on the back (year, label, size, color)", () => {
-    render(<RecordCard record={baseRecord} />);
+    render(<RecordCard record={baseRecord} onRecordMutated={noop} />);
     // These are in the back-face markup — always in DOM, just hidden by CSS
     expect(screen.getByText("1991")).toBeInTheDocument();
     expect(screen.getByText("DGC")).toBeInTheDocument();
@@ -122,13 +124,13 @@ describe("RecordCard — rendering", () => {
   });
 
   it("shows synced checkmark when isSyncedWithDiscogs is true", () => {
-    render(<RecordCard record={baseRecord} />);
+    render(<RecordCard record={baseRecord} onRecordMutated={noop} />);
     // ✓ rendered as &#10003;
     expect(screen.getByText("✓")).toBeInTheDocument();
   });
 
   it("shows Shaped/Picture Disc when isShapedVinyl is true", () => {
-    render(<RecordCard record={{ ...baseRecord, isShapedVinyl: true }} />);
+    render(<RecordCard record={{ ...baseRecord, isShapedVinyl: true }} onRecordMutated={noop} />);
     expect(screen.getByText("Shaped/Picture Disc")).toBeInTheDocument();
   });
 });
@@ -138,8 +140,10 @@ describe("RecordCard — rendering", () => {
 // ---------------------------------------------------------------------------
 
 describe("RecordCard — flip", () => {
+  const noop = vi.fn();
+
   it("adds 'flipped' class when card is clicked", () => {
-    const { container } = render(<RecordCard record={baseRecord} />);
+    const { container } = render(<RecordCard record={baseRecord} onRecordMutated={noop} />);
     const card = container.querySelector(".flip-card");
     expect(card).not.toBeNull();
     fireEvent.click(card!);
@@ -147,7 +151,7 @@ describe("RecordCard — flip", () => {
   });
 
   it("removes 'flipped' class on second click", () => {
-    const { container } = render(<RecordCard record={baseRecord} />);
+    const { container } = render(<RecordCard record={baseRecord} onRecordMutated={noop} />);
     const card = container.querySelector(".flip-card")!;
     fireEvent.click(card);
     fireEvent.click(card);
@@ -160,8 +164,9 @@ describe("RecordCard — flip", () => {
 // ---------------------------------------------------------------------------
 
 describe("RecordCard — update from Discogs", () => {
-  it("calls update API when Update button is clicked", async () => {
-    render(<RecordCard record={baseRecord} />);
+  it("calls update API and onRecordMutated on success", async () => {
+    const onRecordMutated = vi.fn();
+    render(<RecordCard record={baseRecord} onRecordMutated={onRecordMutated} />);
     const btn = screen.getByRole("button", { name: /update/i });
     fireEvent.click(btn);
     await waitFor(() => {
@@ -170,11 +175,12 @@ describe("RecordCard — update from Discogs", () => {
         expect.objectContaining({ method: "POST" })
       );
     });
+    await waitFor(() => expect(onRecordMutated).toHaveBeenCalledTimes(1));
   });
 
   it("shows alert when record has no discogsId", async () => {
     const alertSpy = vi.spyOn(window, "alert");
-    render(<RecordCard record={{ ...baseRecord, discogsId: null }} />);
+    render(<RecordCard record={{ ...baseRecord, discogsId: null }} onRecordMutated={vi.fn()} />);
     const btn = screen.getByRole("button", { name: /update/i });
     fireEvent.click(btn);
     await waitFor(() => {
@@ -188,7 +194,7 @@ describe("RecordCard — update from Discogs", () => {
   it("shows error alert when update API call fails", async () => {
     fetchSpy.mockResolvedValueOnce({ ok: false, json: () => Promise.resolve({ error: "fail" }) } as Response);
     const alertSpy = vi.spyOn(window, "alert");
-    render(<RecordCard record={baseRecord} />);
+    render(<RecordCard record={baseRecord} onRecordMutated={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: /update/i }));
     await waitFor(() => {
       expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("Failed"));
@@ -201,9 +207,10 @@ describe("RecordCard — update from Discogs", () => {
 // ---------------------------------------------------------------------------
 
 describe("RecordCard — delete", () => {
-  it("calls delete API when Delete button is clicked and confirmed", async () => {
+  it("calls delete API and onRecordMutated when confirmed", async () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
-    render(<RecordCard record={baseRecord} />);
+    const onRecordMutated = vi.fn();
+    render(<RecordCard record={baseRecord} onRecordMutated={onRecordMutated} />);
     const btn = screen.getByRole("button", { name: /delete/i });
     fireEvent.click(btn);
     await waitFor(() => {
@@ -212,11 +219,12 @@ describe("RecordCard — delete", () => {
         expect.objectContaining({ method: "DELETE" })
       );
     });
+    await waitFor(() => expect(onRecordMutated).toHaveBeenCalledTimes(1));
   });
 
   it("does NOT call delete API when confirm is cancelled", async () => {
     vi.spyOn(window, "confirm").mockReturnValue(false);
-    render(<RecordCard record={baseRecord} />);
+    render(<RecordCard record={baseRecord} onRecordMutated={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: /delete/i }));
     // Allow microtasks to settle
     await new Promise((r) => setTimeout(r, 10));
@@ -227,7 +235,7 @@ describe("RecordCard — delete", () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
     fetchSpy.mockResolvedValueOnce({ ok: false, json: () => Promise.resolve({}) } as Response);
     const alertSpy = vi.spyOn(window, "alert");
-    render(<RecordCard record={baseRecord} />);
+    render(<RecordCard record={baseRecord} onRecordMutated={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: /delete/i }));
     await waitFor(() => {
       expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("Failed"));

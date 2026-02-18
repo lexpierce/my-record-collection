@@ -3,34 +3,34 @@ import postgres from "postgres";
 import * as schema from "./schema";
 
 /**
- * Database connection URL from environment variables
- * Required for connecting to the Postgres database
- */
-const databaseUrl = process.env.DATABASE_URL;
-
-if (!databaseUrl) {
-  throw new Error(
-    "DATABASE_URL environment variable is not defined. Please set it in your .env file."
-  );
-}
-
-/**
- * Postgres client connection
- * Creates a connection pool to the database
- */
-const postgresClient = postgres(databaseUrl);
-
-/**
- * Drizzle ORM database instance
- * Provides type-safe database access with the defined schema
+ * Lazily-initialised Drizzle database instance.
+ *
+ * The client is created on first call to getDatabase() rather than at module
+ * import time. This prevents "module threw at import time" errors during
+ * `next build` in environments (CI/CD, edge preview) where DATABASE_URL is
+ * not available at build time.
  *
  * Usage:
  * ```typescript
- * import { database } from "@/lib/db/client";
- * const allRecords = await database.select().from(schema.recordsTable);
+ * import { getDatabase } from "@/lib/db/client";
+ * const db = getDatabase();
+ * const allRecords = await db.select().from(schema.recordsTable);
  * ```
  */
-export const database = drizzle(postgresClient, { schema });
+let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
+
+export function getDatabase() {
+  if (!_db) {
+    const databaseUrl = process.env.DATABASE_URL;
+    if (!databaseUrl) {
+      throw new Error(
+        "DATABASE_URL environment variable is not defined. Please set it in your .env file."
+      );
+    }
+    _db = drizzle(postgres(databaseUrl), { schema });
+  }
+  return _db;
+}
 
 /**
  * Export the schema for use in queries

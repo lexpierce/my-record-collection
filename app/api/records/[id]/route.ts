@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { database, schema } from "@/lib/db/client";
+import { getDatabase, schema } from "@/lib/db/client";
 import { eq } from "drizzle-orm";
 
 /**
@@ -21,7 +21,7 @@ export async function GET(
   try {
     const recordId = (await params).id;
 
-    const foundRecords = await database
+    const foundRecords = await getDatabase()
       .select()
       .from(schema.recordsTable)
       .where(eq(schema.recordsTable.recordId, recordId));
@@ -58,7 +58,7 @@ export async function PUT(
     const recordId = (await params).id;
     const updateData = await request.json();
 
-    const updatedRecords = await database
+    const updatedRecords = await getDatabase()
       .update(schema.recordsTable)
       .set({
         ...updateData,
@@ -101,7 +101,7 @@ export async function DELETE(
   try {
     const recordId = (await params).id;
 
-    const deletedRecords = await database
+    const deletedRecords = await getDatabase()
       .delete(schema.recordsTable)
       .where(eq(schema.recordsTable.recordId, recordId))
       .returning();

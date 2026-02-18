@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { createDiscogsClient } from "@/lib/discogs/client";
-import { database, schema } from "@/lib/db/client";
+import { getDatabase, schema } from "@/lib/db/client";
 
 /**
  * API route for fetching a release from Discogs and saving it to the database
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Insert the record into the database
-    const insertedRecords = await database
+    const insertedRecords = await getDatabase()
       .insert(schema.recordsTable)
       .values(newRecordData)
       .returning();
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     if (username) {
       try {
         await discogsClient.addToCollection(username, releaseId);
-        await database
+        await getDatabase()
           .update(schema.recordsTable)
           .set({ isSyncedWithDiscogs: true })
           .where(eq(schema.recordsTable.recordId, savedRecord.recordId));
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
         const errWithStatus = err as Error & { status?: number };
         if (errWithStatus.status === 409) {
           // Already in collection — mark synced
-          await database
+          await getDatabase()
             .update(schema.recordsTable)
             .set({ isSyncedWithDiscogs: true })
             .where(eq(schema.recordsTable.recordId, savedRecord.recordId));

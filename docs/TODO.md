@@ -6,25 +6,7 @@ Known issues and future work. Items are roughly prioritised high/medium/low.
 
 ## High Priority
 
-### RecordCard update/delete still uses `window.location.reload()`
-
-`components/records/RecordCard.tsx` calls `window.location.reload()` after a successful update or delete (`handleUpdateFromDiscogs`, `handleDeleteAlbum`). This blows away all React state — scroll position, open filters, etc.
-
-**Fix:** Pass a `onRecordMutated` callback from `RecordShelf` (or use a React context/store) so the shelf can re-fetch without a full reload. The `refreshKey` pattern used for sync already exists in `app/page.tsx` — extend it down to the card level.
-
----
-
-### `lib/db/client.ts` throws at import time if `DATABASE_URL` unset
-
-```ts
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL environment variable is not defined...");
-}
-```
-
-This makes the module un-importable during `next build` if `DATABASE_URL` is not in the build environment. It causes confusing "module threw at import time" errors in CI/CD pipelines that don't have the env var set.
-
-**Fix:** Defer the check to first use (lazy initialisation), or use a build-time environment variable stub (`NEXT_PUBLIC_` prefix approach won't work here — use `@t3-oss/env-nextjs` or similar).
+_(none)_
 
 ---
 
@@ -127,6 +109,8 @@ The individual endpoint documentation checklist still has unchecked items. Write
 
 ## Completed (this session)
 
+- [x] Fixed `RecordCard` update/delete — replaced `window.location.reload()` with `onRecordMutated` callback; `RecordShelf` bumps `mutationKey` to re-fetch
+- [x] Fixed `lib/db/client.ts` — lazy `getDatabase()` getter; no longer throws at import if `DATABASE_URL` unset
 - [x] Fixed `AGENTS.md` — added `or tsconfig.json` fallback for tsconfig lookup (repo owner edit, commit 2238193)
 
 - [x] Removed dead `eq` import from `app/api/records/route.ts`
