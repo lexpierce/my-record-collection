@@ -32,6 +32,40 @@ artistName: text("artist_name").notNull(),
 artistName: text("artist_name").notNull(),
 ```
 
+### Verifying before deleting
+
+Before removing any import, interface field, variable, or function on the grounds that it "appears unused", always verify with a grep across the full codebase. Static analysis and LLM-assisted code review both miss usages that span multiple files.
+
+```bash
+# Verify a field is truly unused before removing it
+grep -rn "cover_image" app/ lib/ components/
+```
+
+This session: automated analysis flagged `DiscogsRelease.cover_image` as unused. It was in fact read in two API routes and `lib/discogs/sync.ts`. Deleting it caused a build failure.
+
+**Rule**: analysis can suggest candidates; a grep must confirm before deletion.
+
+### Interface field hygiene
+
+Only define fields on TypeScript interfaces that are actually read somewhere in the codebase. Dead fields mislead readers into thinking data is used when it isn't, and they silently widen the expected API contract.
+
+```typescript
+// ❌ Bad — community and cover_image defined but never read
+interface DiscogsRelease {
+  thumb: string;
+  cover_image: string;   // unused
+  community?: { rating?: { average?: number } }; // unused
+}
+
+// ✅ Good — only what the code actually reads
+interface DiscogsRelease {
+  thumb: string;
+  cover_image: string;   // used: coverImageUrl: releaseData.cover_image
+}
+```
+
+Before adding a field: confirm a consumer reads it. Before removing a field: grep the codebase — don't rely on static analysis alone (see [Verifying before deleting](#verifying-before-deleting)).
+
 ### TypeScript Strict Mode
 
 Leverage TypeScript fully:
@@ -107,6 +141,32 @@ useEffect(() => {
 ```
 
 **Why**: `window.location.reload()` is untestable, jarring UX, and loses any in-memory state (filters, sort). The callback pattern keeps state local, is easy to mock, and allows animated transitions.
+
+### State hygiene — no redundant booleans
+
+Don't track a boolean state that is entirely derivable from existing state. Redundant state creates two sources of truth that can drift.
+
+```tsx
+// ❌ Bad — showResults is always true when searchResults.length > 0
+const [searchResults, setSearchResults] = useState([]);
+const [showResults, setShowResults] = useState(false);
+
+setSearchResults(data.results);
+setShowResults(true); // redundant
+
+{showResults && searchResults.length > 0 && <Results />}
+```
+
+```tsx
+// ✅ Good — single source of truth
+const [searchResults, setSearchResults] = useState([]);
+
+setSearchResults(data.results);
+
+{searchResults.length > 0 && <Results />}
+```
+
+**Why**: `showResults` adds a state transition that must be kept in sync manually. When `searchResults` clears (e.g. on new search), `showResults` stays `true` until explicitly reset — a latent bug.
 
 ### Handler Functions
 
@@ -361,7 +421,75 @@ return NextResponse.json({
 }, { status: 400 });
 ```
 
+## Next.js Patterns
+
+### Images — always `next/image`, never `<img>`
+
+Never use a bare `<img>` tag. Always use `next/image`:
+
+```tsx
+// ✅ Good
+import Image from "next/image";
+
+<Image src={record.thumbnailUrl} alt="Album art" width={144} height={144} />
+```
+
+```tsx
+// ❌ Bad — no optimization, no lazy loading, no LCP benefit
+<img src={record.thumbnailUrl} alt="Album art" />
+```
+
+### `unoptimized` — config-level only, never per-image
+
+Do not add `unoptimized` as a prop on individual `<Image>` components. It disables Next.js image optimization in all environments, overriding the intended production behaviour.
+
+Control it once in `next.config.ts`:
+
+```typescript
+// ✅ Good — dev-only, production gets optimization
+images: {
+  unoptimized: process.env.NODE_ENV === 'development',
+}
+```
+
+```tsx
+// ❌ Bad — forces unoptimized in production too
+<Image src={url} width={144} height={144} unoptimized />
+```
+
+### Remote image domains — register in `remotePatterns`
+
+Any external image hostname must be registered in `next.config.ts` before `next/image` will serve it:
+
+```typescript
+images: {
+  remotePatterns: [
+    {
+      protocol: 'https',
+      hostname: 'i.discogs.com',
+      pathname: '/**',
+    },
+  ],
+}
+```
+
+Forgetting this causes a runtime error, not a build error — it only manifests when an image loads.
+
+### ISR — not applicable to this architecture
+
+This app's single page is `"use client"` and fetches data via internal API routes at runtime. ISR (`revalidate`) applies to Server Components that fetch at render time. Do not add `export const revalidate` to `app/page.tsx` — it has no effect on client components.
+
+If a page is ever refactored to be a Server Component, add ISR then.
+
+The `DiscogsClient` already uses Next.js fetch-level caching (`revalidate: 3600`) for individual Discogs release lookups — that is appropriate and sufficient.
+
 ## Styling Patterns
+
+### No Tailwind
+
+This project does **not** use Tailwind CSS. There is no `tailwind.config.*`, no `@tailwind` directive, no PostCSS Tailwind plugin. Do not add Tailwind utility classes (`w-full`, `h-full`, `object-cover`, `flex`, `grid`, etc.) to JSX — they are no-ops and mislead readers.
+
+Use Sass CSS Modules exclusively for all styling.
 
 ### Sass CSS Modules
 
@@ -552,6 +680,26 @@ Never use `flex: 1` on buttons:
 .btn {
   padding: 0.25rem 0.5rem;
   white-space: nowrap;
+}
+```
+
+### SCSS variables — define only if used
+
+Do not define SCSS variables (e.g. breakpoint variables `$bp-sm`, `$bp-md`) in a module unless that file actually references them. Dead variables accumulate and suggest responsive behaviour that does not exist.
+
+```scss
+// ❌ Bad — defined but never used in the file
+$bp-sm: 640px;
+$bp-md: 768px;
+
+.grid { display: grid; }
+```
+
+```scss
+// ✅ Good — only define what the file uses
+.grid {
+  display: grid;
+  @media (min-width: 640px) { grid-template-columns: repeat(2, 1fr); }
 }
 ```
 
