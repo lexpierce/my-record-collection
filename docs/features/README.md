@@ -34,7 +34,7 @@ Documentation for key features of the My Record Collection application.
 
 - [x] [Flip card animation](./flip-card-animation.md)
 - [x] [Vinyl-specific metadata](./vinyl-metadata.md)
-- [ ] Discogs search and integration workflow
+- [x] [Discogs search and integration workflow](./discogs-integration.md)
 
 ## Planned Features
 

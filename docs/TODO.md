@@ -18,65 +18,25 @@ _(none)_
 
 ## Low Priority
 
-### `window.confirm()` and `window.alert()` in RecordCard
-
-Native `confirm()` and `alert()` are blocking, don't match the app's visual style, and are hard to test. Replace with an inline confirmation UI (e.g. a small "Are you sure? [Yes] [No]" that appears below the Delete button).
-
----
-
-### `SearchBar` success message auto-hides via `setTimeout`
-
-```ts
-setTimeout(() => setSuccessMessage(""), 3000);
-```
-
-The timeout is not cleaned up if the component unmounts before 3 s. Use a `useEffect` with a cleanup function to avoid the React "update on unmounted component" warning.
-
----
-
-### No `discogsUri` link on the card back
-
-The `discogsUri` field is stored in the database and shown as a plain field. It could be a clickable link to the Discogs release page.
-
----
-
-### `sync.ts` creates a new `DiscogsClient` inside `collectionReleaseToRecord()`
-
-`collectionReleaseToRecord()` calls `createDiscogsClient()` on every release in the collection. This creates N+1 client instances (each with its own rate limiter state). The rate limiter works correctly because the actual requests are made by `executeSync`'s shared client — the inner client is only used for format extraction helpers, which don't call `fetch`. But it's wasteful and confusing.
-
-**Fix:** Pass the existing client as a parameter to `collectionReleaseToRecord()` instead of creating a new one.
-
----
-
-### Missing `markdownlint` configuration
-
-`docs/STYLE_GUIDE.md` references a `.markdownlint.json` config file that doesn't exist. Either create it or remove the reference.
-
----
-
-### `docs/api/README.md` endpoint checklist items are unchecked
-
-The individual endpoint documentation checklist still has unchecked items. Write detailed endpoint docs for the remaining routes (sync, fetch-from-discogs, update-from-discogs, records CRUD).
-
----
-
-### `docs/development/README.md` guideline checklist items are unchecked
-
-Three items in the "Detailed Guidelines" checklist are unfiled:
-
-- `database-schema-guidelines.md` — schema design rules (column types, naming, indexes). Check first whether `database-schema.md` already covers the intent; if so, just tick the checkbox.
-- `api-design-patterns.md` — REST conventions, response shapes, error codes used across all routes.
-- `testing-strategy.md` — overall test philosophy, coverage targets, what to unit-test vs integration-test. Check first whether `testing.md` already covers this; if so, tick the checkbox.
-
----
-
-### `docs/features/README.md` — Discogs search and integration workflow undocumented
-
-The feature overview checklist has an unchecked item for the Discogs search and integration workflow. Write `docs/features/discogs-integration.md` covering: search flow, fetch-from-discogs flow, sync flow, rate limiting behaviour, and edge cases (duplicate detection, 429 retry).
+_(none)_
 
 ---
 
 ## Completed (this session)
+
+- [x] `RecordCard` — replaced `window.confirm()` / `window.alert()` with inline confirmation UI and inline error state; no blocking dialogs.
+- [x] `SearchBar` — fixed `setTimeout` leak: timer now lives in a `useEffect` with a `clearTimeout` cleanup.
+- [x] `RecordCard` — `discogsUri` rendered as a clickable "View on Discogs" link on the card back.
+- [x] `sync.ts` — eliminated N+1 `DiscogsClient` instances: `collectionReleaseToRecord()` now accepts the shared client as a parameter.
+- [x] Created `.markdownlint.json` (referenced by `docs/STYLE_GUIDE.md`).
+- [x] Wrote `docs/api/endpoints/records-crud.md` — GET/POST /api/records, GET/PUT/DELETE /api/records/[id].
+- [x] Wrote `docs/api/endpoints/discogs-integration.md` — search, fetch-from-discogs, update-from-discogs, sync.
+- [x] `docs/development/README.md` — ticked `database-schema.md` and `testing.md` checkboxes (existing files cover intent); wrote `api-design-patterns.md` and ticked its checkbox.
+- [x] Wrote `docs/features/discogs-integration.md` — search flow, fetch flow, sync flow, rate limiting, edge cases.
+
+---
+
+## Completed (previous sessions)
 
 - [x] Alphabetical pagination — `GET /api/records` gains optional query params (`sortBy`, `sortDir`, `size`, `shaped`); `lib/pagination/buckets.ts` provides `computeBuckets()` + `artistSortKey()`; `AlphaNav` component renders letter-bucket nav bar; `RecordShelf` shows `AlphaNav` when sorted by artist, filters grid to active bucket; auto-splits letters exceeding `MAX_BUCKET_SIZE` (default 100) by second character.
 

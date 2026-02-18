@@ -106,6 +106,16 @@
   color: var(--warm-accent-bronze);
 }
 
+.metaLink {
+  color: var(--warm-accent-bronze);
+  font-size: 0.625rem;
+  text-decoration: underline;
+
+  &:hover {
+    color: var(--warm-accent-copper);
+  }
+}
+
 // ─── Action buttons ───────────────────────────────────────────────────────────
 
 .actions {
@@ -144,4 +154,59 @@
   &:hover {
     background-color: var(--warm-accent-bronze);
   }
+}
+
+// ─── Inline delete confirmation ────────────────────────────────────────────────
+
+.confirmDelete {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  width: 100%;
+}
+
+.confirmDeleteText {
+  font-size: 0.625rem;
+  color: var(--warm-text-primary);
+  white-space: nowrap;
+}
+
+.btnConfirmYes {
+  padding: 0.125rem 0.375rem;
+  font-size: 0.625rem;
+  background-color: var(--warm-accent-copper);
+  color: #fff;
+  border: 0;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--warm-accent-bronze);
+  }
+}
+
+.btnConfirmNo {
+  padding: 0.125rem 0.375rem;
+  font-size: 0.625rem;
+  background-color: var(--warm-bg-tertiary);
+  color: var(--warm-text-primary);
+  border: 1px solid var(--warm-accent-bronze);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--warm-accent-bronze);
+    color: #fff;
+  }
+}
+
+// ─── Inline action error ───────────────────────────────────────────────────────
+
+.actionError {
+  font-size: 0.625rem;
+  color: var(--warm-accent-copper);
+  margin-top: 0.25rem;
+  width: 100%;
+  line-height: 1.3;
 }

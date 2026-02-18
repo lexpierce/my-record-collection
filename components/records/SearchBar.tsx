@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import styles from "./SearchBar.module.scss";
 
@@ -44,6 +44,17 @@ export default function SearchBar({ onRecordAdded }: SearchBarProps) {
   const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  /**
+   * Auto-clears the success message after 3 s.
+   * The cleanup function cancels the timer if the component unmounts
+   * before the timeout fires, avoiding a state update on an unmounted component.
+   */
+  useEffect(() => {
+    if (!successMessage) return;
+    const timerId = setTimeout(() => setSuccessMessage(""), 3000);
+    return () => clearTimeout(timerId);
+  }, [successMessage]);
 
   /**
    * Handles the search form submission
@@ -112,7 +123,7 @@ export default function SearchBar({ onRecordAdded }: SearchBarProps) {
       }
 
       setSuccessMessage(`Added "${data.record?.albumTitle ?? "record"}" to collection!`);
-      setTimeout(() => setSuccessMessage(""), 3000);
+      // Timer is managed by the useEffect above — no inline setTimeout needed.
       onRecordAdded?.();
     } catch (error) {
       console.error("Error adding record:", error);

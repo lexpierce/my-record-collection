@@ -3,7 +3,8 @@
  *
  * DOM interaction is handled by @testing-library/react.
  * fetch is mocked globally so no real HTTP calls are made.
- * window.confirm and window.alert are stubbed to return predictable values.
+ * The component no longer uses window.alert / window.confirm — errors and
+ * confirmations are shown as inline DOM elements instead.
  */
 
 import React from "react";
@@ -78,14 +79,6 @@ beforeEach(() => {
     ok: true,
     json: () => Promise.resolve({ record: baseRecord }),
   } as Response);
-
-  // Stub browser dialogs
-  vi.spyOn(window, "alert").mockImplementation(() => {});
-  vi.spyOn(window, "confirm").mockReturnValue(true);
-  vi.spyOn(window, "location", "get").mockReturnValue({
-    ...window.location,
-    reload: vi.fn(),
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -133,6 +126,14 @@ describe("RecordCard — rendering", () => {
     render(<RecordCard record={{ ...baseRecord, isShapedVinyl: true }} onRecordMutated={noop} />);
     expect(screen.getByText("Shaped/Picture Disc")).toBeInTheDocument();
   });
+
+  it("renders discogsUri as a 'View on Discogs' link", () => {
+    render(<RecordCard record={baseRecord} onRecordMutated={noop} />);
+    const link = screen.getByRole("link", { name: /view on discogs/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute("href", baseRecord.discogsUri);
+    expect(link).toHaveAttribute("target", "_blank");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -178,26 +179,22 @@ describe("RecordCard — update from Discogs", () => {
     await waitFor(() => expect(onRecordMutated).toHaveBeenCalledTimes(1));
   });
 
-  it("shows alert when record has no discogsId", async () => {
-    const alertSpy = vi.spyOn(window, "alert");
+  it("shows inline error when record has no discogsId", async () => {
     render(<RecordCard record={{ ...baseRecord, discogsId: null }} onRecordMutated={vi.fn()} />);
     const btn = screen.getByRole("button", { name: /update/i });
     fireEvent.click(btn);
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith(
-        expect.stringContaining("no Discogs ID")
-      );
+      expect(screen.getByText(/no Discogs ID/i)).toBeInTheDocument();
     });
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it("shows error alert when update API call fails", async () => {
+  it("shows inline error when update API call fails", async () => {
     fetchSpy.mockResolvedValueOnce({ ok: false, json: () => Promise.resolve({ error: "fail" }) } as Response);
-    const alertSpy = vi.spyOn(window, "alert");
     render(<RecordCard record={baseRecord} onRecordMutated={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: /update/i }));
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("Failed"));
+      expect(screen.getByText(/failed to update record from discogs/i)).toBeInTheDocument();
     });
   });
 });
@@ -207,12 +204,16 @@ describe("RecordCard — update from Discogs", () => {
 // ---------------------------------------------------------------------------
 
 describe("RecordCard — delete", () => {
-  it("calls delete API and onRecordMutated when confirmed", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+  it("calls delete API and onRecordMutated when confirmed via inline UI", async () => {
     const onRecordMutated = vi.fn();
     render(<RecordCard record={baseRecord} onRecordMutated={onRecordMutated} />);
-    const btn = screen.getByRole("button", { name: /delete/i });
-    fireEvent.click(btn);
+
+    // First click shows the "Are you sure?" prompt
+    fireEvent.click(screen.getByRole("button", { name: /delete/i }));
+    // "Yes" button appears — click it
+    const yesBtn = await screen.findByRole("button", { name: /yes/i });
+    fireEvent.click(yesBtn);
+
     await waitFor(() => {
       expect(fetchSpy).toHaveBeenCalledWith(
         `/api/records/${baseRecord.recordId}`,
@@ -222,23 +223,31 @@ describe("RecordCard — delete", () => {
     await waitFor(() => expect(onRecordMutated).toHaveBeenCalledTimes(1));
   });
 
-  it("does NOT call delete API when confirm is cancelled", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(false);
+  it("does NOT call delete API when confirm is cancelled via inline UI", async () => {
     render(<RecordCard record={baseRecord} onRecordMutated={vi.fn()} />);
+
+    // First click shows the "Are you sure?" prompt
     fireEvent.click(screen.getByRole("button", { name: /delete/i }));
+    // "No" button appears — click it
+    const noBtn = await screen.findByRole("button", { name: /no/i });
+    fireEvent.click(noBtn);
+
     // Allow microtasks to settle
     await new Promise((r) => setTimeout(r, 10));
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it("shows error alert when delete API call fails", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+  it("shows inline error when delete API call fails", async () => {
     fetchSpy.mockResolvedValueOnce({ ok: false, json: () => Promise.resolve({}) } as Response);
-    const alertSpy = vi.spyOn(window, "alert");
     render(<RecordCard record={baseRecord} onRecordMutated={vi.fn()} />);
+
+    // Open confirm prompt then click Yes
     fireEvent.click(screen.getByRole("button", { name: /delete/i }));
+    const yesBtn = await screen.findByRole("button", { name: /yes/i });
+    fireEvent.click(yesBtn);
+
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("Failed"));
+      expect(screen.getByText(/failed to delete record/i)).toBeInTheDocument();
     });
   });
 });

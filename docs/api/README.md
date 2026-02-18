@@ -84,8 +84,8 @@ Detailed documentation for each endpoint will be added in `./endpoints/`:
 
 - [x] Health check endpoint — `./endpoints/health-check.md`
 - [x] Sync status — `./endpoints/sync-status.md`
-- [ ] Records CRUD operations
-- [ ] Discogs search and integration
+- [x] Records CRUD operations — `./endpoints/records-crud.md`
+- [x] Discogs search and integration — `./endpoints/discogs-integration.md`
 
 ## Common Status Codes
 

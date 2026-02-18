@@ -28,10 +28,16 @@ export interface SyncProgress {
 }
 
 /**
- * Converts a Discogs collection basic_information to a NewRecord for DB insertion
+ * Converts a Discogs collection basic_information to a NewRecord for DB insertion.
+ *
+ * The caller passes in the shared DiscogsClient so that format-extraction helper
+ * methods (extractRecordSize, extractVinylColor, isShapedVinyl) are called on
+ * the same instance that manages the rate-limiter — no extra client is created.
  */
-function collectionReleaseToRecord(info: DiscogsCollectionBasicInfo): NewRecord {
-  const client = createDiscogsClient();
+function collectionReleaseToRecord(
+  info: DiscogsCollectionBasicInfo,
+  client: ReturnType<typeof createDiscogsClient>,
+): NewRecord {
   return {
     artistName: info.artists[0]?.name || "Unknown Artist",
     albumTitle: info.title,
@@ -107,7 +113,7 @@ export async function executeSync(
       }
 
       try {
-        const newRecord = collectionReleaseToRecord(release.basic_information);
+        const newRecord = collectionReleaseToRecord(release.basic_information, client);
         await getDatabase().insert(schema.recordsTable).values(newRecord);
         progress.pulled++;
         existingIds.add(discogsId);

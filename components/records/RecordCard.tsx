@@ -11,9 +11,14 @@
  *
  * Actions (back of card):
  *   Update — re-fetches data from Discogs and saves it to the DB.
- *   Delete  — removes the record from the DB after a confirmation prompt.
+ *   Delete  — removes the record from the DB after an inline confirmation UI.
  *   Both call onRecordMutated() on success so the parent shelf re-fetches
  *   without a full page reload.
+ *
+ * Inline confirmation / error:
+ *   confirmDeleteVisible — shows "Are you sure? [Yes] [No]" below Delete button.
+ *   actionError         — shows an inline error message for failed actions.
+ *   Neither uses blocking window.alert() or window.confirm() dialogs.
  */
 
 "use client";
@@ -33,11 +38,15 @@ interface RecordCardProps {
 
 /**
  * Record card component with flip animation
- * Front: Shows 1" album art with title and artist
- * Back: Shows detailed information (year, value, label)
+ * Front: Shows album art with title and artist
+ * Back: Shows detailed information and action buttons
  */
 export default function RecordCard({ record, onRecordMutated }: RecordCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
+  // Inline delete confirmation — shown below the Delete button
+  const [confirmDeleteVisible, setConfirmDeleteVisible] = useState(false);
+  // Inline error message for failed Update / Delete actions
+  const [actionError, setActionError] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -79,12 +88,14 @@ export default function RecordCard({ record, onRecordMutated }: RecordCardProps)
   };
 
   /**
-   * Handles updating the record from Discogs
-   * Fetches the latest information from Discogs and updates the database
+   * Handles updating the record from Discogs.
+   * Shows an inline error instead of alert() on failure.
    */
   const handleUpdateFromDiscogs = async () => {
+    setActionError(null);
+
     if (!record.discogsId) {
-      alert("This record has no Discogs ID and cannot be updated.");
+      setActionError("This record has no Discogs ID and cannot be updated.");
       return;
     }
 
@@ -107,22 +118,25 @@ export default function RecordCard({ record, onRecordMutated }: RecordCardProps)
       onRecordMutated();
     } catch (error) {
       console.error("Error updating from Discogs:", error);
-      alert("Failed to update record from Discogs. Please try again.");
+      setActionError("Failed to update record from Discogs. Please try again.");
     }
   };
 
   /**
-   * Handles deleting the album from the collection
-   * Confirms deletion before removing from database
+   * First click: reveals the "Are you sure?" inline prompt.
+   * Called by the "Yes" button in that prompt to actually perform the delete.
    */
-  const handleDeleteAlbum = async () => {
-    const confirmDelete = confirm(
-      `Are you sure you want to delete "${record.albumTitle}" by ${record.artistName} from your collection?`
-    );
+  const handleDeleteRequest = () => {
+    setActionError(null);
+    setConfirmDeleteVisible(true);
+  };
 
-    if (!confirmDelete) {
-      return;
-    }
+  const handleDeleteCancel = () => {
+    setConfirmDeleteVisible(false);
+  };
+
+  const handleDeleteConfirm = async () => {
+    setConfirmDeleteVisible(false);
 
     try {
       const response = await fetch(`/api/records/${record.recordId}`, {
@@ -136,7 +150,7 @@ export default function RecordCard({ record, onRecordMutated }: RecordCardProps)
       onRecordMutated();
     } catch (error) {
       console.error("Error deleting record:", error);
-      alert("Failed to delete record. Please try again.");
+      setActionError("Failed to delete record. Please try again.");
     }
   };
 
@@ -272,6 +286,21 @@ export default function RecordCard({ record, onRecordMutated }: RecordCardProps)
                     <span className={styles.metaValue}>{record.discogsId}</span>
                   </div>
                 )}
+                {/* discogsUri: rendered as a link to the Discogs release page */}
+                {record.discogsUri && (
+                  <div className={styles.metaRow}>
+                    <span className={styles.metaLabel}>Discogs:</span>{" "}
+                    <a
+                      href={record.discogsUri}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.metaLink}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      View on Discogs
+                    </a>
+                  </div>
+                )}
                 {record.isSyncedWithDiscogs && (
                   <div className={styles.metaRow}>
                     <span className={styles.metaLabel}>Synced:</span>{" "}
@@ -294,12 +323,50 @@ export default function RecordCard({ record, onRecordMutated }: RecordCardProps)
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleDeleteAlbum();
+                  handleDeleteRequest();
                 }}
                 className={styles.btnDelete}
               >
                 Delete
               </button>
+
+              {/* Inline delete confirmation — replaces window.confirm() */}
+              {confirmDeleteVisible && (
+                <div
+                  className={styles.confirmDelete}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span className={styles.confirmDeleteText}>Are you sure?</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteConfirm();
+                    }}
+                    className={styles.btnConfirmYes}
+                  >
+                    Yes
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteCancel();
+                    }}
+                    className={styles.btnConfirmNo}
+                  >
+                    No
+                  </button>
+                </div>
+              )}
+
+              {/* Inline error — replaces window.alert() */}
+              {actionError && (
+                <div
+                  className={styles.actionError}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {actionError}
+                </div>
+              )}
             </div>
           </div>
         </div>

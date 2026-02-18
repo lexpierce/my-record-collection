@@ -77,9 +77,9 @@ Development standards and patterns for the My Record Collection project.
 Individual guideline documents will be added as separate files:
 
 - [x] [Coding standards and patterns](./coding-standards.md)
-- [ ] Database schema guidelines
-- [ ] API design patterns
-- [ ] Testing strategy
+- [x] [Database schema guidelines](./database-schema.md)
+- [x] [API design patterns](./api-design-patterns.md)
+- [x] [Testing strategy](../testing.md)
 
 ## Design Decisions
 
