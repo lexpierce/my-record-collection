@@ -17,14 +17,20 @@ Currently, the API does not require authentication. All endpoints are publicly a
 - `GET /api/am_i_evil` - Health check endpoint
 
 ### Records
-- `GET /api/records` - Fetch all records from the collection
+- `GET /api/records` - Fetch all records from the collection (newest-first)
 - `POST /api/records` - Add a record manually (future feature)
+- `GET /api/records/[recordId]` - Fetch a single record by ID
+- `PUT /api/records/[recordId]` - Update a record
 - `DELETE /api/records/[recordId]` - Delete a record from the collection
 
 ### Discogs Integration
 - `GET /api/records/search` - Search for records on Discogs
 - `POST /api/records/fetch-from-discogs` - Fetch and save a record from Discogs
 - `POST /api/records/update-from-discogs` - Update an existing record with latest Discogs data
+- `POST /api/records/sync` - Sync full Discogs collection to local database
+
+### Configuration
+- `GET /api/records/sync/status` - Check if Discogs env vars are configured
 
 ## Response Format
 
@@ -58,7 +64,8 @@ The application automatically handles rate limiting internally using a token buc
 
 Detailed documentation for each endpoint will be added in `./endpoints/`:
 
-- [ ] Health check endpoint
+- [x] Health check endpoint — `./endpoints/health-check.md`
+- [x] Sync status — `./endpoints/sync-status.md`
 - [ ] Records CRUD operations
 - [ ] Discogs search and integration
 

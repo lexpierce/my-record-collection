@@ -77,14 +77,14 @@ Common language identifiers:
 
 ```typescript
 // ✅ Good: Shows imports, types, and purpose
-import { database, schema } from "@/lib/db/client";
+import { getDatabase, schema } from "@/lib/db/client";
 
 /**
  * Fetches all records from the database
  * @returns Array of Record objects
  */
 export async function getAllRecords() {
-  return await database.select().from(schema.recordsTable);
+  return await getDatabase().select().from(schema.recordsTable);
 }
 ```
 
@@ -365,6 +365,6 @@ Look to these for inspiration:
 
 ---
 
-**Last Updated**: 2025-02-13 by Claude Sonnet 4.5
+**Last Updated**: 2026-02-18 by Claude Sonnet 4.6
 
 This style guide is a living document. Improve it as you discover better patterns.

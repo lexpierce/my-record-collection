@@ -10,9 +10,12 @@ Interactive flip card component for displaying vinyl record information.
 
 ```typescript
 interface RecordCardProps {
-  record: Record; // Full database record with all fields
+  record: Record;           // Full database record with all fields
+  onRecordMutated: () => void; // Called after any successful update or delete
 }
 ```
+
+The parent (`RecordShelf`) bumps a `mutationKey` counter on this callback to trigger a re-fetch of the record list. Never pass `window.location.reload` — use the callback pattern.
 
 ## Component Type
 
@@ -27,7 +30,8 @@ interface RecordCardProps {
 - **Interaction**: Click anywhere to flip, hover lifts card
 - **Animation**: 3D transform with border and shadow effects (no scaling)
 - **Width expansion**: Card widens 180px → 250px on flip for larger back thumbnail
-- **Actions**: Update from Discogs, delete with confirmation
+- **Actions**: Update from Discogs, delete with confirmation (uses `window.confirm` — TODO: replace with inline UI)
+- **Accessibility**: `role="button"`, `tabIndex={0}`, `aria-expanded`, keyboard handler (Enter/Space)
 - **Dimensions**: 180px wide (250px flipped), content-driven height (no min-height)
 - **Sharp Edges**: All elements use border-radius: 0px
 
@@ -70,13 +74,12 @@ const handleUpdateFromDiscogs = async () => {
   });
 
   if (response.ok) {
-    alert("Record updated successfully! Refresh the page to see changes.");
-    window.location.reload();
+    onRecordMutated(); // signals RecordShelf to re-fetch — no page reload
   }
 };
 ```
 
-Fetches latest Discogs data and updates record.
+Fetches latest Discogs data and updates record. Calls `onRecordMutated` on success.
 
 ### handleDeleteAlbum
 
@@ -93,13 +96,12 @@ const handleDeleteAlbum = async () => {
   });
 
   if (response.ok) {
-    alert("Record deleted successfully! Refresh the page to see changes.");
-    window.location.reload();
+    onRecordMutated(); // signals RecordShelf to re-fetch — no page reload
   }
 };
 ```
 
-Deletes record after user confirmation.
+Deletes record after user confirmation. Calls `onRecordMutated` on success.
 
 ## Display Fields
 
@@ -209,7 +211,10 @@ Deletes record after user confirmation.
 ## Example Usage
 
 ```tsx
-<RecordCard record={recordFromDatabase} />
+<RecordCard
+  record={recordFromDatabase}
+  onRecordMutated={() => setMutationKey(k => k + 1)}
+/>
 ```
 
 ## Related Documentation
@@ -220,4 +225,4 @@ Deletes record after user confirmation.
 
 ---
 
-**Last Updated**: 2026-02-14
+**Last Updated**: 2026-02-18

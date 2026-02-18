@@ -79,6 +79,35 @@ export default function RecordCard({ record }: RecordCardProps) {
 }
 ```
 
+### Callback-driven re-fetch (`onRecordMutated` + `mutationKey`)
+
+Never call `window.location.reload()` after a mutation. Use a callback prop to signal the parent, which bumps a `mutationKey` counter to trigger a re-fetch:
+
+```tsx
+// RecordCard — calls parent when it mutates
+interface RecordCardProps {
+  record: Record;
+  onRecordMutated: () => void;
+}
+
+// after successful delete/update:
+onRecordMutated();
+```
+
+```tsx
+// RecordShelf — owns state, passes callback down
+const [mutationKey, setMutationKey] = useState(0);
+const handleRecordMutated = useCallback(() => setMutationKey(k => k + 1), []);
+
+useEffect(() => {
+  fetchRecords();
+}, [mutationKey]); // re-fetches whenever a card signals a mutation
+
+<RecordCard record={r} onRecordMutated={handleRecordMutated} />
+```
+
+**Why**: `window.location.reload()` is untestable, jarring UX, and loses any in-memory state (filters, sort). The callback pattern keeps state local, is easy to mock, and allows animated transitions.
+
 ### Handler Functions
 
 Define handlers before return statement:
@@ -99,7 +128,102 @@ export default function RecordCard({ record }: RecordCardProps) {
 }
 ```
 
+### Accessibility for interactive non-button elements
+
+When a `<div>` or other non-interactive element is made clickable (e.g. flip card), it must carry the full set of ARIA and keyboard attributes:
+
+```tsx
+// ✅ Complete interactive div
+<div
+  role="button"
+  tabIndex={0}
+  aria-expanded={isFlipped}
+  aria-label="Album card — press Enter or Space to flip"
+  onClick={handleFlip}
+  onKeyDown={(e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleFlip();
+    }
+  }}
+>
+```
+
+For toggleable panels (e.g. filter dropdowns):
+
+```tsx
+// Trigger button
+<button aria-expanded={isOpen} aria-label="Filter records" onClick={toggleOpen}>
+  Filter
+</button>
+
+// Panel
+<div role="group" aria-label="Filter options">
+  {/* options */}
+</div>
+```
+
+Close dropdowns on click-outside using `useRef` + `useEffect`:
+
+```tsx
+const wrapperRef = useRef<HTMLDivElement>(null);
+
+useEffect(() => {
+  function handleClickOutside(e: MouseEvent) {
+    if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+      setIsOpen(false);
+    }
+  }
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
+}, []);
+```
+
 ## Database Patterns
+
+### Lazy database getter (`getDatabase()`)
+
+Never export the Drizzle client at module level. Module-level initialization throws at import time if `DATABASE_URL` is not set — which breaks the Next.js build and all tests that import API routes without a real database.
+
+Use a lazy getter instead:
+
+```typescript
+// ✅ Good: throws only when called, not at import
+let _db: ReturnType<typeof drizzle> | null = null;
+
+export function getDatabase() {
+  if (!_db) {
+    if (!process.env.DATABASE_URL) {
+      throw new Error("DATABASE_URL environment variable is not set");
+    }
+    _db = drizzle(process.env.DATABASE_URL, { schema });
+  }
+  return _db;
+}
+```
+
+```typescript
+// ❌ Bad: throws at import time — breaks build and tests
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) throw new Error("DATABASE_URL is not set");
+export const database = drizzle(DATABASE_URL, { schema });
+```
+
+**Test mocks must match**: When mocking `lib/db/client`, mock `getDatabase` as a function, not `database` as an object:
+
+```ts
+// ✅ Correct
+vi.mock("@/lib/db/client", () => ({
+  getDatabase: () => ({ select: vi.fn()... }),
+  schema,
+}));
+
+// ❌ Wrong — getDatabase is called, not database
+vi.mock("@/lib/db/client", () => ({
+  database: { select: vi.fn()... },
+  schema,
+}));
+```
 
 ### Text Type for Non-ASCII
 
@@ -451,7 +575,7 @@ fix: Prevent text bleed-through on flip cards
 docs: Document flip card animation implementation
 chore: Update dependencies
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 ```
 
 ## Testing
@@ -482,6 +606,47 @@ const client = createDiscogsClient(); // module-level
 ```
 
 When you only need to assert what URL/options were passed on the first call, use `mockImplementation` (not `mockReturnValueOnce`) so the stub is always active regardless of call order.
+
+### URL-routing `mockImplementation` for multi-fetch components
+
+When a component fires multiple `fetch` calls to different URLs on mount (e.g. `page.tsx` fetches both `/api/records` and `/api/records/sync/status`), use a URL-routing `mockImplementation` in `beforeEach` rather than stacking `mockReturnValueOnce` calls. `mockReturnValueOnce` is consumed in call order, so any unexpected extra call (like a status check) shifts the queue and breaks subsequent tests.
+
+```ts
+// ✅ Good: routes by URL, always correct regardless of call order
+let syncMock: ReturnType<typeof vi.fn>;
+
+beforeEach(() => {
+  syncMock = vi.fn().mockResolvedValue({ ready: true, missing: [] });
+  global.fetch = vi.fn().mockImplementation((url: string) => {
+    if (url.includes("/sync/status")) return syncMock();
+    // default: records response
+    return Promise.resolve({ ok: true, json: async () => [] });
+  });
+});
+
+// In a specific test, override syncMock behaviour:
+syncMock.mockResolvedValueOnce({ ready: false, missing: ["DISCOGS_TOKEN"] });
+```
+
+```ts
+// ❌ Fragile: breaks if mount triggers an extra fetch before the one you care about
+global.fetch = vi.fn()
+  .mockReturnValueOnce(syncStatusResponse)
+  .mockReturnValueOnce(recordsResponse);
+```
+
+### `getByRole("button", { name })` vs `getByTitle`
+
+Prefer `getByRole` with accessible name over `getByTitle`. Button `title` attributes are not reliable accessibility signals; `aria-label` is the correct attribute, and RTL's `getByRole` resolves it automatically.
+
+```ts
+// ✅ Correct — matches aria-label
+screen.getByRole("button", { name: /sort/i });
+screen.getByRole("button", { name: /filter/i });
+
+// ❌ Fragile — matches title= which we replaced with aria-label=
+screen.getByTitle("Sort");
+```
 
 ### `getAllByText` vs `getByText` in component tests
 
