@@ -39,7 +39,6 @@ projects:
                 - "**"
               ignoredPaths:
                 - docs/**
-                - .beads/**
                 - "*.md"
             # Bun is available by default on Render when BUN_VERSION is set
             buildCommand: bun install && bun run build
