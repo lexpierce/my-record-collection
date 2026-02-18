@@ -1,3 +1,13 @@
+/**
+ * Home page — the single view in this app.
+ *
+ * Responsibilities:
+ *  - "Sync Collection" button: streams SSE progress from /api/records/sync and
+ *    updates the progress bar; bumps refreshKey when done so the shelf reloads.
+ *  - "+ Add an album" button: toggles the collapsible SearchBar panel.
+ *  - Passes refreshKey to RecordShelf so it re-fetches after a sync or add.
+ */
+
 "use client";
 
 import { useState, useCallback } from "react";
@@ -66,7 +76,8 @@ export default function HomePage() {
         }
       }
 
-      window.location.reload();
+      // Bump refreshKey to reload the shelf without a full page reload
+      setRefreshKey((k) => k + 1);
     } catch (err) {
       setSyncProgress({
         phase: "done",

@@ -1,3 +1,21 @@
+/**
+ * RecordCard — a flip card that shows album art on the front and full metadata
+ * on the back.
+ *
+ * Flip mechanic:
+ *   The card expands from 180 px to 250 px on flip. To avoid clipping at the
+ *   viewport edges, a useEffect computes asymmetric negative margins: the
+ *   70 px of extra width is split evenly (-35 px each side) then shifted away
+ *   from whichever edge is too close. Global CSS classes (flip-card, flipped,
+ *   etc.) from styles/globals.scss drive the 3D CSS transform.
+ *
+ * Actions (back of card):
+ *   Update — re-fetches data from Discogs and saves it to the DB.
+ *   Delete  — removes the record from the DB after a confirmation prompt.
+ *   Both use window.location.reload() because RecordCard has no access to the
+ *   parent's refreshKey setter. (TODO: lift state or use a context.)
+ */
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";

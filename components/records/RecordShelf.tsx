@@ -1,3 +1,23 @@
+/**
+ * RecordShelf — the main browsing grid.
+ *
+ * Fetches all records from /api/records on mount and whenever `refreshKey`
+ * changes (parent bumps it after a sync or add).
+ *
+ * Sorting:
+ *   Artist sort strips "The"/"A" prefixes and diacritics before comparing so
+ *   "The Beatles" sorts as "Beatles". Secondary sort for artist mode is year.
+ *
+ * Filtering:
+ *   Records can be filtered by size (checkbox list derived from actual data)
+ *   and by shaped/picture-disc status. Active filter count is shown on the
+ *   filter button as a badge. "X of Y shown" appears when filters are active.
+ *
+ * effectiveSize:
+ *   If a record has no explicit recordSize, it defaults to '12"' (the most
+ *   common format) unless it is a shaped vinyl, in which case "Unknown".
+ */
+
 "use client";
 
 import { useEffect, useState, useMemo } from "react";

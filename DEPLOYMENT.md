@@ -91,7 +91,7 @@ Once deployed, test your application:
 - **Name**: my-record-collection-db
 - **Plan**: Basic 256MB ($7/month)
 - **Region**: Oregon
-- **Version**: PostgreSQL 16
+- **Version**: PostgreSQL 18
 - **Disk Size**: 5GB
 
 ### Environment Variables

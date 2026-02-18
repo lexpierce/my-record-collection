@@ -336,8 +336,12 @@ export class DiscogsClient {
 }
 
 /**
- * Creates and exports a singleton Discogs client instance
- * Uses environment variables for configuration
+ * Factory that creates a new DiscogsClient using environment variables.
+ * Creates a fresh instance on every call — callers should reuse it within a request.
+ *
+ * Required env vars:
+ *   DISCOGS_USER_AGENT — identifies your app to the Discogs API (required by their TOS)
+ *   DISCOGS_TOKEN      — personal access token; omit for unauthenticated (25 req/min) access
  */
 export function createDiscogsClient(): DiscogsClient {
   const userAgent = process.env.DISCOGS_USER_AGENT || "MyRecordCollection/1.0";

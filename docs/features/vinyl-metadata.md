@@ -263,21 +263,26 @@ User refreshes to see updated data
 ```tsx
 // components/records/RecordCard.tsx
 {record.recordSize && (
-  <div className="text-xs">
-    <span className="font-semibold">Size:</span> {record.recordSize}
+  <div className={styles.metaRow}>
+    <span className={styles.metaLabel}>Size:</span>{" "}
+    <span className={styles.metaValue}>{record.recordSize}</span>
   </div>
 )}
 {record.vinylColor && (
-  <div className="text-xs">
-    <span className="font-semibold">Color:</span> {record.vinylColor}
+  <div className={styles.metaRow}>
+    <span className={styles.metaLabel}>Color:</span>{" "}
+    <span className={styles.metaValue}>{record.vinylColor}</span>
   </div>
 )}
 {record.isShapedVinyl && (
-  <div className="text-xs">
-    <span className="font-semibold">Type:</span> Shaped/Picture Disc
+  <div className={styles.metaRow}>
+    <span className={styles.metaLabel}>Type:</span>{" "}
+    <span className={styles.metaValue}>Shaped/Picture Disc</span>
   </div>
 )}
 ```
+
+(CSS module classes from `RecordCard.module.scss`; no Tailwind in this project.)
 
 ## Edge Cases
 

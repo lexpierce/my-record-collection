@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { database, schema } from "@/lib/db/client";
-import { eq } from "drizzle-orm";
 
 /**
  * API route for managing records in the collection
@@ -11,7 +10,7 @@ import { eq } from "drizzle-orm";
 
 /**
  * GET handler - Fetches all records from the database
- * Returns records sorted by creation date (newest first)
+ * Returns records sorted by creation date (oldest first / ascending)
  */
 export async function GET() {
   try {

@@ -24,7 +24,7 @@ A modern web application for managing your vinyl record collection, powered by t
 - **Framework**: Next.js 16 (App Router)
 - **Runtime**: Bun (latest)
 - **Database**: PostgreSQL 18 with Drizzle ORM
-- **Styling**: Tailwind CSS with custom warm color palette
+- **Styling**: Sass CSS Modules with custom warm color palette
 - **API**: Discogs API with rate limiting
 - **Deployment**: Render (Docker-based)
 
@@ -82,6 +82,8 @@ bun run dev
 - `bun run start`: Start production server
 - `bun run lint`: Run ESLint
 - `bun run type-check`: Run TypeScript type checking
+- `bun run test`: Run tests (Vitest)
+- `bun run test:coverage`: Run tests with coverage report
 - `bun run db:generate`: Generate Drizzle migrations
 - `bun run db:push`: Push schema changes to database
 - `bun run db:studio`: Open Drizzle Studio
@@ -93,7 +95,11 @@ bun run dev
 
 ### Records Management
 - `GET /api/records` - Fetch all records from the collection
-- `DELETE /api/records/[recordId]` - Delete a record from the collection
+- `POST /api/records` - Manually add a new record
+- `GET /api/records/[id]` - Fetch a single record by UUID
+- `PUT /api/records/[id]` - Update a record by UUID
+- `DELETE /api/records/[id]` - Delete a record from the collection
+- `POST /api/records/sync` - Two-way sync with Discogs collection (SSE stream)
 
 ### Discogs Integration
 - `GET /api/records/search` - Search Discogs (returns vinyl details: size, color, shaped status)

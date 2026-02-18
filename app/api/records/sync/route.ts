@@ -1,11 +1,20 @@
-import { executeSync } from "@/lib/discogs/sync";
-
-export const dynamic = "force-dynamic";
-
 /**
  * POST /api/records/sync
- * Streams sync progress via SSE. Client reads the stream for real-time updates.
+ *
+ * Triggers a two-way sync between this app's database and the user's Discogs
+ * collection. Progress is streamed as Server-Sent Events (SSE) so the browser
+ * can update a progress bar in real time without polling.
+ *
+ * Each SSE event is a JSON-serialised SyncProgress object:
+ *   { phase, pulled, pushed, skipped, errors, totalDiscogsItems }
+ *
+ * The final event always has phase === "done".
  */
+
+import { executeSync } from "@/lib/discogs/sync";
+
+// Disable Next.js response caching — sync must always run fresh
+export const dynamic = "force-dynamic";
 export async function POST() {
   const encoder = new TextEncoder();
 

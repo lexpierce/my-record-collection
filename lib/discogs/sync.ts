@@ -1,3 +1,15 @@
+/**
+ * Two-way sync between the local Postgres database and a user's Discogs collection.
+ *
+ * Pull phase: pages through the Discogs collection and inserts any releases
+ *   that don't yet exist locally (identified by discogsId).
+ *
+ * Push phase: finds local records whose discogsId is NOT in the live Discogs
+ *   collection and calls addToCollection for each one.
+ *
+ * Idempotent — safe to run multiple times; never deletes from either side.
+ */
+
 import { eq, inArray } from "drizzle-orm";
 import { database, schema } from "@/lib/db/client";
 import {

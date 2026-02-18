@@ -15,20 +15,30 @@ Welcome to the My Record Collection documentation. This documentation covers the
 
 ```
 docs/
+├── README.md               # This file — documentation index
 ├── STYLE_GUIDE.md          # Documentation standards
-├── testing.md              # Testing procedures
-├── error-handling.md       # Error handling
-├── testing.md              # Testing procedures
-├── ui-ux.md                # UI-UX patterns
+├── TODO.md                 # Known issues and future work
+├── testing.md              # Testing guide (Vitest + RTL)
+├── error-handling.md       # Error handling patterns
+├── ui-ux.md                # UI/UX patterns and conventions
 ├── api/                    # API endpoint documentation
 │   ├── README.md           # API overview
+│   ├── discogs-client.md   # Discogs client reference
 │   └── endpoints/          # Individual endpoint docs
+│       └── health-check.md
 ├── components/             # Component usage and architecture
-│   └── README.md           # Component overview
-├── features/               # Feature documentation
-│   └── README.md           # Feature overview
+│   ├── README.md           # Component overview
+│   ├── record-card.md      # RecordCard reference
+│   ├── record-shelf.md     # RecordShelf reference
+│   └── search-bar.md       # SearchBar reference
 ├── development/            # Development guidelines
-│   └── README.md           # Development overview
+│   ├── README.md           # Development overview
+│   ├── coding-standards.md # Naming and patterns
+│   └── database-schema.md  # Schema reference
+├── features/               # Feature documentation
+│   ├── README.md           # Feature overview
+│   ├── flip-card-animation.md
+│   └── vinyl-metadata.md
 └── deployment/             # Deployment guides
     └── README.md           # Deployment overview
 ```

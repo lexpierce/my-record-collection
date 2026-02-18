@@ -32,8 +32,8 @@ All components follow these patterns:
 Individual component documentation will be added as separate files:
 
 - [x] RecordCard component — see [record-card.md](./record-card.md)
-- [ ] RecordShelf component
-- [ ] SearchBar component
+- [x] RecordShelf component — see [record-shelf.md](./record-shelf.md)
+- [x] SearchBar component — see [search-bar.md](./search-bar.md)
 
 ## Usage Patterns
 

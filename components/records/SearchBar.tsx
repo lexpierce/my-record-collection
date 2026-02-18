@@ -8,6 +8,25 @@ import styles from "./SearchBar.module.scss";
  * Search bar component for finding records via Discogs API
  * Supports three search methods: catalog number, artist/title, and UPC code
  */
+
+/**
+ * A single search result returned by the Discogs search API,
+ * optionally enriched with vinyl format details.
+ */
+interface DiscogsSearchResult {
+  id: number;
+  title: string;
+  year?: string;
+  thumb?: string;
+  catno?: string;
+  /** Record size extracted from Discogs format data (e.g., '12"', '7"') */
+  recordSize?: string | null;
+  /** Vinyl color extracted from format descriptions (e.g., "Blue Marble") */
+  vinylColor?: string | null;
+  /** True if this is a shaped or picture disc release */
+  isShapedVinyl?: boolean;
+}
+
 interface SearchBarProps {
   onRecordAdded?: () => void;
 }
@@ -21,7 +40,7 @@ export default function SearchBar({ onRecordAdded }: SearchBarProps) {
   const [albumTitle, setAlbumTitle] = useState("");
   const [upcCode, setUpcCode] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<DiscogsSearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");

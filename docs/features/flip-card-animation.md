@@ -141,7 +141,7 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 **Key Properties:**
 - `position: absolute; top: 0; left: 0` - Overlays the front face
 - `transform: rotateY(180deg)` - Starts rotated, faces correct direction when flipped
-- `border: 2px solid #C9A876` - Thicker bronze border for 3D depth
+- `border: 2px solid #8BA87A` - Thicker warm-sage border for 3D depth
 - Component handles internal padding (not CSS)
 
 ## React Component Implementation
@@ -203,11 +203,12 @@ const handleCardClick = () => {
 ### Conditional Styling
 
 ```tsx
-className={`flip-card cursor-pointer ${isFlipped ? "flipped" : ""}`}
+className={`flip-card${isFlipped ? " flipped" : ""}`}
+style={{ cursor: "pointer" }}
 ```
 
 - Adds `flipped` class when `isFlipped === true`
-- `cursor-pointer` indicates clickable element
+- `cursor: pointer` is applied via inline style (no Tailwind in this project)
 - Template literal for dynamic class names
 
 ## Preventing Text Bleed-Through
@@ -458,18 +459,12 @@ Cards are displayed in a responsive grid:
 // RecordShelf.module.scss
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  column-gap: 1.25rem;
-  row-gap: 0;
-
-  @media (min-width: 640px)  { grid-template-columns: repeat(3, 1fr); }
-  @media (min-width: 768px)  { grid-template-columns: repeat(4, 1fr); }
-  @media (min-width: 1024px) { grid-template-columns: repeat(5, 1fr); }
-  @media (min-width: 1280px) { grid-template-columns: repeat(7, 1fr); }
+  grid-template-columns: repeat(auto-fill, 180px);
+  gap: 1rem;
 }
 ```
 
-**Gap spacing:** `1.25rem` column gap, `0` row gap.
+**No breakpoints.** The grid uses `auto-fill` with a fixed 180 px column width so it reflows automatically at any viewport size.
 
 ## Common Issues and Solutions
 
