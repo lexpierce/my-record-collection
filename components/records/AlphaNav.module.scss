@@ -1,0 +1,31 @@
+// ─── Alphabetical nav bar ──────────────────────────────────────────────────────
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.btn {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--warm-bg-tertiary);
+  background: none;
+  color: var(--warm-text-secondary);
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
+  line-height: 1.4;
+
+  &:hover {
+    color: var(--warm-text-primary);
+    border-color: var(--warm-accent-bronze);
+  }
+
+  &.active {
+    background-color: var(--warm-accent-bronze);
+    border-color: var(--warm-accent-bronze);
+    color: #fff;
+  }
+}

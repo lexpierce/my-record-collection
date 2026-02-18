@@ -1,6 +1,6 @@
 # RecordShelf Component
 
-The main record browsing grid. Fetches and displays all records, with sorting and filtering controls.
+The main record browsing grid. Fetches and displays all records, with sorting, filtering, and alphabetical navigation.
 
 ## Overview
 
@@ -10,6 +10,7 @@ The main record browsing grid. Fetches and displays all records, with sorting an
 2. Re-fetches whenever `refreshKey` increments (parent bumps it after sync or add).
 3. Sorts records client-side by artist, title, or year.
 4. Filters records client-side by vinyl size and/or shaped status.
+5. When sorted by artist, renders an `AlphaNav` bar of letter-bucket buttons that further filters the grid to the selected bucket.
 
 ```tsx
 import RecordShelf from "@/components/records/RecordShelf";
@@ -39,6 +40,7 @@ import RecordShelf from "@/components/records/RecordShelf";
 | `showFilters` | `boolean` | Whether the filter dropdown is open |
 | `sizeFilter` | `Set<string>` | Active size filters (e.g. `{"12\""}`) |
 | `shapedOnly` | `boolean` | When true, only shaped/picture disc records are shown |
+| `activeBucket` | `string \| null` | Active alpha-nav bucket label, or `null` for "All" |
 
 ## Sort Logic
 
@@ -87,6 +89,19 @@ The filter button shows a badge with the count of active filter groups:
 - Size filter counts as 1 regardless of how many sizes are checked.
 - Shaped filter counts as 1.
 
+## Alphabetical Navigation
+
+When `sortBy === "artist"`, an `AlphaNav` component renders above the grid. It shows:
+
+- An **All** button (clears `activeBucket`)
+- One button per letter bucket computed by `computeBuckets()` from `lib/pagination/buckets.ts`
+
+Selecting a bucket sets `activeBucket` and narrows `displayedRecords` to that bucket. The bucket resets to `null` ("All") whenever `sortBy` changes away from `"artist"`.
+
+### Bucket splitting
+
+`computeBuckets()` groups records by the first letter of their `artistSortKey`. If a letter group exceeds `MAX_BUCKET_SIZE` (default 100), it is split by second letter into sub-buckets (e.g. `Ba–Bm`, `Bn–Bz`). Non-alpha starters go into a `#` bucket, which always sorts last.
+
 ## Loading / Error / Empty States
 
 | Condition | UI shown |
@@ -123,6 +138,9 @@ export default function Page() {
 |---|---|
 | `components/records/RecordShelf.tsx` | Component logic |
 | `components/records/RecordShelf.module.scss` | Scoped styles |
+| `components/records/AlphaNav.tsx` | Alphabetical nav bar component |
+| `components/records/AlphaNav.module.scss` | Nav bar styles |
+| `lib/pagination/buckets.ts` | `computeBuckets()`, `artistSortKey()`, `AlphaBucket` type |
 
 ## Related
 

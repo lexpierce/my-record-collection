@@ -17,7 +17,7 @@ Currently, the API does not require authentication. All endpoints are publicly a
 - `GET /api/am_i_evil` - Health check endpoint
 
 ### Records
-- `GET /api/records` - Fetch all records from the collection (newest-first)
+- `GET /api/records` - Fetch records; optional query params: `sortBy`, `sortDir`, `size`, `shaped`
 - `POST /api/records` - Add a record manually (future feature)
 - `GET /api/records/[recordId]` - Fetch a single record by ID
 - `PUT /api/records/[recordId]` - Update a record
@@ -51,6 +51,24 @@ All API responses follow a consistent JSON format:
   "message": "Detailed error message"
 }
 ```
+
+## GET /api/records Query Parameters
+
+All parameters are optional. Without them the response is identical to the previous behaviour (all records, newest-first).
+
+| Parameter | Values | Default | Notes |
+|---|---|---|---|
+| `sortBy` | `artist` \| `title` \| `year` \| `createdAt` | `createdAt` | Column to sort by |
+| `sortDir` | `asc` \| `desc` | `desc` for `createdAt`/`year`; `asc` otherwise | Sort direction |
+| `size` | e.g. `12"`, `7"` | — | Filter by `record_size`; repeat for multiple values |
+| `shaped` | `true` | — | Filter to shaped/picture-disc records only |
+
+Example:
+```
+GET /api/records?sortBy=artist&sortDir=asc&size=12%22&size=7%22
+```
+
+Note: the `size` filter matches the `record_size` column exactly. Records with a null `record_size` are excluded when a size filter is active (client-side `effectiveSize` defaulting is **not** applied server-side).
 
 ## Rate Limiting
 

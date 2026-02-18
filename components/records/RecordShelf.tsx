@@ -13,6 +13,12 @@
  *   and by shaped/picture-disc status. Active filter count is shown on the
  *   filter button as a badge. "X of Y shown" appears when filters are active.
  *
+ * Alphabetical navigation (artist sort only):
+ *   AlphaNav renders a row of letter-bucket buttons. Selecting a bucket filters
+ *   the grid to that bucket's records. "All" clears the selection. Buckets are
+ *   computed from the full sorted list by computeBuckets() and reset whenever
+ *   the sort field changes away from "artist".
+ *
  * effectiveSize:
  *   If a record has no explicit recordSize, it defaults to '12"' (the most
  *   common format) unless it is a shaped vinyl, in which case "Unknown".
@@ -22,7 +28,9 @@
 
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import RecordCard from "./RecordCard";
+import AlphaNav from "./AlphaNav";
 import type { Record } from "@/lib/db/schema";
+import { computeBuckets, artistSortKey } from "@/lib/pagination/buckets";
 import styles from "./RecordShelf.module.scss";
 
 type SortBy = "artist" | "title" | "year";
@@ -40,6 +48,8 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
   const [showFilters, setShowFilters] = useState(false);
   const [sizeFilter, setSizeFilter] = useState<Set<string>>(new Set());
   const [shapedOnly, setShapedOnly] = useState(false);
+  // Active alpha-nav bucket label, or null for "All"
+  const [activeBucket, setActiveBucket] = useState<string | null>(null);
   // Bumped by onRecordMutated to re-fetch after a card update or delete
   const [mutationKey, setMutationKey] = useState(0);
   // Ref for click-outside detection on the filter dropdown
@@ -48,6 +58,12 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
   const handleRecordMutated = useCallback(() => {
     setMutationKey((k) => k + 1);
   }, []);
+
+  // Reset active bucket when the sort field changes (alpha nav only makes
+  // sense for artist sort)
+  useEffect(() => {
+    setActiveBucket(null);
+  }, [sortBy]);
 
   // Close filter dropdown when user clicks outside it
   useEffect(() => {
@@ -110,11 +126,6 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
   const activeFilterCount = (sizeFilter.size > 0 ? 1 : 0) + (shapedOnly ? 1 : 0);
 
   const sortedRecords = useMemo(() => {
-    const artistSortKey = (name: string) =>
-      name.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/^(The|A)\s+/i, "")
-        .replace(/^[^a-zA-Z0-9]+/, "");
-
     const dir = sortAsc ? 1 : -1;
     const sorted = [...filteredRecords];
     switch (sortBy) {
@@ -136,6 +147,22 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
         );
     }
   }, [filteredRecords, sortBy, sortAsc]);
+
+  // Compute alpha buckets from the artist-sorted records (full filtered set,
+  // not yet narrowed by activeBucket). Only meaningful when sortBy === "artist".
+  const alphaBuckets = useMemo(() => {
+    if (sortBy !== "artist") return [];
+    return computeBuckets(sortedRecords);
+  }, [sortedRecords, sortBy]);
+
+  // Narrow the displayed records to the active bucket (if any)
+  const displayedRecords = useMemo(() => {
+    if (activeBucket === null || sortBy !== "artist") return sortedRecords;
+    const bucket = alphaBuckets.find((b) => b.label === activeBucket);
+    if (!bucket) return sortedRecords;
+    const idSet = new Set(bucket.recordIds);
+    return sortedRecords.filter((r) => idSet.has(r.recordId));
+  }, [sortedRecords, alphaBuckets, activeBucket, sortBy]);
 
   if (isLoading) {
     return (
@@ -243,15 +270,23 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
             </div>
           )}
         </div>
-        {activeFilterCount > 0 && (
+        {(activeFilterCount > 0 || activeBucket !== null) && (
           <span className={styles.filterResultCount}>
-            {sortedRecords.length} of {records.length} shown
+            {displayedRecords.length} of {records.length} shown
           </span>
         )}
       </div>
 
+      {sortBy === "artist" && alphaBuckets.length > 0 && (
+        <AlphaNav
+          buckets={alphaBuckets}
+          activeBucket={activeBucket}
+          onSelect={setActiveBucket}
+        />
+      )}
+
       <div className={styles.grid}>
-        {sortedRecords.map((record) => (
+        {displayedRecords.map((record) => (
           <RecordCard key={record.recordId} record={record} onRecordMutated={handleRecordMutated} />
         ))}
       </div>

@@ -12,13 +12,7 @@ _(none)_
 
 ## Medium Priority
 
-### Alphabetical pagination on `GET /api/records`
-
-Deferred to its own session. Plan agreed:
-- Server-side sort/filter via query params (`?sortBy=artist&sortDir=asc&size=12"&shaped=true`)
-- New `GET /api/records/pages` endpoint returns alphabetical page buckets (≤100 records each; split by second letter if a letter exceeds the threshold)
-- RecordShelf nav bar: buttons per bucket (e.g. "A–C", "D–F"), active bucket highlighted
-- Load records for the selected bucket only
+_(none)_
 
 ---
 
@@ -83,6 +77,10 @@ The feature overview checklist has an unchecked item for the Discogs search and 
 ---
 
 ## Completed (this session)
+
+- [x] Alphabetical pagination — `GET /api/records` gains optional query params (`sortBy`, `sortDir`, `size`, `shaped`); `lib/pagination/buckets.ts` provides `computeBuckets()` + `artistSortKey()`; `AlphaNav` component renders letter-bucket nav bar; `RecordShelf` shows `AlphaNav` when sorted by artist, filters grid to active bucket; auto-splits letters exceeding `MAX_BUCKET_SIZE` (default 100) by second character.
+
+
 
 - [x] `GET /api/records` — sort newest-first (`desc(createdAt)`)
 - [x] `SearchBar` — trim whitespace before search; closes programmatic bypass of `required` guard
