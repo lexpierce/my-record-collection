@@ -26,7 +26,7 @@ This application is deployed on **Render** using Infrastructure as Code (Bluepri
 - **Region**: Oregon
 - **Auto Deploy**: Enabled on push to main
 - **Build Filter**: Skips rebuild on `docs/**`, `.beads/**`, `*.md` changes
-- **Pre-deploy**: `bun run db:push --force` (schema migrations before each deploy)
+- **Pre-deploy**: `bun run db:migrate` (applies pending migrations before each deploy)
 
 ### Database Configuration
 
@@ -64,7 +64,7 @@ The Render build runs these steps:
 
 1. Install Bun runtime
 2. Install dependencies: `bun install`
-3. Push database schema: `bun run db:push --force`
+3. Apply database migrations: `bun run db:migrate`
 4. Build Next.js app: `bun run build`
 5. Start production server: `bun run start`
 
@@ -113,5 +113,5 @@ For more detailed information, see:
 
 - **Auto Deploy**: Pushes to main branch trigger automatic deployment
 - **Manual Deploy**: Use Render dashboard "Manual Deploy" button
-- **Database Migrations**: Run automatically during build with `db:push --force`
+- **Database Migrations**: Run automatically via pre-deploy with `db:migrate`
 - **Environment Updates**: Change via Render dashboard, triggers redeploy

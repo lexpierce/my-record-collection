@@ -8,7 +8,7 @@
 projects:
   - name: Records
     environments:
-      - name: Demo
+      - name: Prod
         services:
           # Web service for the Next.js application
           - type: web
@@ -43,8 +43,8 @@ projects:
             # Bun is available by default on Render when BUN_VERSION is set
             buildCommand: bun install && bun run build
             startCommand: bun run start
-            # Run database migrations before each deployment (force non-interactive mode)
-            preDeployCommand: bun run db:push --force
+            # Run database migrations before each deployment
+            preDeployCommand: bun run db:migrate
 
         databases:
           # Postgres 18 database with 256MB RAM

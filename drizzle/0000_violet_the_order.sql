@@ -1,0 +1,23 @@
+CREATE TABLE "records" (
+	"record_id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"artist_name" text NOT NULL,
+	"album_title" text NOT NULL,
+	"year_released" integer,
+	"label_name" text,
+	"catalog_number" text,
+	"discogs_id" text,
+	"discogs_uri" text,
+	"is_synced_with_discogs" boolean DEFAULT false NOT NULL,
+	"thumbnail_url" text,
+	"cover_image_url" text,
+	"genres" text[],
+	"styles" text[],
+	"upc_code" text,
+	"record_size" text,
+	"vinyl_color" text,
+	"is_shaped_vinyl" boolean DEFAULT false,
+	"data_source" text DEFAULT 'discogs' NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "records_discogs_id_unique" UNIQUE("discogs_id")
+);

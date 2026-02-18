@@ -3,7 +3,7 @@
 ## Current Status
 
 ✅ **GitHub Repository**: <https://github.com/lexpierce/my-record-collection>
-✅ **Blueprint**: render.yaml (organized under Records project, Demo environment)
+✅ **Blueprint**: render.yaml (organized under Records project, Prod environment)
 ✅ **Deployment Method**: Render Blueprint (Infrastructure as Code)
 
 ## Blueprint Deployment URL
@@ -13,7 +13,7 @@
 This will deploy:
 
 - **Project**: Records
-- **Environment**: Demo
+- **Environment**: Prod
 - **Web Service**: my-record-collection (Bun runtime, Starter plan)
 - **Database**: Postgres 18 (5GB disk, Basic 256MB plan)
 
@@ -65,7 +65,7 @@ The build will:
 
 - Install Bun runtime
 - Install dependencies
-- Run database migrations (`bun run db:push`)
+- Apply database migrations (`bun run db:migrate`)
 - Build the Next.js application
 - Start the production server
 

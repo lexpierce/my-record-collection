@@ -34,5 +34,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# drizzle
-drizzle/
+# drizzle studio snapshots only (not migrations)
+# drizzle/
