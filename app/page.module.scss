@@ -150,5 +150,7 @@ $bp-sm: 640px;
   max-width: 80rem;
   margin: 0 auto;
   padding: 2rem;
-  overflow-x: clip;
+  // No overflow clipping: flipped cards expand beyond their grid cell and the
+  // RecordCard JS adjusts margins to stay within the viewport. Clipping here
+  // truncates both the expanded card width AND its height (clip affects both axes).
 }
