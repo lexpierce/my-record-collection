@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-
+import styles from "./SearchBar.module.scss";
 
 /**
  * Search bar component for finding records via Discogs API
@@ -39,13 +39,10 @@ export default function SearchBar({ onRecordAdded }: SearchBarProps) {
     try {
       let searchUrl = "/api/records/search?";
 
-      // Build query parameters based on selected search method
       if (searchMethod === "catalog" && catalogNumber) {
         searchUrl += `catalogNumber=${encodeURIComponent(catalogNumber)}`;
       } else if (searchMethod === "artistTitle" && artistName && albumTitle) {
-        searchUrl += `artist=${encodeURIComponent(
-          artistName
-        )}&title=${encodeURIComponent(albumTitle)}`;
+        searchUrl += `artist=${encodeURIComponent(artistName)}&title=${encodeURIComponent(albumTitle)}`;
       } else if (searchMethod === "upc" && upcCode) {
         searchUrl += `upc=${encodeURIComponent(upcCode)}`;
       } else {
@@ -109,70 +106,48 @@ export default function SearchBar({ onRecordAdded }: SearchBarProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className={styles.container}>
       {/* Search method tabs */}
-      <div className="flex border-b border-warmBg-tertiary">
-        <button
-          type="button"
-          onClick={() => setSearchMethod("artistTitle")}
-          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-            searchMethod === "artistTitle"
-              ? "border-warmAccent-bronze text-warmText-primary"
-              : "border-transparent text-warmText-tertiary hover:text-warmText-secondary hover:border-warmBg-tertiary"
-          }`}
-        >
-          Artist & Title
-        </button>
-        <button
-          type="button"
-          onClick={() => setSearchMethod("catalog")}
-          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-            searchMethod === "catalog"
-              ? "border-warmAccent-bronze text-warmText-primary"
-              : "border-transparent text-warmText-tertiary hover:text-warmText-secondary hover:border-warmBg-tertiary"
-          }`}
-        >
-          Catalog #
-        </button>
-        <button
-          type="button"
-          onClick={() => setSearchMethod("upc")}
-          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-            searchMethod === "upc"
-              ? "border-warmAccent-bronze text-warmText-primary"
-              : "border-transparent text-warmText-tertiary hover:text-warmText-secondary hover:border-warmBg-tertiary"
-          }`}
-        >
-          UPC
-        </button>
+      <div className={styles.tabs}>
+        {(["artistTitle", "catalog", "upc"] as const).map((method) => {
+          const label = method === "artistTitle" ? "Artist & Title"
+            : method === "catalog" ? "Catalog #"
+            : "UPC";
+          return (
+            <button
+              key={method}
+              type="button"
+              onClick={() => setSearchMethod(method)}
+              className={`${styles.tab}${searchMethod === method ? ` ${styles.active}` : ""}`}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Search form */}
-      <form onSubmit={handleSearchSubmit} className="flex gap-3 items-end">
+      <form onSubmit={handleSearchSubmit} className={styles.form}>
         {searchMethod === "artistTitle" && (
           <>
-            <div className="flex-1">
-              <label className="block text-xs font-medium text-warmText-tertiary mb-1">
-                Artist
-              </label>
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>Artist</label>
               <input
                 type="text"
                 value={artistName}
                 onChange={(e) => setArtistName(e.target.value)}
-                className="w-full px-3 py-2 bg-warmBg-primary border border-warmBg-tertiary focus:outline-none focus:border-warmAccent-bronze text-warmText-primary text-sm"
+                className={styles.input}
                 placeholder="e.g., Pink Floyd"
                 required
               />
             </div>
-            <div className="flex-1">
-              <label className="block text-xs font-medium text-warmText-tertiary mb-1">
-                Album
-              </label>
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>Album</label>
               <input
                 type="text"
                 value={albumTitle}
                 onChange={(e) => setAlbumTitle(e.target.value)}
-                className="w-full px-3 py-2 bg-warmBg-primary border border-warmBg-tertiary focus:outline-none focus:border-warmAccent-bronze text-warmText-primary text-sm"
+                className={styles.input}
                 placeholder="e.g., The Dark Side of the Moon"
                 required
               />
@@ -181,15 +156,13 @@ export default function SearchBar({ onRecordAdded }: SearchBarProps) {
         )}
 
         {searchMethod === "catalog" && (
-          <div className="flex-1">
-            <label className="block text-xs font-medium text-warmText-tertiary mb-1">
-              Catalog Number
-            </label>
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>Catalog Number</label>
             <input
               type="text"
               value={catalogNumber}
               onChange={(e) => setCatalogNumber(e.target.value)}
-              className="w-full px-3 py-2 bg-warmBg-primary border border-warmBg-tertiary focus:outline-none focus:border-warmAccent-bronze text-warmText-primary text-sm"
+              className={styles.input}
               placeholder="e.g., SHVL 804"
               required
             />
@@ -197,95 +170,80 @@ export default function SearchBar({ onRecordAdded }: SearchBarProps) {
         )}
 
         {searchMethod === "upc" && (
-          <div className="flex-1">
-            <label className="block text-xs font-medium text-warmText-tertiary mb-1">
-              UPC Code
-            </label>
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>UPC Code</label>
             <input
               type="text"
               value={upcCode}
               onChange={(e) => setUpcCode(e.target.value)}
-              className="w-full px-3 py-2 bg-warmBg-primary border border-warmBg-tertiary focus:outline-none focus:border-warmAccent-bronze text-warmText-primary text-sm"
+              className={styles.input}
               placeholder="e.g., 724384260804"
               required
             />
           </div>
         )}
 
-        {/* Search button with Discogs logo */}
         <button
           type="submit"
           disabled={isSearching}
-          className="px-3 py-2 bg-warmAccent-orange hover:bg-warmAccent-copper transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+          className={styles.searchBtn}
           title="Search Discogs"
         >
           {isSearching ? (
-            <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className={styles.searchBtnSpinner} />
           ) : (
             <Image
               src="/discogs-logo.svg"
               alt="Search Discogs"
               width={32}
               height={32}
-              className="w-8 h-8 invert brightness-200"
+              style={{ filter: "invert(1) brightness(200%)" }}
             />
           )}
         </button>
       </form>
 
-      {/* Success message */}
       {successMessage && (
-        <div className="p-3 bg-warmAccent-bronze/10 border border-warmAccent-bronze/30 text-warmAccent-bronze text-sm">
-          {successMessage}
-        </div>
+        <div className={styles.successMsg}>{successMessage}</div>
       )}
 
-      {/* Error message */}
       {errorMessage && (
-        <div className="p-3 bg-warmAccent-orange/10 border border-warmAccent-orange/30 text-warmAccent-copper text-sm">
-          {errorMessage}
-        </div>
+        <div className={styles.errorMsg}>{errorMessage}</div>
       )}
 
-      {/* Search results */}
       {showResults && searchResults.length > 0 && (
-        <div className="mt-4">
-          <h3 className="text-sm font-semibold text-warmText-primary mb-3">
+        <div className={styles.results}>
+          <h3 className={styles.resultsHeading}>
             Results ({searchResults.length})
           </h3>
-          <div className="space-y-2 max-h-80 overflow-y-auto">
+          <div className={styles.resultsList}>
             {searchResults.map((result) => (
-              <div
-                key={result.id}
-                className="flex items-center gap-3 p-3 bg-warmBg-primary border border-warmBg-tertiary hover:border-warmAccent-bronze transition-colors"
-              >
+              <div key={result.id} className={styles.resultItem}>
                 {result.thumb && (
                   <Image
                     src={result.thumb}
                     alt={result.title}
                     width={48}
                     height={48}
-                    className="w-12 h-12 object-cover"
+                    className={styles.resultThumb}
                     unoptimized
                   />
                 )}
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-sm text-warmText-primary truncate">
-                    {result.title}
-                  </h4>
-                  <div className="flex gap-3 text-xs text-warmText-tertiary">
+                <div className={styles.resultInfo}>
+                  <h4 className={styles.resultTitle}>{result.title}</h4>
+                  <div className={styles.resultMeta}>
                     {result.year && <span>{result.year}</span>}
                     {result.catno && <span>Cat#: {result.catno}</span>}
                     {result.recordSize && <span>{result.recordSize}</span>}
                     {result.vinylColor && <span>{result.vinylColor}</span>}
                     {result.isShapedVinyl && (
-                      <span className="text-warmAccent-orange">Picture Disc</span>
+                      <span className={styles.resultPicDisc}>Picture Disc</span>
                     )}
                   </div>
                 </div>
                 <button
                   onClick={() => handleAddRecord(result.id)}
-                  className="px-3 py-1.5 bg-warmAccent-bronze text-white text-xs font-medium hover:bg-warmAccent-copper transition-colors"
+                  className={styles.addBtn}
                 >
                   + Add
                 </button>

@@ -1,0 +1,15 @@
+/// Base / reset styles — replaces Tailwind @layer base
+
+html {
+  scroll-behavior: smooth;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+}

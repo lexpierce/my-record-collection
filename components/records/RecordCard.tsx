@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import type { Record } from "@/lib/db/schema";
+import styles from "./RecordCard.module.scss";
 
 /**
  * Props for the RecordCard component
@@ -106,7 +107,6 @@ export default function RecordCard({ record }: RecordCardProps) {
     }
 
     try {
-      // Use the correct endpoint path with [id] parameter
       const response = await fetch(`/api/records/${record.recordId}`, {
         method: "DELETE",
       });
@@ -124,16 +124,18 @@ export default function RecordCard({ record }: RecordCardProps) {
   };
 
   return (
+    // flip-card / flipped are global classes (see styles/globals.scss)
     <div
       ref={cardRef}
-      className={`flip-card cursor-pointer ${isFlipped ? "flipped" : ""}`}
+      className={`flip-card${isFlipped ? " flipped" : ""}`}
+      style={{ cursor: "pointer" }}
       onClick={handleCardClick}
     >
       <div className="flip-card-inner">
-        {/* Front of card - Album art and basic info */}
-        <div className="flip-card-front p-1.5">
-          <div className="flex flex-col items-center">
-            <div className="album-art-size bg-warmBg-tertiary overflow-hidden">
+        {/* Front of card */}
+        <div className="flip-card-front">
+          <div className={styles.cardFrontContent}>
+            <div className={`album-art-size ${styles.albumArtWrapper}`}>
               {record.thumbnailUrl ? (
                 <Image
                   src={record.thumbnailUrl}
@@ -144,25 +146,18 @@ export default function RecordCard({ record }: RecordCardProps) {
                   unoptimized
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-warmAccent-bronze text-white text-xs">
-                  No Image
-                </div>
+                <div className={styles.noImagePlaceholder}>No Image</div>
               )}
             </div>
-            <h3 className="text-xs font-bold text-warmText-primary truncate w-full text-center mt-1 leading-none">
-              {record.albumTitle}
-            </h3>
-            <p className="text-xs text-warmText-secondary truncate w-full text-center leading-none mt-0.5">
-              {record.artistName}
-            </p>
+            <h3 className={styles.albumTitle}>{record.albumTitle}</h3>
+            <p className={styles.albumArtist}>{record.artistName}</p>
           </div>
         </div>
 
-        {/* Back of card - Detailed information */}
-        <div className="flip-card-back bg-warmBg-secondary p-3">
-          <div className="flex flex-col space-y-2">
-            {/* Album thumbnail */}
-            <div className="album-art-size-lg mx-auto mb-2 bg-warmBg-tertiary overflow-hidden">
+        {/* Back of card */}
+        <div className="flip-card-back">
+          <div className={styles.cardBack}>
+            <div className={`album-art-size-lg ${styles.albumArtWrapperLg}`}>
               {record.thumbnailUrl ? (
                 <Image
                   src={record.thumbnailUrl}
@@ -173,170 +168,97 @@ export default function RecordCard({ record }: RecordCardProps) {
                   unoptimized
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-warmAccent-bronze text-white text-xs">
-                  No Image
-                </div>
+                <div className={styles.noImagePlaceholder}>No Image</div>
               )}
             </div>
 
-            {/* Album info */}
-            <div className="space-y-1">
-              <h3 className="text-xs font-bold text-warmText-primary">
-                {record.albumTitle}
-              </h3>
-              <p className="text-xs text-warmText-secondary">
-                {record.artistName}
-              </p>
+            <div>
+              <h3 className={styles.metaTitle}>{record.albumTitle}</h3>
+              <p className={styles.metaArtist}>{record.artistName}</p>
 
-              <div className="border-t border-warmAccent-bronze pt-1 space-y-0.5">
-                {/* Year released */}
+              <div className={styles.metaSection}>
                 {record.yearReleased && (
-                  <div className="text-[10px]">
-                    <span className="font-semibold text-warmText-primary">
-                      Year:
-                    </span>{" "}
-                    <span className="text-warmText-secondary">
-                      {record.yearReleased}
-                    </span>
+                  <div className={styles.metaRow}>
+                    <span className={styles.metaLabel}>Year:</span>{" "}
+                    <span className={styles.metaValue}>{record.yearReleased}</span>
                   </div>
                 )}
-
-                {/* Record size */}
                 {record.recordSize && (
-                  <div className="text-[10px]">
-                    <span className="font-semibold text-warmText-primary">
-                      Size:
-                    </span>{" "}
-                    <span className="text-warmText-secondary">
-                      {record.recordSize}
-                    </span>
+                  <div className={styles.metaRow}>
+                    <span className={styles.metaLabel}>Size:</span>{" "}
+                    <span className={styles.metaValue}>{record.recordSize}</span>
                   </div>
                 )}
-
-                {/* Vinyl color */}
                 {record.vinylColor && (
-                  <div className="text-[10px]">
-                    <span className="font-semibold text-warmText-primary">
-                      Color:
-                    </span>{" "}
-                    <span className="text-warmText-secondary">
-                      {record.vinylColor}
-                    </span>
+                  <div className={styles.metaRow}>
+                    <span className={styles.metaLabel}>Color:</span>{" "}
+                    <span className={styles.metaValue}>{record.vinylColor}</span>
                   </div>
                 )}
-
-                {/* Shaped vinyl */}
                 {record.isShapedVinyl && (
-                  <div className="text-[10px]">
-                    <span className="font-semibold text-warmText-primary">
-                      Type:
-                    </span>{" "}
-                    <span className="text-warmText-secondary">
-                      Shaped/Picture Disc
-                    </span>
+                  <div className={styles.metaRow}>
+                    <span className={styles.metaLabel}>Type:</span>{" "}
+                    <span className={styles.metaValue}>Shaped/Picture Disc</span>
                   </div>
                 )}
-
-                {/* Label name */}
                 {record.labelName && (
-                  <div className="text-[10px]">
-                    <span className="font-semibold text-warmText-primary">
-                      Label:
-                    </span>{" "}
-                    <span className="text-warmText-secondary">
-                      {record.labelName}
-                    </span>
+                  <div className={styles.metaRow}>
+                    <span className={styles.metaLabel}>Label:</span>{" "}
+                    <span className={styles.metaValue}>{record.labelName}</span>
                   </div>
                 )}
-
-                {/* Catalog number */}
                 {record.catalogNumber && (
-                  <div className="text-[10px]">
-                    <span className="font-semibold text-warmText-primary">
-                      Cat#:
-                    </span>{" "}
-                    <span className="text-warmText-secondary">
-                      {record.catalogNumber}
-                    </span>
+                  <div className={styles.metaRow}>
+                    <span className={styles.metaLabel}>Cat#:</span>{" "}
+                    <span className={styles.metaValue}>{record.catalogNumber}</span>
                   </div>
                 )}
-
-                {/* UPC code */}
                 {record.upcCode && (
-                  <div className="text-[10px]">
-                    <span className="font-semibold text-warmText-primary">
-                      UPC:
-                    </span>{" "}
-                    <span className="text-warmText-secondary">
-                      {record.upcCode}
-                    </span>
+                  <div className={styles.metaRow}>
+                    <span className={styles.metaLabel}>UPC:</span>{" "}
+                    <span className={styles.metaValue}>{record.upcCode}</span>
                   </div>
                 )}
-
-                {/* Genres */}
                 {record.genres && record.genres.length > 0 && (
-                  <div className="text-[10px]">
-                    <span className="font-semibold text-warmText-primary">
-                      Genres:
-                    </span>{" "}
-                    <span className="text-warmText-secondary">
-                      {record.genres.join(", ")}
-                    </span>
+                  <div className={styles.metaRow}>
+                    <span className={styles.metaLabel}>Genres:</span>{" "}
+                    <span className={styles.metaValue}>{record.genres.join(", ")}</span>
                   </div>
                 )}
-
-                {/* Styles */}
                 {record.styles && record.styles.length > 0 && (
-                  <div className="text-[10px]">
-                    <span className="font-semibold text-warmText-primary">
-                      Styles:
-                    </span>{" "}
-                    <span className="text-warmText-secondary">
-                      {record.styles.join(", ")}
-                    </span>
+                  <div className={styles.metaRow}>
+                    <span className={styles.metaLabel}>Styles:</span>{" "}
+                    <span className={styles.metaValue}>{record.styles.join(", ")}</span>
                   </div>
                 )}
-
-                {/* Data source */}
-                <div className="text-[10px]">
-                  <span className="font-semibold text-warmText-primary">
-                    Source:
-                  </span>{" "}
-                  <span className="text-warmText-secondary capitalize">
+                <div className={styles.metaRow}>
+                  <span className={styles.metaLabel}>Source:</span>{" "}
+                  <span className={styles.metaValue} style={{ textTransform: "capitalize" }}>
                     {record.dataSource}
                   </span>
                 </div>
-
-                {/* Discogs ID */}
                 {record.discogsId && (
-                  <div className="text-[10px]">
-                    <span className="font-semibold text-warmText-primary">
-                      Discogs ID:
-                    </span>{" "}
-                    <span className="text-warmText-secondary">
-                      {record.discogsId}
-                    </span>
+                  <div className={styles.metaRow}>
+                    <span className={styles.metaLabel}>Discogs ID:</span>{" "}
+                    <span className={styles.metaValue}>{record.discogsId}</span>
                   </div>
                 )}
-
-                {/* Synced with Discogs */}
                 {record.isSyncedWithDiscogs && (
-                  <div className="text-[10px]">
-                    <span className="font-semibold text-warmText-primary">Synced:</span>{" "}
-                    <span className="text-warmAccent-bronze">&#10003;</span>
+                  <div className={styles.metaRow}>
+                    <span className={styles.metaLabel}>Synced:</span>{" "}
+                    <span className={styles.metaValueAccent}>&#10003;</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Action buttons */}
-            <div className="mt-2 pt-2 border-t border-warmAccent-bronze flex gap-1">
+            <div className={styles.actions}>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleUpdateFromDiscogs();
                 }}
-                className="px-2 py-1 text-[10px] bg-warmAccent-bronze text-white hover:bg-warmAccent-copper transition-colors whitespace-nowrap"
+                className={styles.btnUpdate}
               >
                 Update
               </button>
@@ -345,7 +267,7 @@ export default function RecordCard({ record }: RecordCardProps) {
                   e.stopPropagation();
                   handleDeleteAlbum();
                 }}
-                className="px-2 py-1 text-[10px] bg-warmAccent-copper text-white hover:bg-warmAccent-bronze transition-colors whitespace-nowrap"
+                className={styles.btnDelete}
               >
                 Delete
               </button>

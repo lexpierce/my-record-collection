@@ -1,0 +1,26 @@
+/// Color tokens and design variables as CSS custom properties.
+/// All components reference these via var(--token-name).
+
+:root {
+  // Background palette
+  --warm-bg-primary:   #F7F9F2; // warm cream with green tint
+  --warm-bg-secondary: #ECF0E3; // light sage cream
+  --warm-bg-tertiary:  #D8DECC; // warm sage beige
+
+  // Accent palette
+  --warm-accent-orange: #6B8E5A; // warm sage
+  --warm-accent-copper: #527542; // forest
+  --warm-accent-bronze: #3E5C2F; // dark moss
+  --warm-accent-gold:   #8B9E4A; // olive gold
+
+  // Text palette
+  --warm-text-primary:   #2F3327; // dark olive-brown
+  --warm-text-secondary: #4A5040; // medium olive
+  --warm-text-tertiary:  #687060; // light olive
+
+  // Font
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+
+  // Border commonly used
+  --border-default: var(--warm-bg-tertiary);
+}

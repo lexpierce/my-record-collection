@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
+import "@/styles/globals.scss";
+import styles from "./layout.module.scss";
 
 /**
  * Inter font configuration
@@ -34,7 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={interFont.variable}>
-      <body className="bg-warmBg-secondary text-warmText-primary antialiased font-sans">
+      <body className={styles.body}>
         {children}
       </body>
     </html>

@@ -193,7 +193,7 @@ Document each React component with:
 2. **Props**: Interface with types and descriptions
 3. **State**: Internal state management approach
 4. **Events**: User interactions and callbacks
-5. **Styling**: Tailwind approach and responsive behavior
+5. **Styling**: Sass CSS Module approach and responsive behavior
 6. **Example**: Simple usage example
 7. **Notes**: Client/server component, dependencies, gotchas
 
@@ -222,8 +222,8 @@ interface RecordCardProps {
 ### Styling
 
 - Uses CSS 3D transforms for flip animation
-- Tailwind utilities for layout and colors
-- Custom `.flip-card` classes in `globals.css`
+- Scoped styles in `RecordCard.module.scss`
+- Global `.flip-card` classes in `styles/globals.scss` (required for JS class toggling)
 - Responsive: scales proportionally on mobile
 
 ### Example
@@ -342,7 +342,7 @@ bd update <issue-id> --notes="Related to commit abc123"
 Look to these for inspiration:
 - **Stripe API Docs**: Clear, comprehensive, great examples
 - **Next.js Docs**: Excellent feature documentation
-- **Tailwind Docs**: Concise reference with visual examples
+- **Sass Docs**: Concise reference with visual examples
 - **Drizzle ORM Docs**: Well-organized, searchable
 
 ## Anti-Patterns to Avoid

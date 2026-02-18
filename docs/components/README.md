@@ -15,15 +15,15 @@ React components for the My Record Collection application.
 
 All components follow these patterns:
 - **TypeScript**: Fully typed with interfaces for props
-- **Tailwind CSS**: Utility-first styling
+- **Sass CSS Modules**: Scoped styles per component (`.module.scss`)
 - **Client/Server Split**: Marked with `"use client"` when interactive
 - **Verbose Naming**: Descriptive names for clarity
 - **Inline Documentation**: JSDoc comments for complex logic
 
 ## Styling Approach
 
-- **Warm Color Palette**: Defined in `tailwind.config.ts`
-- **Custom Utilities**: Defined in `app/globals.css`
+- **Warm Color Palette**: CSS custom properties in `styles/_variables.scss`
+- **Global Utilities**: Defined in `styles/globals.scss` (flip-card, album-art-size)
 - **Responsive Design**: Mobile-first approach
 - **Animation**: CSS 3D transforms for interactive elements
 

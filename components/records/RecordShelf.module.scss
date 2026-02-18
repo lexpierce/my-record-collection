@@ -1,0 +1,193 @@
+// Responsive breakpoints matching former Tailwind sm/md/lg/xl
+$bp-sm: 640px;
+$bp-md: 768px;
+$bp-lg: 1024px;
+$bp-xl: 1280px;
+
+// ─── Controls bar ─────────────────────────────────────────────────────────────
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.recordCount {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--warm-text-tertiary);
+}
+
+.sortSelect {
+  font-size: 0.875rem;
+  background-color: var(--warm-bg-primary);
+  border: 1px solid var(--warm-bg-tertiary);
+  color: var(--warm-text-secondary);
+  padding: 0.25rem 0.5rem;
+
+  &:focus {
+    outline: none;
+    border-color: var(--warm-accent-bronze);
+  }
+}
+
+.sortDirBtn {
+  font-size: 0.875rem;
+  color: var(--warm-text-secondary);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: var(--warm-text-primary);
+  }
+}
+
+// ─── Filter button + dropdown ──────────────────────────────────────────────────
+
+.filterWrapper {
+  position: relative;
+}
+
+.filterBtn {
+  position: relative;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--warm-bg-tertiary);
+  background: none;
+  color: var(--warm-text-secondary);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    color: var(--warm-text-primary);
+  }
+
+  &.active {
+    border-color: var(--warm-accent-bronze);
+    color: var(--warm-accent-bronze);
+  }
+}
+
+.filterBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 16px;
+  height: 16px;
+  background-color: var(--warm-accent-bronze);
+  color: #fff;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.filterDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.25rem;
+  background-color: var(--warm-bg-primary);
+  border: 1px solid var(--warm-bg-tertiary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 0.75rem;
+  z-index: 50;
+  min-width: 180px;
+}
+
+.filterGroupLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--warm-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.filterCheckLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--warm-text-secondary);
+  padding: 0.125rem 0;
+  cursor: pointer;
+
+  input[type="checkbox"] {
+    accent-color: var(--warm-accent-bronze);
+  }
+}
+
+.filterDivider {
+  border-top: 1px solid var(--warm-bg-tertiary);
+  margin: 0.5rem 0;
+}
+
+.filterClearBtn {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--warm-accent-copper);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: var(--warm-accent-bronze);
+  }
+}
+
+.filterResultCount {
+  font-size: 0.75rem;
+  color: var(--warm-text-tertiary);
+}
+
+// ─── Record grid ──────────────────────────────────────────────────────────────
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 1.25rem;
+  row-gap: 0;
+
+  @media (min-width: $bp-sm) { grid-template-columns: repeat(3, 1fr); }
+  @media (min-width: $bp-md) { grid-template-columns: repeat(4, 1fr); }
+  @media (min-width: $bp-lg) { grid-template-columns: repeat(5, 1fr); }
+  @media (min-width: $bp-xl) { grid-template-columns: repeat(7, 1fr); }
+}
+
+// ─── Loading / empty / error states ──────────────────────────────────────────
+
+.stateCenter {
+  text-align: center;
+  padding: 4rem 0;
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid var(--warm-bg-tertiary);
+  border-top-color: var(--warm-accent-bronze);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  margin: 0 auto 0.75rem;
+}
+
+.loadingText {
+  font-size: 0.875rem;
+  color: var(--warm-text-tertiary);
+}
+
+.errorText {
+  font-size: 0.875rem;
+  color: var(--warm-accent-copper);
+}
+
+.emptyText {
+  color: var(--warm-text-tertiary);
+}

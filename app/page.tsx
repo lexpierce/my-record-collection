@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import RecordShelf from "@/components/records/RecordShelf";
 import SearchBar from "@/components/records/SearchBar";
+import styles from "./page.module.scss";
 
 interface SyncProgress {
   phase: "pull" | "push" | "done";
@@ -81,29 +82,27 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main className="min-h-screen">
+    <main className={styles.main}>
       {/* Header section */}
-      <header className="bg-warmBg-primary border-b border-warmBg-tertiary px-8 py-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <header className={styles.header}>
+        <div className={styles.headerInner}>
           <div>
-            <h1 className="text-3xl font-bold text-warmText-primary tracking-tight">
-              My Record Collection
-            </h1>
-            <p className="text-sm text-warmText-tertiary mt-0.5">
+            <h1 className={styles.headerTitle}>My Record Collection</h1>
+            <p className={styles.headerSubtitle}>
               Browse and manage your vinyl collection
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className={styles.headerActions}>
             <button
               onClick={handleSync}
               disabled={isSyncing}
-              className="px-5 py-2.5 bg-warmAccent-bronze text-white font-medium text-sm hover:bg-warmAccent-copper transition-colors border-0 disabled:opacity-50"
+              className={styles.btnPrimary}
             >
               {isSyncing ? "Syncing..." : "Sync Collection"}
             </button>
             <button
               onClick={() => setShowSearch(!showSearch)}
-              className="px-5 py-2.5 bg-warmAccent-orange text-white font-medium text-sm hover:bg-warmAccent-copper transition-colors border-0"
+              className={styles.btnSecondary}
             >
               {showSearch ? "Close" : "+ Add an album"}
             </button>
@@ -113,25 +112,28 @@ export default function HomePage() {
 
       {/* Sync progress bar */}
       {syncProgress && syncProgress.phase !== "done" && (
-        <div className="bg-warmBg-secondary border-b border-warmBg-tertiary px-8 py-3">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center gap-4 text-sm text-warmText-secondary">
-              <span className="font-medium text-warmText-primary">
-                {syncProgress.phase === "pull" ? "Pulling from Discogs..." : "Pushing to Discogs..."}
+        <div className={styles.syncBar}>
+          <div className={styles.syncBarInner}>
+            <div className={styles.syncStatus}>
+              <span className={styles.syncPhase}>
+                {syncProgress.phase === "pull"
+                  ? "Pulling from Discogs..."
+                  : "Pushing to Discogs..."}
               </span>
               <span>Imported: {syncProgress.pulled}</span>
               <span>Pushed: {syncProgress.pushed}</span>
               <span>Skipped: {syncProgress.skipped}</span>
               {syncProgress.totalDiscogsItems > 0 && (
                 <span>
-                  ({syncProgress.pulled + syncProgress.skipped} / {syncProgress.totalDiscogsItems})
+                  ({syncProgress.pulled + syncProgress.skipped} /{" "}
+                  {syncProgress.totalDiscogsItems})
                 </span>
               )}
             </div>
             {syncProgress.totalDiscogsItems > 0 && (
-              <div className="mt-2 h-1.5 bg-warmBg-tertiary overflow-hidden">
+              <div className={styles.syncProgressTrack}>
                 <div
-                  className="h-full bg-warmAccent-bronze transition-all duration-300"
+                  className={styles.syncProgressFill}
                   style={{
                     width: `${Math.round(
                       ((syncProgress.pulled + syncProgress.skipped) /
@@ -148,8 +150,8 @@ export default function HomePage() {
 
       {/* Sync errors */}
       {syncProgress?.errors && syncProgress.errors.length > 0 && (
-        <div className="bg-warmBg-secondary border-b border-warmBg-tertiary px-8 py-3">
-          <div className="max-w-7xl mx-auto text-sm text-warmAccent-copper">
+        <div className={styles.syncErrors}>
+          <div className={styles.syncErrorsInner}>
             {syncProgress.errors.slice(0, 5).map((e, i) => (
               <div key={i}>{e}</div>
             ))}
@@ -162,15 +164,15 @@ export default function HomePage() {
 
       {/* Collapsible search interface */}
       {showSearch && (
-        <section className="bg-warmBg-primary border-b border-warmBg-tertiary">
-          <div className="max-w-7xl mx-auto px-8 py-6">
+        <section className={styles.searchSection}>
+          <div className={styles.searchSectionInner}>
             <SearchBar onRecordAdded={handleRecordAdded} />
           </div>
         </section>
       )}
 
       {/* Record shelf display */}
-      <section className="max-w-7xl mx-auto px-8 py-8 overflow-x-clip">
+      <section className={styles.shelfSection}>
         <RecordShelf refreshKey={refreshKey} />
       </section>
     </main>

@@ -1,0 +1,154 @@
+// Breakpoints
+$bp-sm: 640px;
+
+.main {
+  min-height: 100vh;
+}
+
+// ─── Header ──────────────────────────────────────────────────────────────────
+
+.header {
+  background-color: var(--warm-bg-primary);
+  border-bottom: 1px solid var(--warm-bg-tertiary);
+  padding: 1.5rem 2rem;
+}
+
+.headerInner {
+  max-width: 80rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerTitle {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--warm-text-primary);
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+
+.headerSubtitle {
+  font-size: 0.875rem;
+  color: var(--warm-text-tertiary);
+  margin: 0.125rem 0 0;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+// ─── Buttons ─────────────────────────────────────────────────────────────────
+
+.btnPrimary {
+  padding: 0.625rem 1.25rem;
+  background-color: var(--warm-accent-bronze);
+  color: #fff;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: 0;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: var(--warm-accent-copper);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btnSecondary {
+  padding: 0.625rem 1.25rem;
+  background-color: var(--warm-accent-orange);
+  color: #fff;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: 0;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--warm-accent-copper);
+  }
+}
+
+// ─── Sync progress bar ────────────────────────────────────────────────────────
+
+.syncBar {
+  background-color: var(--warm-bg-secondary);
+  border-bottom: 1px solid var(--warm-bg-tertiary);
+  padding: 0.75rem 2rem;
+}
+
+.syncBarInner {
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.syncStatus {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: var(--warm-text-secondary);
+}
+
+.syncPhase {
+  font-weight: 500;
+  color: var(--warm-text-primary);
+}
+
+.syncProgressTrack {
+  margin-top: 0.5rem;
+  height: 6px;
+  background-color: var(--warm-bg-tertiary);
+  overflow: hidden;
+}
+
+.syncProgressFill {
+  height: 100%;
+  background-color: var(--warm-accent-bronze);
+  transition: width 0.3s ease;
+}
+
+// ─── Sync errors ──────────────────────────────────────────────────────────────
+
+.syncErrors {
+  background-color: var(--warm-bg-secondary);
+  border-bottom: 1px solid var(--warm-bg-tertiary);
+  padding: 0.75rem 2rem;
+}
+
+.syncErrorsInner {
+  max-width: 80rem;
+  margin: 0 auto;
+  font-size: 0.875rem;
+  color: var(--warm-accent-copper);
+}
+
+// ─── Search section ───────────────────────────────────────────────────────────
+
+.searchSection {
+  background-color: var(--warm-bg-primary);
+  border-bottom: 1px solid var(--warm-bg-tertiary);
+}
+
+.searchSectionInner {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+}
+
+// ─── Record shelf section ─────────────────────────────────────────────────────
+
+.shelfSection {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem;
+  overflow-x: clip;
+}

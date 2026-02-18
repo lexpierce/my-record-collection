@@ -167,16 +167,16 @@ Deletes record after user confirmation.
 
 ### Design Principles
 - **Border Radius**: 0px on all elements (sharp edges)
-- **No Tailwind `rounded` classes** anywhere in the component
+- **No border-radius** anywhere in the component (sharp edges throughout)
 
 ### Front Card
 - **Background**: `#FFF8F0` (warmBg-primary)
 - **Border**: 1px solid `#E8D4BA` (subtle)
-- **Padding**: `p-1.5` for border-to-image spacing
+- **Padding**: `0.375rem` for border-to-image spacing
 - **Text Colors**: warmText-primary, warmText-secondary
 
 ### Back Card (Flipped)
-- **Background**: `#F5E6D3` (warmBg-secondary) - set via both CSS and Tailwind class
+- **Background**: `var(--warm-bg-secondary)` (light sage cream) - set via CSS custom property
 - **Border**: 2px solid `#C9A876` (bronze, thicker for emphasis)
 - **Height**: `auto` (background covers all content, not just 240px)
 - **Opacity**: 1 (explicitly fully opaque)
