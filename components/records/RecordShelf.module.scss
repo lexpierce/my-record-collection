@@ -149,16 +149,13 @@ $bp-xl: 1280px;
 
 // ─── Record grid ──────────────────────────────────────────────────────────────
 
+// auto-fill with fixed 180px columns: packs as many cards as fit the viewport,
+// eliminating both 1fr inter-card gaps and rightmost-column overflow.
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fill, 180px);
   column-gap: 1.25rem;
   row-gap: 0;
-
-  @media (min-width: $bp-sm) { grid-template-columns: repeat(3, 1fr); }
-  @media (min-width: $bp-md) { grid-template-columns: repeat(4, 1fr); }
-  @media (min-width: $bp-lg) { grid-template-columns: repeat(5, 1fr); }
-  @media (min-width: $bp-xl) { grid-template-columns: repeat(7, 1fr); }
 }
 
 // ─── Loading / empty / error states ──────────────────────────────────────────
