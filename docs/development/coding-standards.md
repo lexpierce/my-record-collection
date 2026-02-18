@@ -662,8 +662,9 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 Run checks before committing:
 
 ```bash
-bun run type-check    # TypeScript errors
 bun run lint          # ESLint
+bun run lint:md       # Markdown lint
+bun run type-check    # TypeScript errors
 bun run test          # Vitest unit + component tests
 bun run build         # Production build
 ```
