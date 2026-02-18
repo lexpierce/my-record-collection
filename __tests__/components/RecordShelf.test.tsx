@@ -147,7 +147,7 @@ describe("RecordShelf — sorting", () => {
     render(<RecordShelf />);
     await waitFor(() => screen.getAllByTestId("record-card"));
 
-    const select = screen.getByRole("combobox");
+    const select = screen.getByRole("combobox", { name: "Sort by" });
     fireEvent.change(select, { target: { value: "title" } });
 
     // All cards still shown

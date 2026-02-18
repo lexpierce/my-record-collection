@@ -141,6 +141,44 @@
   color: var(--warm-text-tertiary);
 }
 
+// ─── Pagination ───────────────────────────────────────────────────────────────
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.pageBtn {
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--warm-text-secondary);
+  background: none;
+  border: 1px solid var(--warm-bg-tertiary);
+  cursor: pointer;
+  padding: 0.125rem 0.5rem;
+  transition: color 0.15s ease, border-color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    color: var(--warm-text-primary);
+    border-color: var(--warm-accent-bronze);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+}
+
+.pageInfo {
+  font-size: 0.8125rem;
+  color: var(--warm-text-tertiary);
+  min-width: 4rem;
+  text-align: center;
+}
+
 // ─── Record grid ──────────────────────────────────────────────────────────────
 
 // auto-fill with fixed 180px columns: packs as many cards as fit the viewport,

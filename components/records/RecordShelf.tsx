@@ -35,6 +35,9 @@ import styles from "./RecordShelf.module.scss";
 
 type SortBy = "artist" | "title" | "year";
 
+const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
+type PageSize = (typeof PAGE_SIZE_OPTIONS)[number];
+
 interface RecordShelfProps {
   refreshKey?: number;
 }
@@ -52,6 +55,9 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
   const [activeBucket, setActiveBucket] = useState<string | null>(null);
   // Bumped by onRecordMutated to re-fetch after a card update or delete
   const [mutationKey, setMutationKey] = useState(0);
+  // Pagination
+  const [pageSize, setPageSize] = useState<PageSize>(25);
+  const [currentPage, setCurrentPage] = useState(1);
   // Ref for click-outside detection on the filter dropdown
   const filterWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -64,6 +70,11 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
   useEffect(() => {
     setActiveBucket(null);
   }, [sortBy]);
+
+  // Reset to page 1 whenever the visible set changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortBy, sortAsc, sizeFilter, shapedOnly, activeBucket, pageSize]);
 
   // Close filter dropdown when user clicks outside it
   useEffect(() => {
@@ -164,6 +175,11 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
     return sortedRecords.filter((r) => idSet.has(r.recordId));
   }, [sortedRecords, alphaBuckets, activeBucket, sortBy]);
 
+  const totalPages = Math.max(1, Math.ceil(displayedRecords.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageStart = (safePage - 1) * pageSize;
+  const pageRecords = displayedRecords.slice(pageStart, pageStart + pageSize);
+
   if (isLoading) {
     return (
       <div className={styles.stateCenter}>
@@ -201,6 +217,7 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as SortBy)}
           className={styles.sortSelect}
+          aria-label="Sort by"
         >
           <option value="artist">Artist</option>
           <option value="title">Title</option>
@@ -275,6 +292,16 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
             {displayedRecords.length} of {records.length} shown
           </span>
         )}
+        <select
+          value={pageSize}
+          onChange={(e) => setPageSize(Number(e.target.value) as PageSize)}
+          className={styles.sortSelect}
+          aria-label="Records per page"
+        >
+          {PAGE_SIZE_OPTIONS.map((n) => (
+            <option key={n} value={n}>{n} per page</option>
+          ))}
+        </select>
       </div>
 
       {sortBy === "artist" && alphaBuckets.length > 0 && (
@@ -286,10 +313,34 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
       )}
 
       <div className={styles.grid}>
-        {displayedRecords.map((record) => (
+        {pageRecords.map((record) => (
           <RecordCard key={record.recordId} record={record} onRecordMutated={handleRecordMutated} />
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className={styles.pagination}>
+          <button
+            className={styles.pageBtn}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={safePage === 1}
+            aria-label="Previous page"
+          >
+            &#8249;
+          </button>
+          <span className={styles.pageInfo}>
+            {safePage} / {totalPages}
+          </span>
+          <button
+            className={styles.pageBtn}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={safePage === totalPages}
+            aria-label="Next page"
+          >
+            &#8250;
+          </button>
+        </div>
+      )}
     </div>
   );
 }
