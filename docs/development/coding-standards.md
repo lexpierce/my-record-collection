@@ -407,7 +407,7 @@ Cards use **content-driven height** — NO min-height. The front face uses `posi
 - Card width: 180px (250px when flipped)
 - Album art front: 144px × 144px (`.album-art-size` global class)
 - Album art back: 216px × 216px (`.album-art-size-lg` global class)
-- Grid column gap: `1.25rem`, row gap: `0`
+- Grid column gap: `0`, row gap: `0`
 
 ## File Organization
 

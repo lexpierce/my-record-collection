@@ -154,7 +154,7 @@ $bp-xl: 1280px;
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, 180px);
-  column-gap: 1.25rem;
+  column-gap: 0;
   row-gap: 0;
 }
 
