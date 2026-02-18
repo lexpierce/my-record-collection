@@ -29,9 +29,10 @@ Documentation for key features of the My Record Collection application.
 
 - Warm color palette with Inter font
 - Flip card animation with 3D transforms and width expansion (180px → 250px on flip)
-- Sort by artist, title, or year (ascending/descending)
-- Filter by record size and shaped/picture disc
-- No-reload record adding (inline success toast)
+  - Sort by artist, title, or year (ascending/descending)
+  - Filter by record size and shaped/picture disc
+  - Alphabetical nav with dynamic range labels (`A–C`, `Ba–Bm`) — pages cap at 50 records, small adjacent letter groups are merged
+  - No-reload record adding (inline success toast)
 - Mobile-responsive layout
 
 ## Detailed Feature Documentation

@@ -96,13 +96,33 @@ The filter button shows a badge with the count of active filter groups:
 When `sortBy === "artist"`, an `AlphaNav` component renders above the grid. It shows:
 
 - An **All** button (clears `activeBucket`)
-- One button per letter bucket computed by `computeBuckets()` from `lib/pagination/buckets.ts`
+- One button per page computed by `computeBuckets()` from `lib/pagination/buckets.ts`
 
-Selecting a bucket sets `activeBucket` and narrows `displayedRecords` to that bucket. The bucket resets to `null` ("All") whenever `sortBy` changes away from `"artist"`.
+Each button label is a range describing what artists are on that page (e.g. `A–C`, `Ba–Bm`). Selecting a page sets `activeBucket` and narrows `displayedRecords` to that page's records. The selection resets to `null` ("All") whenever `sortBy` changes away from `"artist"`.
 
-### Bucket splitting
+### Bucket algorithm (two-pass)
 
-`computeBuckets()` groups records by the first letter of their `artistSortKey`. If a letter group exceeds `MAX_BUCKET_SIZE` (default 100), it is split by second letter into sub-buckets (e.g. `Ba–Bm`, `Bn–Bz`). Non-alpha starters go into a `#` bucket, which always sorts last.
+`computeBuckets()` builds pages in two passes:
+
+**Pass 1 — split oversized letters:**
+Records are grouped by the first letter of `artistSortKey`. Any letter-group exceeding `MAX_BUCKET_SIZE` (50) is split by second letter into sub-buckets (e.g. `Ba–Bm`, `Bn–Bz`). The `#` bucket collects non-alpha starters and is never split.
+
+**Pass 2 — merge small adjacent pages:**
+Non-split letter pages are merged greedily: accumulate adjacent pages until adding the next would exceed `MAX_BUCKET_SIZE`. Merged pages get a range label (`A–C`). A single-letter page that is not merged keeps a plain label (`N`).
+
+**Merge boundary rules:**
+- Sub-buckets from a split letter (e.g. `Ba–Bm`) are emitted as-is and never merged with pages from adjacent letters.
+- The `#` bucket is always last and never merged with letter pages.
+
+**Label format summary:**
+
+| Situation | Example label |
+|---|---|
+| Multiple letters merged | `A–C` |
+| Single unsplit letter | `N` |
+| Split letter, single second-char | `Ba` |
+| Split letter, range of second-chars | `Ba–Bm` |
+| Non-alpha starters | `#` |
 
 ## Loading / Error / Empty States
 

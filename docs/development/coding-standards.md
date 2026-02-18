@@ -738,6 +738,38 @@ Cards use **content-driven height** — NO min-height. The front face uses `posi
 - Album art back: 216px × 216px (`.album-art-size-lg` global class)
 - Grid column gap: `0`, row gap: `0`
 
+### Two-pass pagination algorithm (split then merge)
+
+When building a navigation bar from a variable-length list, use a two-pass approach to keep every page within a target size while avoiding trivially small pages:
+
+**Pass 1 — split oversized groups:** Divide any group that exceeds `MAX_SIZE` into sub-groups. For alphabetical artist nav this means splitting a big letter (e.g. "B") by its second character (`Ba–Bm`, `Bn–Bz`).
+
+**Pass 2 — merge undersized groups:** Walk the flat page list and greedily accumulate adjacent pages until the next addition would exceed `MAX_SIZE`. Emit a merged page with a range label (e.g. `A–C`).
+
+Key invariants:
+- Sub-groups produced by splitting a single source group are never merged with pages from a different source group.
+- Special catch-all groups (`#`, "Unknown") are never split or merged with normal groups — always emit last.
+
+```typescript
+// Pseudocode
+const rawPages = groups.flatMap(g =>
+  g.size > MAX ? splitBySecondChar(g) : [g]  // Pass 1
+);
+
+// Pass 2
+let page = [];
+for (const p of rawPages) {
+  if (p.isSplit) { flush(page); emit(p); continue; }
+  if (page.size + p.size > MAX) flush(page);
+  page.push(p);
+}
+flush(page);
+```
+
+**Why**: A pure split produces many single-letter pages for sparse letters (e.g. `Q` with 2 records). A pure merge ignores natural letter boundaries. The two-pass approach keeps pages full without breaking semantic groupings.
+
+See `lib/pagination/buckets.ts` for the canonical implementation.
+
 ### Shared pure-utility modules (`lib/<domain>/`)
 
 Logic that is needed by both a React component and a server-side module (API route, test) must live in `lib/`, not inside a component file. This prevents circular imports and keeps business logic independently testable.
