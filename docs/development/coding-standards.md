@@ -459,7 +459,57 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 Run checks before committing:
 
 ```bash
-bun run type-check  # TypeScript errors
-bun run lint        # ESLint
-bun run build       # Production build
+bun run type-check    # TypeScript errors
+bun run lint          # ESLint
+bun run test          # Vitest unit + component tests
+bun run build         # Production build
+```
+
+### Test isolation for rate-limited clients
+
+`DiscogsClient` creates a `RateLimiter` on construction. If a single client instance is shared across tests, the rate limiter's internal timestamp carries over and can delay subsequent test cases.
+
+**Always create a fresh client per test** (or per `beforeEach`):
+
+```ts
+// ✅ Good: fresh client = fresh rate limiter state
+beforeEach(() => {
+  client = createDiscogsClient();
+});
+
+// ❌ Bad: shared client leaks rate-limiter delay into subsequent tests
+const client = createDiscogsClient(); // module-level
+```
+
+When you only need to assert what URL/options were passed on the first call, use `mockImplementation` (not `mockReturnValueOnce`) so the stub is always active regardless of call order.
+
+### `getAllByText` vs `getByText` in component tests
+
+`RecordCard` renders **title and artist on both front and back faces** simultaneously (only one face is visible via CSS). RTL queries the full DOM, so `getByText("Björk")` throws "Found multiple elements". Use `getAllByText()` and assert on the count:
+
+```tsx
+// ✅ Correct
+expect(screen.getAllByText("Björk")).toHaveLength(2);
+
+// ❌ Throws: "Found multiple elements with the text: Björk"
+screen.getByText("Björk");
+```
+
+### Non-ASCII characters and URL encoding
+
+Artist/album names may contain non-ASCII characters. The encoding matters when constructing query strings:
+
+| Character | Unicode | URL-encoded |
+|-----------|---------|-------------|
+| `ö` (Björk) | U+00F6 | `%C3%B6` |
+| `ø` (different) | U+00F8 | `%C3%B8` |
+
+These look similar but are different characters. In tests that assert on `fetch` call URLs, use `encodeURIComponent()` to generate the expected string rather than hardcoding the percent-encoded form:
+
+```ts
+// ✅ Correct: computed, not guessed
+const expected = `/api/records/search?artist=${encodeURIComponent("Björk")}`;
+
+// ❌ Fragile: wrong if you confuse ö (F6) with ø (F8)
+const expected = `/api/records/search?artist=Bj%C3%B8rk`;
 ```
