@@ -185,8 +185,6 @@ export default function RecordCard({ record, onRecordMutated }: RecordCardProps)
                   alt={`${record.albumTitle} by ${record.artistName}`}
                   width={144}
                   height={144}
-                  className="w-full h-full object-cover"
-                  unoptimized
                 />
               ) : (
                 <div className={styles.noImagePlaceholder}>No Image</div>
@@ -207,8 +205,6 @@ export default function RecordCard({ record, onRecordMutated }: RecordCardProps)
                   alt={`${record.albumTitle} by ${record.artistName}`}
                   width={216}
                   height={216}
-                  className="w-full h-full object-cover"
-                  unoptimized
                 />
               ) : (
                 <div className={styles.noImagePlaceholder}>No Image</div>

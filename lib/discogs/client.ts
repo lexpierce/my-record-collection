@@ -34,12 +34,6 @@ interface DiscogsRelease {
   cover_image: string;
   uri: string;
   formats?: DiscogsFormat[]; // vinyl format details
-  community?: {
-    rating?: {
-      average?: number;
-      count?: number;
-    };
-  };
 }
 
 /**
@@ -84,7 +78,6 @@ interface DiscogsSearchResult {
   title: string;
   year: string;
   thumb: string;
-  cover_image: string;
   resource_url: string;
   type: string;
   catno?: string;

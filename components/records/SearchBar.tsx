@@ -41,7 +41,6 @@ export default function SearchBar({ onRecordAdded }: SearchBarProps) {
   const [upcCode, setUpcCode] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<DiscogsSearchResult[]>([]);
-  const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -89,7 +88,6 @@ export default function SearchBar({ onRecordAdded }: SearchBarProps) {
       }
 
       setSearchResults(data.results || []);
-      setShowResults(true);
 
       if (data.results.length === 0) {
         setErrorMessage("No results found. Try a different search or add manually.");
@@ -241,7 +239,7 @@ export default function SearchBar({ onRecordAdded }: SearchBarProps) {
         <div className={styles.errorMsg}>{errorMessage}</div>
       )}
 
-      {showResults && searchResults.length > 0 && (
+      {searchResults.length > 0 && (
         <div className={styles.results}>
           <h3 className={styles.resultsHeading}>
             Results ({searchResults.length})
@@ -256,7 +254,6 @@ export default function SearchBar({ onRecordAdded }: SearchBarProps) {
                     width={48}
                     height={48}
                     className={styles.resultThumb}
-                    unoptimized
                   />
                 )}
                 <div className={styles.resultInfo}>
