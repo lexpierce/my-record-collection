@@ -161,10 +161,11 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
 
   // Compute alpha buckets from the artist-sorted records (full filtered set,
   // not yet narrowed by activeBucket). Only meaningful when sortBy === "artist".
+  // Use pageSize as maxSize so bucket sizes stay in sync with the page size setting.
   const alphaBuckets = useMemo(() => {
     if (sortBy !== "artist") return [];
-    return computeBuckets(sortedRecords);
-  }, [sortedRecords, sortBy]);
+    return computeBuckets(sortedRecords, pageSize);
+  }, [sortedRecords, sortBy, pageSize]);
 
   // Narrow the displayed records to the active bucket (if any)
   const displayedRecords = useMemo(() => {
