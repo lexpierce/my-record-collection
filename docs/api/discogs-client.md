@@ -15,6 +15,7 @@ const discogsClient = createDiscogsClient();
 ```
 
 The client is configured via environment variables:
+
 - `DISCOGS_USER_AGENT` - User agent string (default: "MyRecordCollection/1.0")
 - `DISCOGS_TOKEN` - Personal access token for authenticated requests
 
@@ -51,6 +52,7 @@ class RateLimiter {
 ```
 
 **Algorithm**: Token bucket
+
 - Calculates minimum delay between requests
 - Automatically waits before each request if needed
 - Ensures compliance with rate limits
@@ -66,16 +68,19 @@ async searchByCatalogNumber(catalogNumber: string): Promise<DiscogsSearchResult[
 Searches for vinyl releases by catalog number.
 
 **Parameters:**
+
 - `catalogNumber` (string) - Label catalog number (e.g., "SHVL 804")
 
 **Returns:** Array of matching vinyl releases
 
 **API Call:**
-```
+
+```text
 GET /database/search?catno={catalogNumber}&type=release&format=Vinyl
 ```
 
 **Example:**
+
 ```typescript
 const results = await discogsClient.searchByCatalogNumber("SHVL 804");
 ```
@@ -89,17 +94,20 @@ async searchByArtistAndTitle(artistName: string, albumTitle: string): Promise<Di
 Searches for vinyl releases by artist name and album title.
 
 **Parameters:**
+
 - `artistName` (string) - Artist or band name
 - `albumTitle` (string) - Album or release title
 
 **Returns:** Array of matching vinyl releases
 
 **API Call:**
-```
+
+```text
 GET /database/search?artist={artistName}&title={albumTitle}&type=release&format=Vinyl
 ```
 
 **Example:**
+
 ```typescript
 const results = await discogsClient.searchByArtistAndTitle("Pink Floyd", "The Dark Side of the Moon");
 ```
@@ -113,16 +121,19 @@ async searchByUPC(upcCode: string): Promise<DiscogsSearchResult[]>
 Searches for vinyl releases by UPC/barcode.
 
 **Parameters:**
+
 - `upcCode` (string) - UPC barcode (e.g., "724384260804")
 
 **Returns:** Array of matching vinyl releases
 
 **API Call:**
-```
+
+```text
 GET /database/search?barcode={upcCode}&type=release&format=Vinyl
 ```
 
 **Example:**
+
 ```typescript
 const results = await discogsClient.searchByUPC("724384260804");
 ```
@@ -130,6 +141,7 @@ const results = await discogsClient.searchByUPC("724384260804");
 ### Vinyl-Only Filtering
 
 All search methods include `&format=Vinyl` to return only vinyl releases:
+
 - Excludes CDs, cassettes, digital, etc.
 - Ensures vinyl-specific metadata is available
 - Matches the application's focus on vinyl collecting
@@ -145,21 +157,25 @@ async getRelease(releaseId: number): Promise<DiscogsRelease>
 Fetches complete information about a specific release.
 
 **Parameters:**
+
 - `releaseId` (number) - Discogs release ID
 
 **Returns:** Full release object with all metadata
 
 **API Call:**
-```
+
+```text
 GET /releases/{releaseId}
 ```
 
 **Example:**
+
 ```typescript
 const release = await discogsClient.getRelease(123456);
 ```
 
 **Release Object:**
+
 ```typescript
 interface DiscogsRelease {
   id: number;
@@ -187,16 +203,19 @@ extractRecordSize(formats?: DiscogsFormat[]): string | null
 Extracts record size from Discogs format descriptions.
 
 **Parameters:**
+
 - `formats` (DiscogsFormat[], optional) - Formats array from release data
 
 **Returns:** Size string (e.g., `"12\""`) or `null`
 
 **Logic:**
+
 1. Finds format with `name === "Vinyl"`
 2. Searches descriptions for size indicators
 3. Matches strings containing: `"`, `inch`, `7`, `10`, or `12`
 
 **Examples:**
+
 ```typescript
 // Format: ["LP", "Album", "12\"", "33 ⅓ RPM"]
 extractRecordSize(formats); // "12\""
@@ -217,21 +236,25 @@ extractVinylColor(formats?: DiscogsFormat[]): string | null
 Extracts vinyl color description from Discogs format data.
 
 **Parameters:**
+
 - `formats` (DiscogsFormat[], optional) - Formats array from release data
 
 **Returns:** Color string (e.g., `"Blue Marble"`) or `null`
 
 **Logic:**
+
 1. Finds format with `name === "Vinyl"`
 2. Searches descriptions for color keywords
 3. Falls back to `text` field if not in descriptions
 
 **Color Keywords:**
+
 - Base: `Vinyl`, `Colored`
 - Appearance: `Clear`, `Transparent`, `Marble`, `Splatter`
 - Colors: `Black`, `White`, `Red`, `Blue`, `Green`, `Yellow`, `Purple`, `Pink`, `Orange`, `Grey`
 
 **Examples:**
+
 ```typescript
 // Format descriptions: ["LP", "Blue Vinyl"]
 extractVinylColor(formats); // "Blue Vinyl"
@@ -252,22 +275,26 @@ isShapedVinyl(formats?: DiscogsFormat[]): boolean
 Determines if the vinyl is shaped (non-circular).
 
 **Parameters:**
+
 - `formats` (DiscogsFormat[], optional) - Formats array from release data
 
 **Returns:** `true` if shaped/picture disc, `false` otherwise
 
 **Logic:**
+
 1. Finds format with `name === "Vinyl"`
 2. Checks descriptions for shaped keywords
 3. Returns boolean result
 
 **Shaped Keywords:**
+
 - `Picture Disc` - Most common indicator
 - `Shaped` - Generic shaped vinyl
 - `Shape` - Alternative terminology
 - `Picture` - May indicate picture disc
 
 **Examples:**
+
 ```typescript
 // Format descriptions: ["12\"", "Picture Disc", "Album"]
 isShapedVinyl(formats); // true
@@ -345,6 +372,7 @@ if (!response.ok) {
 ```
 
 **Common Errors:**
+
 - `401 Unauthorized` - Invalid or missing DISCOGS_TOKEN
 - `404 Not Found` - Release doesn't exist
 - `429 Too Many Requests` - Rate limit exceeded (shouldn't happen with rate limiter)
@@ -376,6 +404,7 @@ const response = await fetch(`${this.baseUrl}${endpoint}`, {
 ```
 
 **Benefits:**
+
 - Reduces API calls for repeated requests
 - Improves response times
 - Helps stay within rate limits
@@ -392,6 +421,7 @@ DISCOGS_USER_AGENT=MyRecordCollection/1.0
 ```
 
 **Getting a Token:**
+
 1. Go to [Discogs Developer Settings](https://www.discogs.com/settings/developers)
 2. Create a new Personal Access Token
 3. Copy token to `.env` file

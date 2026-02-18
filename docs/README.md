@@ -13,7 +13,7 @@ Welcome to the My Record Collection documentation. This documentation covers the
 
 ## Documentation Structure
 
-```
+```text
 docs/
 ├── README.md               # This file — documentation index
 ├── STYLE_GUIDE.md          # Documentation standards
@@ -54,6 +54,7 @@ docs/
 ## Contributing to Documentation
 
 When adding or updating documentation:
+
 1. Follow the [Style Guide](./STYLE_GUIDE.md)
 2. Update docs in the same commit as code changes
 3. Test all code examples before committing

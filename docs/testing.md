@@ -48,7 +48,7 @@ The `@/*` path alias mirrors `tsconfig.json` so imports like `@/lib/discogs/clie
 
 ## Test Structure
 
-```
+```text
 __tests__/
 ├── api/
 │   ├── am_i_evil.test.ts          # Health check endpoint

@@ -450,6 +450,7 @@ Everything else belongs in a `.module.scss`.
 These rules prevent silent breakage of CSS 3D flip animations:
 
 **Never put `transform-style: preserve-3d` on card faces:**
+
 ```css
 /* WRONG */
 .flip-card-front, .flip-card-back {
@@ -461,9 +462,11 @@ These rules prevent silent breakage of CSS 3D flip animations:
   transform-style: preserve-3d;
 }
 ```
+
 Creates nested 3D contexts that break `backface-visibility: hidden`.
 
 **Never put `filter` on an element with `preserve-3d`:**
+
 ```css
 /* WRONG - flattens 3D transforms */
 .flip-card.flipped .flip-card-inner {
@@ -475,9 +478,11 @@ Creates nested 3D contexts that break `backface-visibility: hidden`.
   filter: drop-shadow(...);
 }
 ```
+
 CSS `filter` flattens 3D transforms on the element, destroying the 3D context entirely.
 
 **Use `height: auto` on back face for full background coverage:**
+
 ```css
 /* WRONG - bg stops at 240px, content overflows transparently */
 .flip-card-back { height: 100%; overflow: visible; }
@@ -528,6 +533,7 @@ Avoid layouts that constrain height and clip content:
 ```
 
 **Common issues**:
+
 - `height: 100%` + `justify-content: space-between` creates rigid spacing that clips overflow
 - `flex: 1` + `max-height: calc(...)` introduces height constraints that hide content
 - Double overflow handling (`overflow-y: auto` at two levels) causes conflicts
@@ -556,6 +562,7 @@ All elements use `border-radius: 0` (sharp edges). Do not add `border-radius` an
 ### Text size guidelines
 
 **Sizes in use**:
+
 - **Card titles (front AND back)**: `0.75rem` bold with `text-overflow: ellipsis` — matched on both faces
 - **Card artist (front AND back)**: `0.75rem` with ellipsis
 - **Dense metadata** (back card details): `0.625rem` (10px)
@@ -577,6 +584,7 @@ Cards use **content-driven height** — NO min-height. The front face uses `posi
 ```
 
 **Current card dimensions**:
+
 - Card width: 180px (250px when flipped)
 - Album art front: 144px × 144px (`.album-art-size` global class)
 - Album art back: 216px × 216px (`.album-art-size-lg` global class)
@@ -587,11 +595,12 @@ Cards use **content-driven height** — NO min-height. The front face uses `posi
 Logic that is needed by both a React component and a server-side module (API route, test) must live in `lib/`, not inside a component file. This prevents circular imports and keeps business logic independently testable.
 
 Pattern:
+
 - Extract the shared function into `lib/<domain>/<module>.ts`
 - Export it with a named export
 - Import it in both the component and the route/test
 
-```
+```text
 # Example: artistSortKey is needed in both RecordShelf.tsx and API route tests
 lib/pagination/buckets.ts   ← artistSortKey(), computeBuckets(), AlphaBucket type
 components/records/RecordShelf.tsx  ← imports artistSortKey from lib
@@ -602,7 +611,7 @@ __tests__/lib/pagination/buckets.test.ts  ← unit-tests the pure function
 
 ## File Organization
 
-```
+```text
 app/
 ├── api/                    # API routes
 │   └── */route.ts          # Each route in its own directory
@@ -639,7 +648,7 @@ lib/
 
 Follow conventional commits:
 
-```
+```text
 feat: Add vinyl color extraction to search results
 fix: Prevent text bleed-through on flip cards
 docs: Document flip card animation implementation

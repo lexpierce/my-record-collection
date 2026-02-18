@@ -74,6 +74,7 @@ const effectiveSize = (r: Record) =>
 ```
 
 If a record has no explicit `recordSize`:
+
 - Defaults to `12"` (by far the most common format).
 - Defaults to `"Unknown"` if it is a shaped vinyl (size ambiguous).
 
@@ -86,6 +87,7 @@ When `shapedOnly` is true, only records with `isShapedVinyl === true` are shown.
 ### Filter badge
 
 The filter button shows a badge with the count of active filter groups:
+
 - Size filter counts as 1 regardless of how many sizes are checked.
 - Shaped filter counts as 1.
 

@@ -6,7 +6,7 @@ Conventions used across all API routes in this project.
 
 Every route lives at `app/api/<resource>/route.ts` (Next.js App Router convention). Dynamic segments use directory names like `[id]`.
 
-```
+```text
 app/api/
 ├── am_i_evil/route.ts                # health check
 ├── records/

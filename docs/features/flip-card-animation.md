@@ -37,6 +37,7 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 ```
 
 **Key Properties:**
+
 - `perspective: 1500px` - Creates 3D space for transform
 - `width: 180px` - Card width; height is content-driven (no min-height)
 - `position: relative` - Enables z-index control
@@ -60,6 +61,7 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 ```
 
 **Key Properties:**
+
 - `z-index: 1000` - Brings card to front, above all other cards
 - `width: 250px` - Widens card to fit 216px back thumbnail
 - `margin-left/right: -35px` - Negative margins center the wider card without shifting the grid layout
@@ -82,6 +84,7 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 ```
 
 **Key Properties:**
+
 - `transform-style: preserve-3d` - Maintains 3D positioning of children. **This is the ONLY element that should have this property.**
 - `transition: transform 0.6s` - 0.6 second flip animation
 - `rotateY(180deg)` - Rotates 180 degrees around Y-axis when flipped
@@ -101,6 +104,7 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 ```
 
 **Key Properties:**
+
 - Front face is `position: relative` (sets container height naturally)
 - Back face is `position: absolute` (overlays the front)
 - `backface-visibility: hidden` - **Critical for preventing text bleed-through**
@@ -120,6 +124,7 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 ```
 
 **Key Properties:**
+
 - `transform: rotateY(0deg)` - Explicit starting position
 - `border` - Subtle 1px border for card definition
 - No z-index needed - 3D context handles face ordering
@@ -139,6 +144,7 @@ The record cards use CSS 3D transforms to create a flip animation that reveals d
 ```
 
 **Key Properties:**
+
 - `position: absolute; top: 0; left: 0` - Overlays the front face
 - `transform: rotateY(180deg)` - Starts rotated, faces correct direction when flipped
 - `border: 2px solid #8BA87A` - Thicker warm-sage border for 3D depth
@@ -217,7 +223,7 @@ style={{ cursor: "pointer" }}
 
 Without proper configuration, the back face text shows through the front face in reverse:
 
-```
+```text
 Front Face (Visible)
     |
 Back Face Text (Reversed, Showing Through)
@@ -235,11 +241,13 @@ Back Face Text (Reversed, Showing Through)
 ```
 
 **How it works:**
+
 - Hides the back side of an element when rotated away from viewer
 - Prevents reversed text from being visible through the front
 - Requires vendor prefixes for cross-browser compatibility
 
 **Browser Support:**
+
 - `-webkit-` prefix for Chrome, Safari, Edge
 - `-moz-` prefix for Firefox
 - Standard property for modern browsers
@@ -247,6 +255,7 @@ Back Face Text (Reversed, Showing Through)
 ### Additional Fixes
 
 **Explicit Transform:**
+
 ```css
 .flip-card-front {
   transform: rotateY(0deg); /* Explicit starting position */
@@ -258,6 +267,7 @@ Back Face Text (Reversed, Showing Through)
 ```
 
 **Opaque Background:**
+
 ```css
 background-color: var(--warm-bg-primary); /* Solid color, not transparent */
 ```
@@ -323,6 +333,7 @@ The wider flipped card can extend beyond the page container at grid edges. The J
 ```
 
 **Why elevate:**
+
 - Creates visual hierarchy (flipped card is "active")
 - Prevents card from being hidden behind neighboring cards
 - Wider card overlaps neighbors safely due to z-index
@@ -335,10 +346,12 @@ filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25))
 ```
 
 **Layered shadow approach:**
+
 - **First layer**: `0 8px 16px rgba(0, 0, 0, 0.25)` - Larger, softer shadow for depth
 - **Second layer**: `0 4px 8px rgba(0, 0, 0, 0.15)` - Closer, sharper shadow for definition
 
 **Purpose:**
+
 - Creates realistic 3D depth perception
 - Separates flipped card from background
 - Enhances "floating" effect without scaling
@@ -352,6 +365,7 @@ filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25))
 ```
 
 **Sage border benefits:**
+
 - Defines card edges clearly
 - Complements warm color palette
 - Adds tactile, physical appearance
@@ -433,11 +447,13 @@ These patterns silently break the flip animation. Avoid them.
 The flip card works on mobile with these considerations:
 
 **Click becomes Touch:**
+
 ```tsx
 onClick={handleCardClick} // Works for both click and touch
 ```
 
 **Card Size:**
+
 ```css
 width: 180px; /* Content-driven height, no min-height */
 ```
@@ -473,6 +489,7 @@ Cards are displayed in a responsive grid:
 **Symptom:** Back face invisible when flipped, flashes briefly when flipping back
 
 **Cause:** One of two CSS anti-patterns (see CSS 3D Anti-Patterns above):
+
 1. `transform-style: preserve-3d` on card faces
 2. `filter` on `.flip-card-inner`
 
@@ -485,6 +502,7 @@ Cards are displayed in a responsive grid:
 **Cause:** `height: 100%` limits background to 240px while content overflows
 
 **Solution:**
+
 ```css
 .flip-card-back {
   height: auto; /* Background grows with content */
@@ -496,6 +514,7 @@ Cards are displayed in a responsive grid:
 **Symptom:** Back face text visible (reversed) when viewing front
 
 **Solution:**
+
 ```css
 backface-visibility: hidden;
 -webkit-backface-visibility: hidden;
@@ -507,6 +526,7 @@ backface-visibility: hidden;
 **Symptom:** Flipped card hidden behind adjacent cards
 
 **Solution:**
+
 ```css
 .flip-card.flipped {
   z-index: 1000; /* Bring to front */
@@ -526,6 +546,7 @@ backface-visibility: hidden;
 **Symptom:** Card rotates flat, no perspective
 
 **Solution:**
+
 ```css
 .flip-card {
   perspective: 1500px;
@@ -547,6 +568,7 @@ backface-visibility: hidden;
 ### Modern Browsers
 
 Full support in:
+
 - Chrome 36+
 - Firefox 16+
 - Safari 9+
@@ -555,6 +577,7 @@ Full support in:
 ### Vendor Prefixes
 
 Required for broader compatibility:
+
 ```css
 -webkit-backface-visibility: hidden; /* Chrome, Safari, Edge */
 -moz-backface-visibility: hidden;    /* Firefox */
@@ -564,6 +587,7 @@ backface-visibility: hidden;         /* Standard */
 ### Fallback Behavior
 
 Without 3D transform support:
+
 - Card still toggles content via React state
 - No flip animation, instant switch
 - Functional but less visually appealing
@@ -573,6 +597,7 @@ Without 3D transform support:
 ### Hardware Acceleration
 
 CSS transforms use GPU acceleration:
+
 - `transform` property triggers hardware acceleration
 - Smooth 60fps animation on modern devices
 - Better performance than JavaScript animation
@@ -580,11 +605,13 @@ CSS transforms use GPU acceleration:
 ### Repaints and Reflows
 
 Efficient animation properties:
+
 - `transform` - No reflow, GPU accelerated
 - `z-index` - No reflow when changed
 - `opacity` - No reflow, GPU accelerated
 
 The `width` and `margin` transitions on `.flip-card` do trigger reflow, but:
+
 - Only one card is flipped at a time
 - The 3D flip animation (GPU-accelerated `transform`) is the dominant visual
 - Width/margin reflow cost is negligible for a single 250px element

@@ -72,6 +72,7 @@ The palette is warm olive/sage greens on a near-black background. No pure whites
 ## No Full-Page Reloads
 
 The app avoids `window.location.reload()` for all user-triggered actions:
+
 - After sync: bumps `refreshKey` → RecordShelf re-fetches
 - After adding a record: `onRecordAdded` callback → `refreshKey` bumps
 

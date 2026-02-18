@@ -106,11 +106,13 @@ Deletes record after user confirmation. Calls `onRecordMutated` on success.
 ## Display Fields
 
 ### Front face
+
 - **Album art**: 144x144px (`.album-art-size` global class)
 - **Album title**: `0.75rem` bold, truncated, `line-height: 1`
 - **Artist name**: `0.75rem`, truncated, `line-height: 1`
 
 **Layout:**
+
 ```tsx
 // Global classes (flip-card-front, album-art-size) are in styles/globals.scss.
 // Inner layout classes come from RecordCard.module.scss.
@@ -130,6 +132,7 @@ Deletes record after user confirmation. Calls `onRecordMutated` on success.
 **Structure:** Thumbnail -> Info -> Buttons
 
 **Content:**
+
 1. **Album thumbnail**: 216x216px at top (centered, `.album-art-size-lg` global class)
 2. **Album title**: `0.75rem` bold (matches front)
 3. **Artist name**: `0.75rem`
@@ -141,6 +144,7 @@ Deletes record after user confirmation. Calls `onRecordMutated` on success.
 5. **Action buttons**: `0.625rem` with `white-space: nowrap`
 
 **Layout:**
+
 ```tsx
 // Global classes (flip-card-back, album-art-size-lg) are in styles/globals.scss.
 // Inner layout classes come from RecordCard.module.scss.
@@ -163,32 +167,38 @@ Deletes record after user confirmation. Calls `onRecordMutated` on success.
 ## Styling
 
 ### Card Dimensions
+
 - **Width**: 180px (expands to 250px when flipped via negative margins)
 - **Height**: Content-driven (no min-height)
 - **Back thumbnail**: 216x216px (`.album-art-size-lg`)
 
 ### Design Principles
+
 - **Border Radius**: 0px on all elements (sharp edges)
 - **No border-radius** anywhere in the component (sharp edges throughout)
 
 ### Front card
+
 - **Background**: `var(--warm-bg-primary)` (warm cream)
 - **Border**: `1px solid var(--warm-bg-tertiary)` (subtle)
 - **Padding**: `0.375rem` for border-to-image spacing
 - **Text Colors**: `var(--warm-text-primary)`, `var(--warm-text-secondary)`
 
 ### Back card (flipped)
+
 - **Background**: `var(--warm-bg-secondary)` (light sage cream)
 - **Border**: `2px solid #8BA87A` (warm sage, thicker for emphasis)
 - **Height**: `auto` (background covers all content, not just 240px)
 - **Opacity**: 1 (explicitly fully opaque)
 - **Shadow**: Layered drop-shadow on `.flip-card` (outer container):
+
   ```css
   filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25))
           drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
   ```
 
 ### Font sizing
+
 - **Front - Title**: `0.75rem` bold, `line-height: 1`
 - **Front - Artist**: `0.75rem`, `line-height: 1`
 - **Back - Title**: `0.75rem` bold (matches front)
@@ -197,6 +207,7 @@ Deletes record after user confirmation. Calls `onRecordMutated` on success.
 - **Back - Buttons**: `0.625rem` (10px)
 
 ### Custom CSS
+
 - Global `.flip-card` classes in `styles/globals.scss`
 - 3D transform perspective and backface-visibility
 - No scaling transforms (natural sizing approach)

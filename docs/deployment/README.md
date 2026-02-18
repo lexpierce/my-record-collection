@@ -19,6 +19,7 @@ This application is deployed on **Render** using Infrastructure as Code (Bluepri
 ## Deployment Configuration
 
 ### Service Configuration
+
 - **Type**: Web Service
 - **Plan**: Starter ($7/month)
 - **Runtime**: Node with Bun installed
@@ -28,6 +29,7 @@ This application is deployed on **Render** using Infrastructure as Code (Bluepri
 - **Pre-deploy**: `bun run db:push --force` (schema migrations before each deploy)
 
 ### Database Configuration
+
 - **Type**: PostgreSQL
 - **Version**: 18
 - **Plan**: Basic 256MB ($7/month)
@@ -37,6 +39,7 @@ This application is deployed on **Render** using Infrastructure as Code (Bluepri
 ### Environment Variables
 
 Required environment variables:
+
 - `NODE_ENV=production`
 - `DATABASE_URL` - PostgreSQL connection string (internal URL)
 - `DISCOGS_TOKEN` - Your Discogs API token
@@ -58,6 +61,7 @@ Required environment variables:
 ## Build Process
 
 The Render build runs these steps:
+
 1. Install Bun runtime
 2. Install dependencies: `bun install`
 3. Push database schema: `bun run db:push --force`
@@ -75,21 +79,25 @@ The Render build runs these steps:
 Common deployment issues and solutions:
 
 ### Build Fails
+
 - Verify `DATABASE_URL` is set correctly
 - Check for TypeScript errors: `bun run type-check`
 - Review build logs in Render dashboard
 
 ### App Won't Start
+
 - Ensure using **Internal Database URL** (not external)
 - Verify all environment variables are set
 - Check service logs for runtime errors
 
 ### Database Connection Issues
+
 - Confirm database is in "Available" status
 - Verify both service and database are in same region
 - Check connection string format
 
 ### Discogs API Not Working
+
 - Verify `DISCOGS_TOKEN` is valid
 - Check rate limit not exceeded
 - Review application logs for API errors
@@ -97,6 +105,7 @@ Common deployment issues and solutions:
 ## Detailed Deployment Documentation
 
 For more detailed information, see:
+
 - [DEPLOYMENT.md](../../DEPLOYMENT.md) in project root
 - [render.yaml](../../render.yaml) Blueprint configuration
 

@@ -27,12 +27,14 @@ export const recordsTable = pgTable("records", {
 ### Field Descriptions
 
 **recordSize** (`text`, nullable)
+
 - Physical size of the vinyl record
 - Common values: `"12\""`, `"7\""`, `"10\""`, `"LP"`, `"Single"`
 - Extracted from Discogs format descriptions
 - May include additional context (e.g., `"12\" LP"`)
 
 **vinylColor** (`text`, nullable)
+
 - Color or appearance description of the vinyl
 - Examples:
   - Standard: `"Black"`, `"Black Vinyl"`
@@ -42,6 +44,7 @@ export const recordsTable = pgTable("records", {
 - Preserves original Discogs terminology
 
 **isShapedVinyl** (`boolean`, default: `false`)
+
 - Indicates if the record is non-circular
 - Types of shaped vinyl:
   - Picture discs (image printed on vinyl)
@@ -80,6 +83,7 @@ interface DiscogsFormat {
 ```
 
 From this format object, we extract:
+
 - **recordSize**: `"12\""`
 - **vinylColor**: `"Blue Marble"`
 - **isShapedVinyl**: `false` (no shaped keywords present)
@@ -110,6 +114,7 @@ extractRecordSize(formats?: DiscogsFormat[]): string | null {
 ```
 
 **Logic:**
+
 1. Find the format object with `name === "Vinyl"`
 2. Search descriptions array for size indicators
 3. Match strings containing: `"`, `inch`, `7`, `10`, or `12`
@@ -141,12 +146,14 @@ extractVinylColor(formats?: DiscogsFormat[]): string | null {
 ```
 
 **Logic:**
+
 1. Find the format object with `name === "Vinyl"`
 2. Check descriptions array for color keywords
 3. If not found in descriptions, check `text` field
 4. Return first match or `null`
 
 **Color Keywords:**
+
 - Base terms: `Vinyl`, `Colored`
 - Appearance: `Clear`, `Transparent`, `Marble`, `Splatter`
 - Colors: `Black`, `White`, `Red`, `Blue`, `Green`, `Yellow`, `Purple`, `Pink`, `Orange`, `Grey`
@@ -171,11 +178,13 @@ isShapedVinyl(formats?: DiscogsFormat[]): boolean {
 ```
 
 **Logic:**
+
 1. Find the format object with `name === "Vinyl"`
 2. Check descriptions array for shaped keywords
 3. Return `true` if any keyword matches, `false` otherwise
 
 **Shaped Keywords:**
+
 - `Picture Disc` - Most common indicator
 - `Shaped` - Generic shaped vinyl
 - `Shape` - Alternative terminology
@@ -185,7 +194,7 @@ isShapedVinyl(formats?: DiscogsFormat[]): boolean {
 
 ### 1. Search Flow
 
-```
+```text
 User Search
     ↓
 GET /api/records/search
@@ -203,7 +212,7 @@ SearchBar displays vinyl info in preview
 
 ### 2. Add to Collection Flow
 
-```
+```text
 User clicks "Add" on search result
     ↓
 POST /api/records/fetch-from-discogs
@@ -219,7 +228,7 @@ Record available in collection
 
 ### 3. Display Flow
 
-```
+```text
 Record in database
     ↓
 GET /api/records fetches all records
@@ -233,7 +242,7 @@ Card back: Shows ALL fields including vinyl metadata
 
 ### 4. Update Flow
 
-```
+```text
 User clicks "Update from Discogs"
     ↓
 POST /api/records/update-from-discogs
@@ -328,6 +337,7 @@ const resultsWithDetails = await Promise.all(
 ```
 
 **Rate Limiting:**
+
 - Limited to first 10 search results
 - Respects 60 req/min limit (authenticated)
 - Built-in token bucket rate limiter prevents exceeding limits

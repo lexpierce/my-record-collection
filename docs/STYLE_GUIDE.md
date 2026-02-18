@@ -11,7 +11,7 @@ This guide defines standards for writing and maintaining documentation in the My
 
 ## Directory Structure
 
-```
+```text
 docs/
 ├── STYLE_GUIDE.md          # This file
 ├── api/                    # API endpoint documentation
@@ -57,7 +57,8 @@ Always specify the language for syntax highlighting:
 ```typescript
 const example = "Use language identifiers";
 ```
-```
+
+```markdown
 
 Common language identifiers:
 - `typescript` or `ts`
@@ -183,7 +184,8 @@ curl -X POST http://localhost:3000/api/records/fetch-from-discogs \
 - Respects Discogs API rate limits (60 req/min authenticated)
 - Extracts vinyl-specific metadata (size, color, shaped status)
 - Returns 201 status on successful creation
-```
+
+```markdown
 
 ### Component Documentation
 
@@ -237,7 +239,8 @@ interface RecordCardProps {
 - Client component (`"use client"`) due to interactive state
 - Depends on API routes: `/api/records/update-from-discogs`, `/api/records/[recordId]`
 - Includes confirmation dialogs for destructive actions
-```
+
+```markdown
 
 ### Feature Documentation
 
@@ -321,9 +324,9 @@ Warning signs that docs need updating:
 
 ### Linting
 
-- Use markdownlint for consistency
+- Use markdownlint-cli2 for consistency
 - Configuration in `.markdownlint.json`
-- Run `bun run lint` before committing
+- Run `bun run lint:md` before committing (separate from ESLint's `bun run lint`)
 
 ### Documentation TODOs
 
@@ -340,6 +343,7 @@ bd update <issue-id> --notes="Related to commit abc123"
 ## Examples of Good Documentation
 
 Look to these for inspiration:
+
 - **Stripe API Docs**: Clear, comprehensive, great examples
 - **Next.js Docs**: Excellent feature documentation
 - **Sass Docs**: Concise reference with visual examples
@@ -348,6 +352,7 @@ Look to these for inspiration:
 ## Anti-Patterns to Avoid
 
 ❌ **Don't**:
+
 - Copy-paste code without testing it
 - Write docs after code is "done" (do it together)
 - Use screenshots for code (copy-paste breaks)
@@ -356,6 +361,7 @@ Look to these for inspiration:
 - Repeat what the code already says (add value)
 
 ✅ **Do**:
+
 - Show working code examples
 - Update docs in the same PR as code
 - Use code blocks for code

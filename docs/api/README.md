@@ -14,9 +14,11 @@ Currently, the API does not require authentication. All endpoints are publicly a
 ## API Endpoints
 
 ### Health Check
+
 - `GET /api/am_i_evil` - Health check endpoint
 
 ### Records
+
 - `GET /api/records` - Fetch records; optional query params: `sortBy`, `sortDir`, `size`, `shaped`
 - `POST /api/records` - Add a record manually (future feature)
 - `GET /api/records/[recordId]` - Fetch a single record by ID
@@ -24,12 +26,14 @@ Currently, the API does not require authentication. All endpoints are publicly a
 - `DELETE /api/records/[recordId]` - Delete a record from the collection
 
 ### Discogs Integration
+
 - `GET /api/records/search` - Search for records on Discogs
 - `POST /api/records/fetch-from-discogs` - Fetch and save a record from Discogs
 - `POST /api/records/update-from-discogs` - Update an existing record with latest Discogs data
 - `POST /api/records/sync` - Sync full Discogs collection to local database
 
 ### Configuration
+
 - `GET /api/records/sync/status` - Check if Discogs env vars are configured
 
 ## Response Format
@@ -37,6 +41,7 @@ Currently, the API does not require authentication. All endpoints are publicly a
 All API responses follow a consistent JSON format:
 
 **Success Response:**
+
 ```json
 {
   "data": { ... },
@@ -45,6 +50,7 @@ All API responses follow a consistent JSON format:
 ```
 
 **Error Response:**
+
 ```json
 {
   "error": "Error type",
@@ -64,7 +70,8 @@ All parameters are optional. Without them the response is identical to the previ
 | `shaped` | `true` | — | Filter to shaped/picture-disc records only |
 
 Example:
-```
+
+```text
 GET /api/records?sortBy=artist&sortDir=asc&size=12%22&size=7%22
 ```
 
@@ -73,6 +80,7 @@ Note: the `size` filter matches the `record_size` column exactly. Records with a
 ## Rate Limiting
 
 ### Discogs API Limits
+
 - **Authenticated**: 60 requests per minute
 - **Unauthenticated**: 25 requests per minute
 

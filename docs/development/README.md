@@ -22,30 +22,35 @@ Development standards and patterns for the My Record Collection project.
 ## Coding Standards
 
 ### General Principles
+
 - **Verbose naming**: Descriptive variable and function names
 - **Inline comments**: Explain complex logic and rationale
 - **Type safety**: Leverage TypeScript fully
 - **Non-ASCII support**: Preserve special characters in text
 
 ### File Organization
+
 - API routes: `app/api/*/route.ts`
 - Components: `components/*/*.tsx`
 - Database: `lib/db/schema.ts`
 - External APIs: `lib/*/client.ts`
 
 ### Component Patterns
+
 - Use `"use client"` for interactive components
 - Define Props interfaces above components
 - Document component purpose with JSDoc
 - Keep components focused and single-purpose
 
 ### Database Patterns
+
 - Use `text` type for artist/title fields (non-ASCII preservation)
 - UUID primary keys for all tables
 - Include vinyl-specific metadata
 - Timestamps on all records
 
 ### API Patterns
+
 - Rate limiting for external APIs
 - Consistent error handling
 - Detailed response messages
@@ -67,6 +72,7 @@ Development standards and patterns for the My Record Collection project.
 - `bun run build` - Production build
 - `bun run start` - Start production server
 - `bun run lint` - Run ESLint (uses `eslint .`, migrated from `next lint` for Next.js 16)
+- `bun run lint:md` - Run markdownlint-cli2 on all Markdown files
 - `bun run type-check` - TypeScript type checking
 - `bun run db:generate` - Generate Drizzle migrations
 - `bun run db:push` - Push schema changes to database

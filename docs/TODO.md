@@ -6,19 +6,19 @@ Known issues and future work. Items are roughly prioritised high/medium/low.
 
 ## High Priority
 
-_(none)_
+None.
 
 ---
 
 ## Medium Priority
 
-_(none)_
+None.
 
 ---
 
 ## Low Priority
 
-_(none)_
+None.
 
 ---
 
@@ -39,8 +39,6 @@ _(none)_
 ## Completed (previous sessions)
 
 - [x] Alphabetical pagination — `GET /api/records` gains optional query params (`sortBy`, `sortDir`, `size`, `shaped`); `lib/pagination/buckets.ts` provides `computeBuckets()` + `artistSortKey()`; `AlphaNav` component renders letter-bucket nav bar; `RecordShelf` shows `AlphaNav` when sorted by artist, filters grid to active bucket; auto-splits letters exceeding `MAX_BUCKET_SIZE` (default 100) by second character.
-
-
 
 - [x] `GET /api/records` — sort newest-first (`desc(createdAt)`)
 - [x] `SearchBar` — trim whitespace before search; closes programmatic bypass of `required` guard

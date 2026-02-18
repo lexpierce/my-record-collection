@@ -34,34 +34,39 @@ A modern web application for managing your vinyl record collection, powered by t
 
 - Bun 1.0 or later
 - PostgreSQL 18
-- Discogs API token (get one at https://www.discogs.com/settings/developers)
+- Discogs API token (get one at <https://www.discogs.com/settings/developers>)
 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/lexpierce/my-record-collection.git
 cd my-record-collection
 ```
 
 2. Install dependencies:
+
 ```bash
 bun install
 ```
 
 3. Set up environment variables:
+
 ```bash
 cp .env.example .env
 # Edit .env with your database URL and Discogs token
 ```
 
 4. Generate and run database migrations:
+
 ```bash
 bun run db:generate
 bun run db:push
 ```
 
 5. Run the development server:
+
 ```bash
 bun run dev
 ```
@@ -91,9 +96,11 @@ bun run dev
 ## API Endpoints
 
 ### Health Check
+
 - `GET /api/am_i_evil` - Health check endpoint
 
 ### Records Management
+
 - `GET /api/records` - Fetch all records from the collection
 - `POST /api/records` - Manually add a new record
 - `GET /api/records/[id]` - Fetch a single record by UUID
@@ -102,6 +109,7 @@ bun run dev
 - `POST /api/records/sync` - Two-way sync with Discogs collection (SSE stream)
 
 ### Discogs Integration
+
 - `GET /api/records/search` - Search Discogs (returns vinyl details: size, color, shaped status)
 - `POST /api/records/fetch-from-discogs` - Fetch and save a record from Discogs
 - `POST /api/records/update-from-discogs` - Update an existing record with latest Discogs data
@@ -125,6 +133,7 @@ This application is deployed on Render using Infrastructure as Code (Blueprint).
 **Quick Deploy**: [Deploy to Render](https://dashboard.render.com/blueprint/new?repo=https://github.com/lexpierce/my-record-collection)
 
 The application will be deployed with:
+
 - **Service**: Starter plan with Bun runtime
 - **Database**: PostgreSQL 18 (Basic 256MB, 5GB disk)
 - **Health Check**: `/api/am_i_evil`

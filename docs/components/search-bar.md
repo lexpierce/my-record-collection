@@ -25,15 +25,15 @@ import SearchBar from "@/components/records/SearchBar";
 
 Requires both fields. Calls:
 
-```
+```text
 GET /api/records/search?artist=<artist>&title=<title>
 ```
 
-### Catalog #
+### Catalog number
 
 Searches by label catalog number (e.g. `SHVL-804`). Calls:
 
-```
+```text
 GET /api/records/search?catalogNumber=<catno>
 ```
 
@@ -41,7 +41,7 @@ GET /api/records/search?catalogNumber=<catno>
 
 Searches by barcode/UPC. Calls:
 
-```
+```text
 GET /api/records/search?upc=<upc>
 ```
 
@@ -50,6 +50,7 @@ GET /api/records/search?upc=<upc>
 Results come from the search API enriched with full vinyl details (each result has `getRelease()` called on it server-side, limited to the first 10 results to respect rate limits).
 
 Each result item shows:
+
 - Thumbnail image (if available)
 - Title
 - Year (if available)

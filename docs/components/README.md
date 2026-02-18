@@ -5,15 +5,18 @@ React components for the My Record Collection application.
 ## Component Overview
 
 ### Record Display Components
+
 - **RecordCard**: Flip card with width expansion (180px → 250px), 216px back thumbnail
 - **RecordShelf**: Grid layout with sort (artist/title/year) and filters (size, shaped/picture disc)
 
 ### Search Components
+
 - **SearchBar**: Search Discogs by artist/title, catalog #, or UPC. Accepts `onRecordAdded` callback for no-reload updates.
 
 ## Component Architecture
 
 All components follow these patterns:
+
 - **TypeScript**: Fully typed with interfaces for props
 - **Sass CSS Modules**: Scoped styles per component (`.module.scss`)
 - **Client/Server Split**: Marked with `"use client"` when interactive
