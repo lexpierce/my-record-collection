@@ -59,21 +59,24 @@ __tests__/
 │   ├── sync.test.ts               # POST /api/records/sync (SSE)
 │   └── update-from-discogs.test.ts
 ├── components/
+│   ├── AlphaNav.test.tsx          # Alphabetical nav bar
 │   ├── HomePage.test.tsx          # app/page.tsx
 │   ├── RecordCard.test.tsx
 │   ├── RecordShelf.test.tsx
 │   └── SearchBar.test.tsx
 └── lib/
-    └── discogs/
-        ├── client.test.ts         # DiscogsClient class
-        └── sync.test.ts           # executeSync()
+    ├── discogs/
+    │   ├── client.test.ts         # DiscogsClient class
+    │   └── sync.test.ts           # executeSync()
+    └── pagination/
+        └── buckets.test.ts        # computeBuckets(), artistSortKey()
 ```
 
 ## Mocking Strategy
 
 ### Database (API route tests)
 
-The database module (`@/lib/db/client`) is mocked with `vi.mock()`. All Drizzle builder methods (`select`, `from`, `where`, etc.) are stubbed to return a chainable object that resolves to a configurable value.
+The database module (`@/lib/db/client`) is mocked with `vi.mock()`. All Drizzle builder methods (`select`, `from`, `where`, `orderBy`, `$dynamic`, etc.) are stubbed to return a chainable object that resolves to a configurable value.
 
 **Important:** `vi.mock()` factories are hoisted to the top of the file by Vitest. Use `vi.hoisted()` to declare mock variables that are referenced inside factory functions:
 
@@ -83,10 +86,68 @@ const { mockSelect } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/db/client", () => ({
-  database: { select: mockSelect },
-  schema: { recordsTable: {} },
+  getDatabase: () => ({ select: mockSelect, insert: vi.fn() }),
+  schema: {
+    recordsTable: {
+      createdAt: "created_at",
+      artistName: "artist_name",
+      // add every column the route accesses
+    },
+  },
 }));
 ```
+
+The `drizzleChain` helper must include **`$dynamic`** alongside all other builder methods, otherwise routes that call `.$dynamic()` will throw:
+
+```ts
+function drizzleChain(resolveValue: unknown) {
+  const chain: Record<string, unknown> = {};
+  const methods = ["from", "orderBy", "values", "returning", "where", "set", "$dynamic"];
+  for (const m of methods) chain[m] = vi.fn().mockReturnValue(chain);
+  chain.then = (resolve: (v: unknown) => void) => resolve(resolveValue);
+  return chain;
+}
+```
+
+### `drizzle-orm` operators (API route tests)
+
+Routes that import operators (`asc`, `desc`, `inArray`, `eq`, `and`) from `drizzle-orm` require those to be mocked when testing without a real database. Mock them at the top of the test file alongside the db mock:
+
+```ts
+vi.mock("drizzle-orm", () => ({
+  asc:     (col: unknown) => ({ asc: col }),
+  desc:    (col: unknown) => ({ desc: col }),
+  inArray: (col: unknown, vals: unknown) => ({ inArray: { col, vals } }),
+  eq:      (col: unknown, val: unknown) => ({ eq: { col, val } }),
+  and:     (...args: unknown[]) => ({ and: args }),
+}));
+```
+
+Only include the operators actually used by the route under test.
+
+### GET handlers with query params
+
+Every GET route handler accepts a `NextRequest`. Tests must construct one:
+
+```ts
+function makeGetRequest(params: Record<string, string | string[]> = {}) {
+  const url = new URL("http://localhost/api/records");
+  for (const [key, val] of Object.entries(params)) {
+    if (Array.isArray(val)) {
+      for (const v of val) url.searchParams.append(key, v);
+    } else {
+      url.searchParams.set(key, val);
+    }
+  }
+  return new NextRequest(url.toString());
+}
+
+// Usage:
+const response = await GET(makeGetRequest({ sortBy: "artist", sortDir: "asc" }));
+const response = await GET(makeGetRequest({ size: ['12"', '7"'] })); // multi-value
+```
+
+Never call `GET()` with no arguments — the signature requires `NextRequest` and the real handler accesses `request.nextUrl.searchParams`.
 
 ### Discogs Client (sync and route tests)
 

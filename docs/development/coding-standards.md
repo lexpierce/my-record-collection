@@ -275,6 +275,55 @@ try {
 }
 ```
 
+### GET handler signature — always accept `NextRequest`
+
+Every `GET` route handler must accept a `NextRequest` argument, even when the initial implementation ignores query params. Adding query-param support later requires changing the signature, which silently breaks existing tests that call `GET()` without an argument.
+
+```typescript
+// ✅ Always declare the parameter
+export async function GET(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  // ...
+}
+
+// ❌ Will need a breaking signature change the moment you add ?sortBy= support
+export async function GET() {
+  // ...
+}
+```
+
+**Why**: Next.js passes `NextRequest` to every handler regardless. Accepting it costs nothing and future-proofs the route for optional query params.
+
+### Dynamic Drizzle queries (`$dynamic()`)
+
+When a route needs to conditionally apply `where()` clauses, build the query with `$dynamic()` and apply conditions only when present:
+
+```typescript
+import { asc, desc, inArray, eq, and } from "drizzle-orm";
+
+// Start with $dynamic() to allow optional .where()
+let query = getDatabase()
+  .select()
+  .from(recordsTable)
+  .$dynamic();
+
+const conditions = [];
+if (sizeValues.length > 0) {
+  conditions.push(inArray(recordsTable.recordSize, sizeValues));
+}
+if (shapedParam === "true") {
+  conditions.push(eq(recordsTable.isShapedVinyl, true));
+}
+
+if (conditions.length > 0) {
+  query = query.where(and(...conditions));
+}
+
+const rows = await query.orderBy(orderBy);
+```
+
+Import all drizzle-orm operators (`asc`, `desc`, `inArray`, `eq`, `and`) at the top of the file — never use dynamic `import()` inside a handler.
+
 ### Rate Limiting
 
 Use token bucket for external APIs:
@@ -533,6 +582,24 @@ Cards use **content-driven height** — NO min-height. The front face uses `posi
 - Album art back: 216px × 216px (`.album-art-size-lg` global class)
 - Grid column gap: `0`, row gap: `0`
 
+### Shared pure-utility modules (`lib/<domain>/`)
+
+Logic that is needed by both a React component and a server-side module (API route, test) must live in `lib/`, not inside a component file. This prevents circular imports and keeps business logic independently testable.
+
+Pattern:
+- Extract the shared function into `lib/<domain>/<module>.ts`
+- Export it with a named export
+- Import it in both the component and the route/test
+
+```
+# Example: artistSortKey is needed in both RecordShelf.tsx and API route tests
+lib/pagination/buckets.ts   ← artistSortKey(), computeBuckets(), AlphaBucket type
+components/records/RecordShelf.tsx  ← imports artistSortKey from lib
+__tests__/lib/pagination/buckets.test.ts  ← unit-tests the pure function
+```
+
+**Why**: Duplicating logic (e.g. defining `artistSortKey` inline in the component AND redefining it in a test helper) creates drift. A single source in `lib/` ensures component and API always agree on normalisation.
+
 ## File Organization
 
 ```
@@ -550,6 +617,8 @@ components/
     ├── RecordCard.module.scss
     ├── RecordShelf.tsx
     ├── RecordShelf.module.scss
+    ├── AlphaNav.tsx
+    ├── AlphaNav.module.scss
     ├── SearchBar.tsx
     └── SearchBar.module.scss
 
@@ -561,8 +630,9 @@ styles/
 
 lib/
 ├── db/                     # Database client and schema
-└── */                      # External API clients
-    └── client.ts
+├── discogs/                # Discogs API client and sync logic
+└── pagination/             # Shared pure utilities for alphabetical bucketing
+    └── buckets.ts          # computeBuckets(), artistSortKey(), AlphaBucket type
 ```
 
 ## Commit Messages
