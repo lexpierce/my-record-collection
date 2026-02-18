@@ -66,6 +66,22 @@ The individual endpoint documentation checklist still has unchecked items. Write
 
 ---
 
+### `docs/development/README.md` guideline checklist items are unchecked
+
+Three items in the "Detailed Guidelines" checklist are unfiled:
+
+- `database-schema-guidelines.md` — schema design rules (column types, naming, indexes). Check first whether `database-schema.md` already covers the intent; if so, just tick the checkbox.
+- `api-design-patterns.md` — REST conventions, response shapes, error codes used across all routes.
+- `testing-strategy.md` — overall test philosophy, coverage targets, what to unit-test vs integration-test. Check first whether `testing.md` already covers this; if so, tick the checkbox.
+
+---
+
+### `docs/features/README.md` — Discogs search and integration workflow undocumented
+
+The feature overview checklist has an unchecked item for the Discogs search and integration workflow. Write `docs/features/discogs-integration.md` covering: search flow, fetch-from-discogs flow, sync flow, rate limiting behaviour, and edge cases (duplicate detection, 429 retry).
+
+---
+
 ## Completed (this session)
 
 - [x] `GET /api/records` — sort newest-first (`desc(createdAt)`)
