@@ -16,6 +16,10 @@ Welcome to the My Record Collection documentation. This documentation covers the
 ```
 docs/
 ├── STYLE_GUIDE.md          # Documentation standards
+├── testing.md              # Testing procedures
+├── error-handling.md       # Error handling
+├── testing.md              # Testing procedures
+├── ui-ux.md                # UI-UX patterns
 ├── api/                    # API endpoint documentation
 │   ├── README.md           # API overview
 │   └── endpoints/          # Individual endpoint docs
