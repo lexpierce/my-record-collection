@@ -2,6 +2,8 @@
  * Home page — the single view in this app.
  *
  * Responsibilities:
+ *  - On mount: checks /api/records/sync/status and shows a warning banner if
+ *    required env vars (DISCOGS_USERNAME, DISCOGS_TOKEN) are missing.
  *  - "Sync Collection" button: streams SSE progress from /api/records/sync and
  *    updates the progress bar; bumps refreshKey when done so the shelf reloads.
  *  - "+ Add an album" button: toggles the collapsible SearchBar panel.
@@ -10,7 +12,7 @@
 
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import RecordShelf from "@/components/records/RecordShelf";
 import SearchBar from "@/components/records/SearchBar";
 import styles from "./page.module.scss";
@@ -29,6 +31,19 @@ export default function HomePage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState<SyncProgress | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  // Env vars missing for sync (populated on mount via /api/records/sync/status)
+  const [syncMissingVars, setSyncMissingVars] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch("/api/records/sync/status")
+      .then((r) => r.json())
+      .then((data: { ready: boolean; missing: string[] }) => {
+        if (!data.ready) setSyncMissingVars(data.missing);
+      })
+      .catch(() => {
+        // Non-critical — silently ignore if status check fails
+      });
+  }, []);
 
   const handleRecordAdded = useCallback(() => {
     setRefreshKey((k) => k + 1);
@@ -120,6 +135,15 @@ export default function HomePage() {
           </div>
         </div>
       </header>
+
+      {/* Sync config warning */}
+      {syncMissingVars.length > 0 && (
+        <div className={styles.syncWarning}>
+          <div className={styles.syncWarningInner}>
+            Sync requires {syncMissingVars.join(" and ")} — set {syncMissingVars.length === 1 ? "it" : "them"} in your <code>.env</code> file.
+          </div>
+        </div>
+      )}
 
       {/* Sync progress bar */}
       {syncProgress && syncProgress.phase !== "done" && (

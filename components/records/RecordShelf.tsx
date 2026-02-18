@@ -20,7 +20,7 @@
 
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import RecordCard from "./RecordCard";
 import type { Record } from "@/lib/db/schema";
 import styles from "./RecordShelf.module.scss";
@@ -42,10 +42,24 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
   const [shapedOnly, setShapedOnly] = useState(false);
   // Bumped by onRecordMutated to re-fetch after a card update or delete
   const [mutationKey, setMutationKey] = useState(0);
+  // Ref for click-outside detection on the filter dropdown
+  const filterWrapperRef = useRef<HTMLDivElement>(null);
 
   const handleRecordMutated = useCallback(() => {
     setMutationKey((k) => k + 1);
   }, []);
+
+  // Close filter dropdown when user clicks outside it
+  useEffect(() => {
+    if (!showFilters) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (filterWrapperRef.current && !filterWrapperRef.current.contains(e.target as Node)) {
+        setShowFilters(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showFilters]);
 
   useEffect(() => {
     async function fetchRecords() {
@@ -168,15 +182,16 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
         <button
           onClick={() => setSortAsc(!sortAsc)}
           className={styles.sortDirBtn}
-          title={sortAsc ? "Ascending" : "Descending"}
+          aria-label={sortAsc ? "Sort ascending" : "Sort descending"}
         >
           {sortAsc ? "\u25B2" : "\u25BC"}
         </button>
-        <div className={styles.filterWrapper}>
+        <div className={styles.filterWrapper} ref={filterWrapperRef}>
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`${styles.filterBtn}${activeFilterCount > 0 ? ` ${styles.active}` : ""}`}
-            title="Filter"
+            aria-label="Filter records"
+            aria-expanded={showFilters}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
@@ -186,7 +201,7 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
             )}
           </button>
           {showFilters && (
-            <div className={styles.filterDropdown}>
+            <div className={styles.filterDropdown} role="group" aria-label="Filters">
               <div className={styles.filterGroupLabel}>Size</div>
               {uniqueSizes.map((size) => (
                 <label key={size} className={styles.filterCheckLabel}>

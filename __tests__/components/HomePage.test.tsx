@@ -54,8 +54,23 @@ function makeSSEStream(events: object[]) {
 
 const fetchSpy = vi.spyOn(globalThis, "fetch");
 
+// Route fetch calls by URL so the status check and sync calls don't interfere.
+// Each test that triggers a sync overrides syncMock before rendering.
+let syncMock: (() => Promise<Response>) | null = null;
+
 beforeEach(() => {
   vi.clearAllMocks();
+  syncMock = null;
+  fetchSpy.mockImplementation((url) => {
+    if (typeof url === "string" && url.includes("/sync/status")) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ ready: true, missing: [] }),
+      } as Response);
+    }
+    if (syncMock) return syncMock();
+    return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -119,14 +134,12 @@ describe("HomePage — search toggle", () => {
 describe("HomePage — sync", () => {
   it("shows 'Syncing...' on the button while sync is in progress", async () => {
     // Stream never closes during the test — button stays in syncing state
-    fetchSpy.mockReturnValueOnce(
-      Promise.resolve({
-        ok: true,
-        body: makeSSEStream([
-          { phase: "pull", pulled: 0, pushed: 0, skipped: 0, errors: [], totalDiscogsItems: 10 },
-        ]),
-      } as Response)
-    );
+    syncMock = () => Promise.resolve({
+      ok: true,
+      body: makeSSEStream([
+        { phase: "pull", pulled: 0, pushed: 0, skipped: 0, errors: [], totalDiscogsItems: 10 },
+      ]),
+    } as Response);
 
     render(<HomePage />);
     fireEvent.click(screen.getByRole("button", { name: /sync collection/i }));
@@ -141,9 +154,7 @@ describe("HomePage — sync", () => {
       start(c) { _ctrl = c; },
     });
 
-    fetchSpy.mockReturnValueOnce(
-      Promise.resolve({ ok: true, body } as Response)
-    );
+    syncMock = () => Promise.resolve({ ok: true, body } as Response);
 
     render(<HomePage />);
     fireEvent.click(screen.getByRole("button", { name: /sync collection/i }));
@@ -164,21 +175,19 @@ describe("HomePage — sync", () => {
   });
 
   it("shows sync errors when errors are present", async () => {
-    fetchSpy.mockReturnValueOnce(
-      Promise.resolve({
-        ok: true,
-        body: makeSSEStream([
-          {
-            phase: "done",
-            pulled: 0,
-            pushed: 0,
-            skipped: 0,
-            errors: ["Failed to insert record 123"],
-            totalDiscogsItems: 1,
-          },
-        ]),
-      } as Response)
-    );
+    syncMock = () => Promise.resolve({
+      ok: true,
+      body: makeSSEStream([
+        {
+          phase: "done",
+          pulled: 0,
+          pushed: 0,
+          skipped: 0,
+          errors: ["Failed to insert record 123"],
+          totalDiscogsItems: 1,
+        },
+      ]),
+    } as Response);
 
     render(<HomePage />);
     fireEvent.click(screen.getByRole("button", { name: /sync collection/i }));
@@ -189,14 +198,12 @@ describe("HomePage — sync", () => {
   });
 
   it("bumps refreshKey after sync completes (shelf reloads without full-page reload)", async () => {
-    fetchSpy.mockReturnValueOnce(
-      Promise.resolve({
-        ok: true,
-        body: makeSSEStream([
-          { phase: "done", pulled: 1, pushed: 0, skipped: 0, errors: [], totalDiscogsItems: 1 },
-        ]),
-      } as Response)
-    );
+    syncMock = () => Promise.resolve({
+      ok: true,
+      body: makeSSEStream([
+        { phase: "done", pulled: 1, pushed: 0, skipped: 0, errors: [], totalDiscogsItems: 1 },
+      ]),
+    } as Response);
 
     render(<HomePage />);
     const shelf = screen.getByTestId("record-shelf");
@@ -210,7 +217,7 @@ describe("HomePage — sync", () => {
   });
 
   it("handles fetch error gracefully and shows error in sync errors", async () => {
-    fetchSpy.mockRejectedValueOnce(new Error("Network failure"));
+    syncMock = () => Promise.reject(new Error("Network failure"));
 
     render(<HomePage />);
     fireEvent.click(screen.getByRole("button", { name: /sync collection/i }));
@@ -221,7 +228,7 @@ describe("HomePage — sync", () => {
   });
 
   it("handles missing response body gracefully", async () => {
-    fetchSpy.mockResolvedValueOnce({ ok: true, body: null } as Response);
+    syncMock = () => Promise.resolve({ ok: true, body: null } as Response);
 
     render(<HomePage />);
     fireEvent.click(screen.getByRole("button", { name: /sync collection/i }));

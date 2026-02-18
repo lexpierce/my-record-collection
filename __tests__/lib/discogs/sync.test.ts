@@ -229,21 +229,32 @@ describe("executeSync — push phase", () => {
   it("calls addToCollection for local records not in Discogs collection", async () => {
     mockGetUserCollection.mockResolvedValue(singlePageCollection([]));
     // First select (pull phase existing IDs) = empty
-    // Second select (push phase all local records) = one record not on Discogs
+    // Second select (push phase all local records) = one unsynced record not on Discogs
     mockSelect
       .mockReturnValueOnce(drizzleChain([]))
-      .mockReturnValueOnce(drizzleChain([{ recordId: "uuid-1", discogsId: "99" }]));
+      .mockReturnValueOnce(drizzleChain([{ recordId: "uuid-1", discogsId: "99", isSyncedWithDiscogs: false }]));
 
     const result = await executeSync(() => {});
     expect(mockAddToCollection).toHaveBeenCalledWith("testuser", 99);
     expect(result.pushed).toBe(1);
   });
 
+  it("skips records already flagged isSyncedWithDiscogs", async () => {
+    mockGetUserCollection.mockResolvedValue(singlePageCollection([]));
+    mockSelect
+      .mockReturnValueOnce(drizzleChain([]))
+      .mockReturnValueOnce(drizzleChain([{ recordId: "uuid-1", discogsId: "99", isSyncedWithDiscogs: true }]));
+
+    const result = await executeSync(() => {});
+    expect(mockAddToCollection).not.toHaveBeenCalled();
+    expect(result.pushed).toBe(0);
+  });
+
   it("handles 409 from addToCollection as a successful push", async () => {
     mockGetUserCollection.mockResolvedValue(singlePageCollection([]));
     mockSelect
       .mockReturnValueOnce(drizzleChain([]))
-      .mockReturnValueOnce(drizzleChain([{ recordId: "uuid-1", discogsId: "99" }]));
+      .mockReturnValueOnce(drizzleChain([{ recordId: "uuid-1", discogsId: "99", isSyncedWithDiscogs: false }]));
 
     const conflict = Object.assign(new Error("Conflict"), { status: 409 });
     mockAddToCollection.mockRejectedValueOnce(conflict);
@@ -257,7 +268,7 @@ describe("executeSync — push phase", () => {
     mockGetUserCollection.mockResolvedValue(singlePageCollection([]));
     mockSelect
       .mockReturnValueOnce(drizzleChain([]))
-      .mockReturnValueOnce(drizzleChain([{ recordId: "uuid-1", discogsId: "99" }]));
+      .mockReturnValueOnce(drizzleChain([{ recordId: "uuid-1", discogsId: "99", isSyncedWithDiscogs: false }]));
 
     mockAddToCollection.mockRejectedValueOnce(new Error("rate limit exceeded"));
 
@@ -270,7 +281,7 @@ describe("executeSync — push phase", () => {
     mockGetUserCollection.mockResolvedValue(singlePageCollection([]));
     mockSelect
       .mockReturnValueOnce(drizzleChain([]))
-      .mockReturnValueOnce(drizzleChain([{ recordId: "uuid-1", discogsId: null }]));
+      .mockReturnValueOnce(drizzleChain([{ recordId: "uuid-1", discogsId: null, isSyncedWithDiscogs: false }]));
 
     const result = await executeSync(() => {});
     expect(mockAddToCollection).not.toHaveBeenCalled();

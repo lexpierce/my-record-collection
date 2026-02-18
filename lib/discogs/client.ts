@@ -147,7 +147,12 @@ export class DiscogsClient {
   }
 
   /**
-   * Makes an authenticated request to the Discogs API
+   * Makes an authenticated request to the Discogs API.
+   *
+   * Retries up to 3 times on 429 (Too Many Requests) responses, using
+   * exponential backoff seeded by the Retry-After header (default 1 s).
+   * All other non-2xx responses throw immediately.
+   *
    * @param endpoint - API endpoint to call
    * @returns Parsed JSON response
    */
@@ -177,20 +182,41 @@ export class DiscogsClient {
       fetchOptions.next = { revalidate: 3600 };
     }
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, fetchOptions);
+    const maxRetries = 3;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, fetchOptions);
 
-    if (!response.ok) {
-      const err = new Error(
-        `Discogs API error: ${response.status} ${response.statusText}`,
-      ) as Error & { status: number };
-      err.status = response.status;
-      throw err;
+      if (response.status === 429) {
+        if (attempt === maxRetries - 1) {
+          const err = new Error(
+            `Discogs API error: 429 Too Many Requests (max retries exceeded)`,
+          ) as Error & { status: number };
+          err.status = 429;
+          throw err;
+        }
+        // Honour Retry-After header; fall back to 1 s, then double per attempt
+        const retryAfterSeconds = parseInt(response.headers.get("Retry-After") ?? "1", 10);
+        const delayMs = retryAfterSeconds * 1000 * Math.pow(2, attempt);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        continue;
+      }
+
+      if (!response.ok) {
+        const err = new Error(
+          `Discogs API error: ${response.status} ${response.statusText}`,
+        ) as Error & { status: number };
+        err.status = response.status;
+        throw err;
+      }
+
+      // Some POST endpoints return 201 with empty body
+      const text = await response.text();
+      if (!text) return { _status: response.status } as T & { _status?: number };
+      return JSON.parse(text);
     }
 
-    // Some POST endpoints return 201 with empty body
-    const text = await response.text();
-    if (!text) return { _status: response.status } as T & { _status?: number };
-    return JSON.parse(text);
+    // Unreachable — loop always returns or throws, but TypeScript needs this
+    throw new Error("makeRequest: unexpected exit from retry loop");
   }
 
   /**

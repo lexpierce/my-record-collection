@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { desc } from "drizzle-orm";
 import { getDatabase, schema } from "@/lib/db/client";
 
 /**
@@ -10,14 +11,14 @@ import { getDatabase, schema } from "@/lib/db/client";
 
 /**
  * GET handler - Fetches all records from the database
- * Returns records sorted by creation date (oldest first / ascending)
+ * Returns records sorted by creation date (newest first / descending)
  */
 export async function GET() {
   try {
     const allRecords = await getDatabase()
       .select()
       .from(schema.recordsTable)
-      .orderBy(schema.recordsTable.createdAt);
+      .orderBy(desc(schema.recordsTable.createdAt));
 
     return NextResponse.json({
       records: allRecords,

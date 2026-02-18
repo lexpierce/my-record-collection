@@ -4,8 +4,8 @@
  * Pull phase: pages through the Discogs collection and inserts any releases
  *   that don't yet exist locally (identified by discogsId).
  *
- * Push phase: finds local records whose discogsId is NOT in the live Discogs
- *   collection and calls addToCollection for each one.
+ * Push phase: finds local records not yet flagged as synced and whose
+ *   discogsId is NOT in the live Discogs collection, then calls addToCollection.
  *
  * Idempotent — safe to run multiple times; never deletes from either side.
  */
@@ -139,17 +139,19 @@ export async function executeSync(
   progress.phase = "push";
   onProgress({ ...progress });
 
-  // Find local records with a discogsId that's NOT in the Discogs collection
-  // Uses actual collection contents rather than the flag (handles stale flag data)
+  // Find local records with a discogsId NOT already flagged as synced.
+  // The pull phase marks everything it finds in Discogs as synced, so this
+  // efficiently skips records that were already confirmed present.
   const allLocalRecords = await getDatabase()
     .select({
       recordId: schema.recordsTable.recordId,
       discogsId: schema.recordsTable.discogsId,
+      isSyncedWithDiscogs: schema.recordsTable.isSyncedWithDiscogs,
     })
     .from(schema.recordsTable);
 
   const recordsToPush = allLocalRecords.filter(
-    (r) => r.discogsId && !discogsCollectionIds.has(r.discogsId),
+    (r) => r.discogsId && !r.isSyncedWithDiscogs && !discogsCollectionIds.has(r.discogsId),
   );
 
   for (const record of recordsToPush) {

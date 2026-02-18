@@ -140,13 +140,25 @@ export default function RecordCard({ record, onRecordMutated }: RecordCardProps)
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleCardClick();
+    }
+  };
+
   return (
     // flip-card / flipped are global classes (see styles/globals.scss)
     <div
       ref={cardRef}
       className={`flip-card${isFlipped ? " flipped" : ""}`}
       style={{ cursor: "pointer" }}
+      role="button"
+      tabIndex={0}
+      aria-expanded={isFlipped}
+      aria-label={`${record.albumTitle} by ${record.artistName}`}
       onClick={handleCardClick}
+      onKeyDown={handleKeyDown}
     >
       <div className="flip-card-inner">
         {/* Front of card */}

@@ -58,12 +58,12 @@ export default function SearchBar({ onRecordAdded }: SearchBarProps) {
     try {
       let searchUrl = "/api/records/search?";
 
-      if (searchMethod === "catalog" && catalogNumber) {
-        searchUrl += `catalogNumber=${encodeURIComponent(catalogNumber)}`;
-      } else if (searchMethod === "artistTitle" && artistName && albumTitle) {
-        searchUrl += `artist=${encodeURIComponent(artistName)}&title=${encodeURIComponent(albumTitle)}`;
-      } else if (searchMethod === "upc" && upcCode) {
-        searchUrl += `upc=${encodeURIComponent(upcCode)}`;
+      if (searchMethod === "catalog" && catalogNumber.trim()) {
+        searchUrl += `catalogNumber=${encodeURIComponent(catalogNumber.trim())}`;
+      } else if (searchMethod === "artistTitle" && artistName.trim() && albumTitle.trim()) {
+        searchUrl += `artist=${encodeURIComponent(artistName.trim())}&title=${encodeURIComponent(albumTitle.trim())}`;
+      } else if (searchMethod === "upc" && upcCode.trim()) {
+        searchUrl += `upc=${encodeURIComponent(upcCode.trim())}`;
       } else {
         setErrorMessage("Please fill in all required fields");
         setIsSearching(false);

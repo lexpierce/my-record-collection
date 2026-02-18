@@ -128,6 +128,39 @@ describe("DiscogsClient.makeRequest", () => {
     expect(opts.body).toBe(JSON.stringify({ foo: "bar" }));
     expect((opts.headers as Record<string, string>)["Content-Type"]).toBe("application/json");
   });
+
+  it("retries on 429 and succeeds on second attempt", async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: false,
+          status: 429,
+          statusText: "Too Many Requests",
+          headers: { get: () => "0" }, // Retry-After: 0 so test doesn't sleep
+          text: () => Promise.resolve(""),
+        } as unknown as Response)
+      )
+      .mockImplementationOnce(() => makeFetchResponse({ data: "ok" }));
+    const client = new DiscogsClient("TestApp/1.0");
+    const result = await client.makeRequest<{ data: string }>("/test");
+    expect(result.data).toBe("ok");
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it("throws after max retries on persistent 429", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation(() =>
+      Promise.resolve({
+        ok: false,
+        status: 429,
+        statusText: "Too Many Requests",
+        headers: { get: () => "0" },
+        text: () => Promise.resolve(""),
+      } as unknown as Response)
+    );
+    const client = new DiscogsClient("TestApp/1.0");
+    await expect(client.makeRequest("/test")).rejects.toMatchObject({ status: 429 });
+  });
 });
 
 // ---------------------------------------------------------------------------

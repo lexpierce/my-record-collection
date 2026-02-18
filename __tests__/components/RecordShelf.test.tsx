@@ -158,7 +158,7 @@ describe("RecordShelf — sorting", () => {
     render(<RecordShelf />);
     await waitFor(() => screen.getAllByTestId("record-card"));
 
-    const dirBtn = screen.getByTitle(/ascending|descending/i);
+    const dirBtn = screen.getByRole("button", { name: /sort ascending|sort descending/i });
     fireEvent.click(dirBtn);
     // Still shows all records
     expect(screen.getAllByTestId("record-card")).toHaveLength(3);
@@ -170,7 +170,7 @@ describe("RecordShelf — filtering", () => {
     render(<RecordShelf />);
     await waitFor(() => screen.getAllByTestId("record-card"));
 
-    const filterBtn = screen.getByTitle("Filter");
+    const filterBtn = screen.getByRole("button", { name: /filter records/i });
     fireEvent.click(filterBtn);
 
     // Size checkboxes appear
@@ -182,7 +182,7 @@ describe("RecordShelf — filtering", () => {
     render(<RecordShelf />);
     await waitFor(() => screen.getAllByTestId("record-card"));
 
-    fireEvent.click(screen.getByTitle("Filter"));
+    fireEvent.click(screen.getByRole("button", { name: /filter records/i }));
 
     // Check the 7" size filter
     const checkbox = screen.getByLabelText('7"');
@@ -196,7 +196,7 @@ describe("RecordShelf — filtering", () => {
     render(<RecordShelf />);
     await waitFor(() => screen.getAllByTestId("record-card"));
 
-    fireEvent.click(screen.getByTitle("Filter"));
+    fireEvent.click(screen.getByRole("button", { name: /filter records/i }));
     fireEvent.click(screen.getByLabelText('7"'));
 
     expect(screen.getByText(/of 3 shown/)).toBeInTheDocument();
@@ -206,7 +206,7 @@ describe("RecordShelf — filtering", () => {
     render(<RecordShelf />);
     await waitFor(() => screen.getAllByTestId("record-card"));
 
-    fireEvent.click(screen.getByTitle("Filter"));
+    fireEvent.click(screen.getByRole("button", { name: /filter records/i }));
     fireEvent.click(screen.getByLabelText('7"'));
     expect(screen.getAllByTestId("record-card")).toHaveLength(1);
 
@@ -220,7 +220,7 @@ describe("RecordShelf — filtering", () => {
     render(<RecordShelf />);
     await waitFor(() => screen.getAllByTestId("record-card"));
 
-    fireEvent.click(screen.getByTitle("Filter"));
+    fireEvent.click(screen.getByRole("button", { name: /filter records/i }));
     fireEvent.click(screen.getByLabelText(/picture disc/i));
 
     expect(screen.getAllByTestId("record-card")).toHaveLength(1);

@@ -12,54 +12,13 @@ _(none)_
 
 ## Medium Priority
 
-### `GET /api/records` sorts ascending by `createdAt` (oldest first)
+### Alphabetical pagination on `GET /api/records`
 
-The comment previously said "newest first" — this was fixed in code and docs. But the UX expectation is likely newest-first. Confirm with product intent and add a `desc(createdAt)` sort or expose it as a query parameter.
-
----
-
-### No `DISCOGS_USERNAME` in `.env.example` reminder for sync
-
-Sync silently fails with a 200 SSE stream that immediately returns an error event if `DISCOGS_USERNAME` is not set. The error message is clear (`DISCOGS_USERNAME environment variable is required for sync`) but the user has to look at the error overlay to see it.
-
-**Fix:** Surface the missing env var as a more prominent UI warning before/during the first sync attempt.
-
----
-
-### Accessibility audit
-
-The app has no ARIA roles beyond what the browser provides natively. No screen-reader testing has been done. Known issues:
-- Filter dropdown is not keyboard navigable
-- Flip card click target has no `role="button"` or `aria-expanded`
-- Sort direction button title is not announced on focus
-
----
-
-### `SearchBar` validation gap
-
-When the "Artist & Title" tab is active but the user clears both fields and submits, the `required` HTML attribute on the inputs prevents submission. However, if JS is used to set values programmatically (e.g. autofill), empty strings could bypass the guard. The server-side route handles this gracefully (returns 400), but the client could be more robust.
-
----
-
-### Rate limiter doesn't backoff on 429 responses
-
-`DiscogsClient.makeRequest()` throws on any non-2xx response including 429 (Too Many Requests). It does not retry with exponential backoff. Under heavy use (bulk sync of large collections), this can cause sync to fail partway through.
-
-**Fix:** Add retry-with-backoff logic to `makeRequest()` for 429 responses.
-
----
-
-### No pagination on `GET /api/records`
-
-The route fetches all records in one query. For large collections (1000+ records), this will be slow and memory-intensive.
-
-**Fix:** Add `page` and `limit` query parameters. Update `RecordShelf` to paginate or use virtual scrolling.
-
----
-
-### Sync `push` phase uses real Discogs collection contents
-
-`executeSync()` compares local records against the live Discogs collection to decide what to push. For large collections, this means a full collection paginate on every sync. Consider caching the Discogs IDs or using the `isSyncedWithDiscogs` flag more aggressively (with a "force re-sync" option).
+Deferred to its own session. Plan agreed:
+- Server-side sort/filter via query params (`?sortBy=artist&sortDir=asc&size=12"&shaped=true`)
+- New `GET /api/records/pages` endpoint returns alphabetical page buckets (≤100 records each; split by second letter if a letter exceeds the threshold)
+- RecordShelf nav bar: buttons per bucket (e.g. "A–C", "D–F"), active bucket highlighted
+- Load records for the selected bucket only
 
 ---
 
@@ -109,6 +68,12 @@ The individual endpoint documentation checklist still has unchecked items. Write
 
 ## Completed (this session)
 
+- [x] `GET /api/records` — sort newest-first (`desc(createdAt)`)
+- [x] `SearchBar` — trim whitespace before search; closes programmatic bypass of `required` guard
+- [x] Sync push phase — skip records already flagged `isSyncedWithDiscogs`; avoids redundant Discogs API calls
+- [x] `DiscogsClient.makeRequest()` — retry-with-backoff on 429 (max 3 attempts, honours `Retry-After` header)
+- [x] Sync config warning banner — `GET /api/records/sync/status` checks env vars; page shows amber banner if `DISCOGS_USERNAME` or `DISCOGS_TOKEN` missing
+- [x] Accessibility — flip card `role=button`/`tabIndex`/`aria-expanded`/keyboard handler; filter `aria-expanded`/`role=group`; sort button `aria-label`; click-outside to close filter dropdown
 - [x] Fixed `RecordCard` update/delete — replaced `window.location.reload()` with `onRecordMutated` callback; `RecordShelf` bumps `mutationKey` to re-fetch
 - [x] Fixed `lib/db/client.ts` — lazy `getDatabase()` getter; no longer throws at import if `DATABASE_URL` unset
 - [x] Fixed `AGENTS.md` — added `or tsconfig.json` fallback for tsconfig lookup (repo owner edit, commit 2238193)
