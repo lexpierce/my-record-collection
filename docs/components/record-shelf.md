@@ -1,6 +1,6 @@
 # RecordShelf Component
 
-The main record browsing grid. Fetches and displays all records, with sorting, filtering, and alphabetical navigation.
+The main record browsing grid. Fetches and displays all records, with sorting, filtering, alphabetical navigation, and client-side pagination.
 
 ## Overview
 
@@ -11,6 +11,7 @@ The main record browsing grid. Fetches and displays all records, with sorting, f
 3. Sorts records client-side by artist, title, or year.
 4. Filters records client-side by vinyl size and/or shaped status.
 5. When sorted by artist, renders an `AlphaNav` bar of letter-bucket buttons that further filters the grid to the selected bucket.
+6. Paginates the final visible set into pages of 25, 50, or 100 records.
 
 ```tsx
 import RecordShelf from "@/components/records/RecordShelf";
@@ -41,6 +42,8 @@ import RecordShelf from "@/components/records/RecordShelf";
 | `sizeFilter` | `Set<string>` | Active size filters (e.g. `{"12\""}`) |
 | `shapedOnly` | `boolean` | When true, only shaped/picture disc records are shown |
 | `activeBucket` | `string \| null` | Active alpha-nav bucket label, or `null` for "All" |
+| `pageSize` | `25 \| 50 \| 100` | Records shown per page |
+| `currentPage` | `number` | Current page (1-indexed) |
 
 ## Sort Logic
 
@@ -91,26 +94,37 @@ The filter button shows a badge with the count of active filter groups:
 - Size filter counts as 1 regardless of how many sizes are checked.
 - Shaped filter counts as 1.
 
+## Pagination
+
+All records are fetched in a single request. Pagination is purely client-side.
+
+The pipeline: `records` → filter → sort → alpha bucket filter → **page slice** → render.
+
+`pageSize` (25 / 50 / 100) is set via a dropdown in the controls bar. `currentPage` resets to 1 whenever any of the following change: `sortBy`, `sortAsc`, `sizeFilter`, `shapedOnly`, `activeBucket`, `pageSize`.
+
+Prev/next buttons are rendered below the grid only when `totalPages > 1`.
+
 ## Alphabetical Navigation
 
 When `sortBy === "artist"`, an `AlphaNav` component renders above the grid. It shows:
 
 - An **All** button (clears `activeBucket`)
-- One button per page computed by `computeBuckets()` from `lib/pagination/buckets.ts`
+- One button per bucket computed by `computeBuckets()` from `lib/pagination/buckets.ts`
 
-Each button label is a range describing what artists are on that page (e.g. `A–C`, `Ba–Bm`). Selecting a page sets `activeBucket` and narrows `displayedRecords` to that page's records. The selection resets to `null` ("All") whenever `sortBy` changes away from `"artist"`.
+Each button label is a range describing what artists are in that bucket (e.g. `A–C`, `Ba–Bm`). Selecting a bucket sets `activeBucket` and narrows `displayedRecords` to that bucket's records, then pagination starts from page 1 of the narrowed set. The selection resets to `null` ("All") whenever `sortBy` changes away from `"artist"`.
 
 ### Bucket algorithm (two-pass)
 
-`computeBuckets()` builds pages in two passes:
+`computeBuckets(records, maxSize)` accepts an explicit `maxSize`. `RecordShelf` passes the current `pageSize` as `maxSize` so that bucket sizes stay in sync with the page size — changing the dropdown rebuilds both the page slice and the bucket tabs.
 
 **Pass 1 — split oversized letters:**
-Records are grouped by the first letter of `artistSortKey`. Any letter-group exceeding `MAX_BUCKET_SIZE` (50) is split by second letter into sub-buckets (e.g. `Ba–Bm`, `Bn–Bz`). The `#` bucket collects non-alpha starters and is never split.
+Records are grouped by the first letter of `artistSortKey`. Any letter-group exceeding `maxSize` is split by second letter into sub-buckets (e.g. `Ba–Bm`, `Bn–Bz`). The `#` bucket collects non-alpha starters and is never split.
 
 **Pass 2 — merge small adjacent pages:**
-Non-split letter pages are merged greedily: accumulate adjacent pages until adding the next would exceed `MAX_BUCKET_SIZE`. Merged pages get a range label (`A–C`). A single-letter page that is not merged keeps a plain label (`N`).
+Non-split letter pages are merged greedily: accumulate adjacent pages until adding the next would exceed `maxSize`. Merged pages get a range label (`A–C`). A single-letter page that is not merged keeps a plain label (`N`).
 
 **Merge boundary rules:**
+
 - Sub-buckets from a split letter (e.g. `Ba–Bm`) are emitted as-is and never merged with pages from adjacent letters.
 - The `#` bucket is always last and never merged with letter pages.
 

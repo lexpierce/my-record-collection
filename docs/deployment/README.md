@@ -24,9 +24,10 @@ This application is deployed on **Render** using Infrastructure as Code (Bluepri
 - **Plan**: Starter ($7/month)
 - **Runtime**: Node with Bun installed
 - **Region**: Oregon
+- **Project / Environment**: Records / Prod
 - **Auto Deploy**: Enabled on push to main
-- **Build Filter**: Skips rebuild on `docs/**`, `.beads/**`, `*.md` changes
-- **Pre-deploy**: `bun run db:migrate` (applies pending migrations before each deploy)
+- **Build Filter**: Skips rebuild on `docs/**`, `*.md` changes
+- **Pre-deploy**: `bun run db:migrate` (runs after build, before the new instance starts)
 
 ### Database Configuration
 
@@ -60,13 +61,14 @@ Required environment variables:
 
 ## Build Process
 
-The Render build runs these steps:
+Render runs these steps in order:
 
 1. Install Bun runtime
-2. Install dependencies: `bun install`
-3. Apply database migrations: `bun run db:migrate`
-4. Build Next.js app: `bun run build`
-5. Start production server: `bun run start`
+2. Install dependencies and build: `bun install && bun run build`
+3. **Pre-deploy**: `bun run db:migrate` (applies pending migrations)
+4. Swap to the new instance: `bun run start`
+
+Pre-deploy runs in a separate ephemeral container after the build succeeds. It has access to all environment variables including `DATABASE_URL`.
 
 ## Monitoring
 
@@ -83,6 +85,12 @@ Common deployment issues and solutions:
 - Verify `DATABASE_URL` is set correctly
 - Check for TypeScript errors: `bun run type-check`
 - Review build logs in Render dashboard
+
+### Pre-deploy Fails
+
+- Check pre-deploy logs in the service's Events tab (separate from build logs)
+- Most common cause: migration conflict — see [Database Schema: Migration](../development/database-schema.md#migration)
+- Use `render psql <db-id>` CLI to inspect `drizzle.__drizzle_migrations` directly
 
 ### App Won't Start
 
@@ -112,6 +120,6 @@ For more detailed information, see:
 ## Updates and Maintenance
 
 - **Auto Deploy**: Pushes to main branch trigger automatic deployment
-- **Manual Deploy**: Use Render dashboard "Manual Deploy" button
+- **Manual Deploy**: `render deploys create <service-id> --confirm` via CLI
 - **Database Migrations**: Run automatically via pre-deploy with `db:migrate`
 - **Environment Updates**: Change via Render dashboard, triggers redeploy

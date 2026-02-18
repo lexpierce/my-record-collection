@@ -72,7 +72,7 @@ Postgres does not have an `ON UPDATE` equivalent for timestamps the way MySQL do
 
 ## Migration
 
-The schema is managed by Drizzle Kit.
+The schema is managed by Drizzle Kit. Migration files live in `./drizzle/` and are committed to git.
 
 ```bash
 # Generate migration files from schema changes
@@ -85,7 +85,49 @@ bun run db:migrate
 bun run db:push
 ```
 
-Migration files are written to `./drizzle/`. The `drizzle.config.ts` file points to `lib/db/schema.ts`.
+`drizzle.config.ts` points to `lib/db/schema.ts` and outputs to `./drizzle/`.
+
+### Workflow for schema changes
+
+1. Edit `lib/db/schema.ts`
+2. Run `bun run db:generate` — creates a new numbered SQL file in `./drizzle/`
+3. Commit the generated file alongside the schema change
+4. On next deploy, the pre-deploy command (`bun run db:migrate`) applies it
+
+### Drizzle migrations tracking table
+
+Drizzle tracks applied migrations in `drizzle.__drizzle_migrations` — **schema `drizzle`, not `public`**. This is a common gotcha.
+
+When inspecting or manually seeding the table:
+
+```sql
+-- correct
+SELECT * FROM drizzle.__drizzle_migrations;
+
+-- wrong (different schema — Drizzle won't see it)
+SELECT * FROM __drizzle_migrations;
+```
+
+### Seeding an existing database for db:migrate
+
+If the database was previously managed with `db:push` (no migration history), you must seed the tracking table before switching to `db:migrate`. Otherwise Drizzle will try to re-run `0000_*.sql` and fail with "relation already exists".
+
+```sql
+-- Run via: render psql <db-id> --command "..."
+CREATE SCHEMA IF NOT EXISTS drizzle;
+CREATE TABLE IF NOT EXISTS drizzle.__drizzle_migrations (
+  id SERIAL PRIMARY KEY,
+  hash text NOT NULL,
+  created_at bigint
+);
+-- `hash` = tag from drizzle/meta/_journal.json
+-- `created_at` = `when` value from the same journal entry (milliseconds)
+INSERT INTO drizzle.__drizzle_migrations (hash, created_at)
+VALUES ('0000_violet_the_order', 1771444094407)
+ON CONFLICT DO NOTHING;
+```
+
+The `hash` and `created_at` values must match the journal entry exactly (`drizzle/meta/_journal.json`). Using the wrong `created_at` (e.g. `extract(epoch from now())`) causes no immediate problem but breaks reproducibility — use the journal's `when` value.
 
 ## Related
 
