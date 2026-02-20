@@ -33,7 +33,8 @@ The palette is warm olive/sage greens on a near-black background. No pure whites
 
 ## Layout
 
-- **Max width**: `80rem` — all sections centered with `max-width: 80rem; margin: 0 auto`
+- **Max width**: `80rem` — header, sync bar, and search sections centered with `max-width: 80rem; margin: 0 auto`
+- **Record shelf**: no max-width — the grid fills the full viewport width so `auto-fill` can pack as many 180px columns as the screen allows
 - **Record grid**: `grid-template-columns: repeat(auto-fill, 180px)` — no breakpoints, reflows automatically
 - **No border-radius anywhere** — sharp edges throughout for a retro aesthetic
 

@@ -24,6 +24,13 @@ None.
 
 ## Completed (this session)
 
+- [x] Removed `max-width: 80rem` from `.shelfSection` in `app/page.module.scss` — the record grid now fills the full viewport width so `auto-fill` packs as many 180px columns as the screen allows.
+- [x] Updated `docs/ui-ux.md` Layout section to reflect that the shelf section no longer has a max-width cap (header/search/sync sections still use `80rem`).
+
+---
+
+## Completed (previous sessions)
+
 - [x] `RecordCard` — replaced `window.confirm()` / `window.alert()` with inline confirmation UI and inline error state; no blocking dialogs.
 - [x] `SearchBar` — fixed `setTimeout` leak: timer now lives in a `useEffect` with a `clearTimeout` cleanup.
 - [x] `RecordCard` — `discogsUri` rendered as a clickable "View on Discogs" link on the card back.
@@ -33,10 +40,6 @@ None.
 - [x] Wrote `docs/api/endpoints/discogs-integration.md` — search, fetch-from-discogs, update-from-discogs, sync.
 - [x] `docs/development/README.md` — ticked `database-schema.md` and `testing.md` checkboxes (existing files cover intent); wrote `api-design-patterns.md` and ticked its checkbox.
 - [x] Wrote `docs/features/discogs-integration.md` — search flow, fetch flow, sync flow, rate limiting, edge cases.
-
----
-
-## Completed (previous sessions)
 
 - [x] Alphabetical pagination — `GET /api/records` gains optional query params (`sortBy`, `sortDir`, `size`, `shaped`); `lib/pagination/buckets.ts` provides `computeBuckets()` + `artistSortKey()`; `AlphaNav` component renders letter-bucket nav bar; `RecordShelf` shows `AlphaNav` when sorted by artist, filters grid to active bucket; auto-splits letters exceeding `MAX_BUCKET_SIZE` (default 100) by second character.
 
