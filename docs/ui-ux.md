@@ -91,6 +91,7 @@ No ARIA roles have been audited yet. See [TODO.md](./TODO.md).
 ## Responsive Design
 
 - Grid auto-fills at any width — no breakpoints needed
+- Initial page size adapts to viewport: 50 on desktop (`>640px`), 25 on mobile (`≤640px`)
 - Header actions stack naturally on narrow screens (flex-wrap)
 - Controls bar uses flex with wrapping
 

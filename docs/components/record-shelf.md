@@ -42,7 +42,7 @@ import RecordShelf from "@/components/records/RecordShelf";
 | `sizeFilter` | `Set<string>` | Active size filters (e.g. `{"12\""}`) |
 | `shapedOnly` | `boolean` | When true, only shaped/picture disc records are shown |
 | `activeBucket` | `string \| null` | Active alpha-nav bucket label, or `null` for "All" |
-| `pageSize` | `25 \| 50 \| 100` | Records shown per page |
+| `pageSize` | `25 \| 50 \| 100` | Records shown per page (initial: 50 desktop, 25 mobile) |
 | `currentPage` | `number` | Current page (1-indexed) |
 
 ## Sort Logic
