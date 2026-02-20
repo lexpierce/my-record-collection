@@ -37,7 +37,7 @@ docs/
 │   └── database-schema.md  # Schema reference
 ├── features/               # Feature documentation
 │   ├── README.md           # Feature overview
-│   ├── flip-card-animation.md
+│   ├── flip-card-animation.md # cool feature
 │   └── vinyl-metadata.md
 └── deployment/             # Deployment guides
     └── README.md           # Deployment overview
