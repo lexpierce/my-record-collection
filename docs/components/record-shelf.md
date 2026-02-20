@@ -100,7 +100,7 @@ All records are fetched in a single request. Pagination is purely client-side.
 
 The pipeline: `records` → filter → sort → alpha bucket filter → **page slice** → render.
 
-`pageSize` (25 / 50 / 100) is set via a dropdown in the controls bar. `currentPage` resets to 1 whenever any of the following change: `sortBy`, `sortAsc`, `sizeFilter`, `shapedOnly`, `activeBucket`, `pageSize`.
+`pageSize` (25 / 50 / 100) is set via a dropdown in the controls bar. The initial value is responsive: 50 on desktop (`window.innerWidth > 640`), 25 on mobile (≤640px, matching `$bp-sm`). `currentPage` resets to 1 whenever any of the following change: `sortBy`, `sortAsc`, `sizeFilter`, `shapedOnly`, `activeBucket`, `pageSize`.
 
 Prev/next buttons are rendered below the grid only when `totalPages > 1`.
 

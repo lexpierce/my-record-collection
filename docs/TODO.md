@@ -26,6 +26,7 @@ None.
 
 - [x] Removed `max-width: 80rem` from `.shelfSection` in `app/page.module.scss` — the record grid now fills the full viewport width so `auto-fill` packs as many 180px columns as the screen allows.
 - [x] Updated `docs/ui-ux.md` Layout section to reflect that the shelf section no longer has a max-width cap (header/search/sync sections still use `80rem`).
+- [x] Responsive initial page size: 50 on desktop (>640px), 25 on mobile (≤640px) via lazy `useState` initializer in `RecordShelf.tsx`.
 
 ---
 
