@@ -55,8 +55,10 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
   const [activeBucket, setActiveBucket] = useState<string | null>(null);
   // Bumped by onRecordMutated to re-fetch after a card update or delete
   const [mutationKey, setMutationKey] = useState(0);
-  // Pagination
-  const [pageSize, setPageSize] = useState<PageSize>(25);
+  // Pagination — 50 on desktop, 25 on mobile (≤640px matches $bp-sm)
+  const [pageSize, setPageSize] = useState<PageSize>(
+    () => (typeof window !== "undefined" && window.innerWidth > 640 ? 50 : 25),
+  );
   const [currentPage, setCurrentPage] = useState(1);
   // Ref for click-outside detection on the filter dropdown
   const filterWrapperRef = useRef<HTMLDivElement>(null);
