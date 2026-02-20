@@ -35,8 +35,6 @@ projects:
               - key: DISCOGS_USER_AGENT
                 value: MyRecordCollection/1.0
             buildFilter:
-              paths:
-                - "**"
               ignoredPaths:
                 - docs/**
                 - "*.md"
