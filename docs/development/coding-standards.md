@@ -226,6 +226,29 @@ Accepts URL as parameter. Caller owns config. Testable.
 func Connect(databaseURL string) (*pgxpool.Pool, error)
 ```
 
+### errcheck patterns
+
+`golangci-lint` enforces checked error returns. Common fixes:
+
+```go
+defer func() { _ = f.Close() }()       // not: defer f.Close()
+defer func() { _ = resp.Body.Close() }()
+_, _ = buf.ReadFrom(resp.Body)          // not: buf.ReadFrom(resp.Body)
+```
+
+In tests, use helpers that call `t.Fatal` on error:
+
+```go
+func writeFile(t *testing.T, path, content string) {
+    t.Helper()
+    if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+        t.Fatal(err)
+    }
+}
+```
+
+Use `t.Setenv("KEY", "")` instead of `os.Unsetenv("KEY")` — auto-restored and errcheck-clean.
+
 ## Testing
 
 Run before committing:
