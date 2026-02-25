@@ -4,49 +4,57 @@ import (
 	lipgloss "charm.land/lipgloss/v2"
 )
 
+// Catppuccin Mocha palette
+// https://github.com/catppuccin/catppuccin
 var (
-	purple  = lipgloss.Color("#AD8CFF")
-	subtle  = lipgloss.Color("#aaaaaa")
-	red     = lipgloss.Color("#FF6347")
-	green   = lipgloss.Color("#6BCB77")
-	white   = lipgloss.Color("#ffffff")
-	dimText = lipgloss.Color("#dddddd")
-	darkBg  = lipgloss.Color("#5A3DAA")
+	base      = lipgloss.Color("#1e1e2e")
+	surface0  = lipgloss.Color("#313244")
+	surface1  = lipgloss.Color("#45475a")
+	overlay0  = lipgloss.Color("#6c7086")
+	subtext0  = lipgloss.Color("#a6adc8")
+	text      = lipgloss.Color("#cdd6f4")
+	lavender  = lipgloss.Color("#b4befe")
+	mauve     = lipgloss.Color("#cba6f7")
+	red       = lipgloss.Color("#f38ba8")
+	green     = lipgloss.Color("#a6e3a1")
+	peach     = lipgloss.Color("#fab387")
+	rosewater = lipgloss.Color("#f5e0dc")
 
 	titleStyle = lipgloss.NewStyle().
 			Bold(true).
-			Foreground(purple).
+			Foreground(mauve).
 			Padding(0, 1)
 
 	statusBarStyle = lipgloss.NewStyle().
-			Foreground(subtle).
+			Foreground(overlay0).
 			Padding(0, 1)
 
 	headerStyle = lipgloss.NewStyle().
 			Bold(true).
-			Foreground(white).
-			Background(purple).
+			Foreground(base).
+			Background(mauve).
 			Padding(0, 1)
 
 	selectedRowStyle = lipgloss.NewStyle().
 				Bold(true).
-				Foreground(white).
-				Background(darkBg)
+				Foreground(text).
+				Background(surface1)
 
-	normalRowStyle = lipgloss.NewStyle()
+	normalRowStyle = lipgloss.NewStyle().
+			Foreground(subtext0)
 
 	detailBoxStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(purple).
+			BorderForeground(lavender).
 			Padding(1, 2)
 
 	labelStyle = lipgloss.NewStyle().
 			Bold(true).
-			Foreground(purple).
+			Foreground(lavender).
 			Width(16)
 
 	valueStyle = lipgloss.NewStyle().
-			Foreground(dimText)
+			Foreground(text)
 
 	syncedStyle = lipgloss.NewStyle().
 			Foreground(green)
@@ -56,9 +64,9 @@ var (
 
 	searchStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(purple).
+			BorderForeground(mauve).
 			Padding(0, 1)
 
 	helpStyle = lipgloss.NewStyle().
-			Foreground(subtle)
+			Foreground(overlay0)
 )

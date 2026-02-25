@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 )
 
@@ -149,13 +150,7 @@ func TestConfigPathFallbackToXDG(t *testing.T) {
 
 	// configPaths should include the XDG path.
 	paths := configPaths()
-	found := false
-	for _, p := range paths {
-		if p == filepath.Join(xdgDir, ConfigFile) {
-			found = true
-			break
-		}
-	}
+	found := slices.Contains(paths, filepath.Join(xdgDir, ConfigFile))
 	if !found {
 		t.Errorf("configPaths() = %v, want XDG path %q", paths, filepath.Join(xdgDir, ConfigFile))
 	}

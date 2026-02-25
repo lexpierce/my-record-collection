@@ -4,8 +4,11 @@ import (
 	"testing"
 )
 
-func strPtr(s string) *string { return &s }
-func intPtr(i int) *int       { return &i }
+//go:fix inline
+func strPtr(s string) *string { return new(s) }
+
+//go:fix inline
+func intPtr(i int) *int { return new(i) }
 
 func TestYearString(t *testing.T) {
 	tests := []struct {
@@ -13,7 +16,7 @@ func TestYearString(t *testing.T) {
 		year *int
 		want string
 	}{
-		{"with year", intPtr(1977), "1977"},
+		{"with year", new(1977), "1977"},
 		{"nil year", nil, "—"},
 	}
 	for _, tt := range tests {
@@ -32,7 +35,7 @@ func TestLabelString(t *testing.T) {
 		label *string
 		want  string
 	}{
-		{"with label", strPtr("Blue Note"), "Blue Note"},
+		{"with label", new("Blue Note"), "Blue Note"},
 		{"nil label", nil, "—"},
 	}
 	for _, tt := range tests {
@@ -91,7 +94,7 @@ func TestSizeString(t *testing.T) {
 		size *string
 		want string
 	}{
-		{"12 inch", strPtr("12\""), "12\""},
+		{"12 inch", new("12\""), "12\""},
 		{"nil", nil, "—"},
 	}
 	for _, tt := range tests {
@@ -110,7 +113,7 @@ func TestColorString(t *testing.T) {
 		color *string
 		want  string
 	}{
-		{"red vinyl", strPtr("Red"), "Red"},
+		{"red vinyl", new("Red"), "Red"},
 		{"nil", nil, "—"},
 	}
 	for _, tt := range tests {
@@ -130,8 +133,8 @@ func TestImageURL(t *testing.T) {
 		thumbnail *string
 		want      string
 	}{
-		{"cover preferred", strPtr("https://cover.jpg"), strPtr("https://thumb.jpg"), "https://cover.jpg"},
-		{"thumbnail fallback", nil, strPtr("https://thumb.jpg"), "https://thumb.jpg"},
+		{"cover preferred", new("https://cover.jpg"), new("https://thumb.jpg"), "https://cover.jpg"},
+		{"thumbnail fallback", nil, new("https://thumb.jpg"), "https://thumb.jpg"},
 		{"both nil", nil, nil, ""},
 	}
 	for _, tt := range tests {
