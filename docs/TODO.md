@@ -16,11 +16,15 @@ None.
 
 ## Completed (this session)
 
+- [x] Fixed Kitty image flash-and-disappear: switched to Unicode virtual placements (`tui/ui/image.go`, `tui/ui/model.go`)
+- [x] Documented Kitty virtual placement pattern in `docs/development/coding-standards.md`
+- [x] Updated `tui/README.md` album art section for virtual placements
+
+## Completed (previous sessions)
+
 - [x] Fixed Kitty graphics rendering: added `ImageWidth`/`ImageHeight` to `renderKitty` options (`tui/ui/image.go`)
 - [x] Added `xterm-ghostty` TERM detection for Ghostty inside tmux/screen
 - [x] Documented Kitty graphics protocol pitfalls (RGBA requires explicit dimensions) in coding-standards.md
-
-## Completed (previous sessions)
 
 - [x] Rewrote all 25 docs for agent-first consumption (tables, flat facts, no prose)
 - [x] Added `tui/**` to `render.yaml` `buildFilter.ignoredPaths`

@@ -214,6 +214,40 @@ Never duplicate in component files.
 | `kitty.PNG` format does not need explicit dimensions | PNG header encodes width/height |
 | Upstream `Options.Quite` is a typo for "Quiet" | Don't "fix" it — matches the library API (`q=` suppression level 0/1/2) |
 
+### Kitty images in Bubble Tea — virtual placements
+
+Bubble Tea v2's renderer converts `View.Content` into a cell buffer. Raw Kitty graphics escape sequences embedded in content are destroyed during the cell-buffer diff/repaint cycle — the image flashes once then disappears.
+
+**Correct approach**: use Kitty's Unicode virtual placement protocol.
+
+| Step | Mechanism | Where |
+|------|-----------|-------|
+| 1. Transmit image data to terminal memory | `tea.Raw()` cmd with `kitty.EncodeGraphics` (`Action: kitty.TransmitAndPut`, `VirtualPlacement: true`, `ID: <n>`) | `imageLoadedMsg` handler in `Update()` |
+| 2. Render placeholder grid in view | `U+10EEEE` chars with row/column diacritics, image ID encoded as SGR foreground color (`\033[38;5;<id>m`) | `View()` content string |
+| 3. Terminal maps placeholders to image | Kitty/Ghostty replaces placeholder cells with stored image pixels | Automatic |
+
+Key types in `tui/ui/image.go`:
+
+```go
+type kittyResult struct {
+    transmit    string // raw escape sequence → tea.Raw()
+    placeholder string // U+10EEEE grid → View content
+}
+
+type cachedImage struct {
+    render   string // placeholder text (or mosaic/sixel output)
+    transmit string // raw escape sequence (kitty only, empty for others)
+}
+```
+
+| Rule | Why |
+|------|-----|
+| Never embed `\033_G...\033\\` (APC sequences) in `View.Content` | Cell buffer strips/mangles them |
+| Use `tea.Raw()` for all Kitty graphics escape sequences | Bypasses renderer, writes directly to terminal |
+| Encode image ID as foreground color on placeholder chars | `\033[38;5;<id>m` for IDs ≤ 255; `\033[38;2;r;g;bm` for larger |
+| Use `kitty.Diacritic(row)` and `kitty.Diacritic(col)` as combining chars | Row/column position encoding per Kitty spec |
+| Re-transmit on cache hit (detail view re-entry) | Terminal may have evicted image from memory |
+
 ### Config
 
 `~/.config/myrecords/config.toml` with `database_url` key. `DATABASE_URL` env var overrides. Simple line parser (no TOML library).

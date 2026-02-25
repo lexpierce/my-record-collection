@@ -96,9 +96,13 @@ rendering method. The first match wins:
 | 3 | **Sixel** | *(not auto-detected — reserved for future probing)* |
 | 4 | **Mosaic** (fallback) | Half-block Unicode characters via `charmbracelet/x/mosaic` |
 
-- **Native protocols** (kitty, iTerm2, sixel) embed escape sequences
-  directly in the view. The detail view renders info *above* the image
-  because `lipgloss.JoinHorizontal` would mangle the escape data.
+- **Kitty/Ghostty** use Unicode virtual placements: image data is
+  transmitted to terminal memory via `tea.Raw()`, and `U+10EEEE`
+  placeholder characters in the view content tell the terminal where to
+  render the image. This survives Bubble Tea's cell-buffer redraws.
+- **iTerm2/WezTerm** and **Sixel** embed escape sequences directly in
+  the view. The detail view renders info *above* the image because
+  `lipgloss.JoinHorizontal` would mangle the escape data.
 - **Mosaic** renders colored half-block characters that work in any
   terminal with true-color support. The detail view renders art and info
   side-by-side.
