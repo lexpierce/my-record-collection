@@ -48,12 +48,10 @@ bun run db:studio     # Drizzle Studio GUI
 ### TUI (`cd tui/`)
 
 ```bash
-go build -o records-tui .   # Build binary
-go test ./... -cover         # Tests with coverage
-go vet ./...                 # Static analysis
-gofmt -l .                   # Check formatting (empty = clean)
-gofmt -w .                   # Fix formatting
-go mod tidy                  # Resolve deps
+go build -o records-tui .    # Build binary
+go test ./... -cover          # Tests with coverage
+golangci-lint run             # Lint (errcheck, staticcheck, govet, gofmt)
+go mod tidy                   # Resolve deps
 ```
 
 ## File layout

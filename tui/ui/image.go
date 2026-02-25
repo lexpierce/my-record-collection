@@ -89,14 +89,14 @@ func fetchImage(url string) (image.Image, []byte, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, nil, fmt.Errorf("HTTP %d", resp.StatusCode)
 	}
 
 	var buf bytes.Buffer
-	buf.ReadFrom(resp.Body)
+	_, _ = buf.ReadFrom(resp.Body)
 	raw := buf.Bytes()
 
 	ct := resp.Header.Get("Content-Type")

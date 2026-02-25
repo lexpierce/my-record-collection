@@ -95,10 +95,9 @@ Mock to plain `<img>`. Destructure out non-HTML props.
 
 ```bash
 cd tui/
-go test ./... -cover         # All packages
-go test ./ui/ -v             # Verbose single package
-go vet ./...                 # Static analysis
-gofmt -l .                   # Formatting check
+go test ./... -cover          # All packages
+go test ./ui/ -v              # Verbose single package
+golangci-lint run             # Lint (errcheck, staticcheck, govet, gofmt)
 ```
 
 ### Coverage

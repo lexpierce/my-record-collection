@@ -6,12 +6,17 @@ import (
 	"testing"
 )
 
+func writeFile(t *testing.T, path string, content string) {
+	t.Helper()
+	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestReadKeyBasic(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.toml")
-	os.WriteFile(path, []byte(`database_url = "postgres://localhost/test"
-other_key = "value"
-`), 0644)
+	writeFile(t, path, "database_url = \"postgres://localhost/test\"\nother_key = \"value\"\n")
 
 	got := readKey(path, "database_url")
 	if got != "postgres://localhost/test" {
@@ -27,7 +32,7 @@ other_key = "value"
 func TestReadKeyMissing(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.toml")
-	os.WriteFile(path, []byte(`database_url = "test"`), 0644)
+	writeFile(t, path, `database_url = "test"`)
 
 	got := readKey(path, "nonexistent")
 	if got != "" {
@@ -45,10 +50,7 @@ func TestReadKeyFileNotFound(t *testing.T) {
 func TestReadKeySkipsComments(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.toml")
-	os.WriteFile(path, []byte(`# this is a comment
-[section]
-database_url = "test_value"
-`), 0644)
+	writeFile(t, path, "# this is a comment\n[section]\ndatabase_url = \"test_value\"\n")
 
 	got := readKey(path, "database_url")
 	if got != "test_value" {
@@ -73,7 +75,7 @@ func TestReadKeyTrimsQuotes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			os.WriteFile(path, []byte(tt.content), 0644)
+			writeFile(t, path, tt.content)
 			got := readKey(path, "key")
 			if got != tt.want {
 				t.Errorf("readKey = %q, want %q", got, tt.want)
@@ -85,7 +87,7 @@ func TestReadKeyTrimsQuotes(t *testing.T) {
 func TestReadKeySkipsBlankLines(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.toml")
-	os.WriteFile(path, []byte("\n\n\ndatabase_url = found\n"), 0644)
+	writeFile(t, path, "\n\n\ndatabase_url = found\n")
 
 	got := readKey(path, "database_url")
 	if got != "found" {
@@ -96,7 +98,7 @@ func TestReadKeySkipsBlankLines(t *testing.T) {
 func TestReadKeySkipsLinesWithoutEquals(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.toml")
-	os.WriteFile(path, []byte("malformed line\ndatabase_url = ok\n"), 0644)
+	writeFile(t, path, "malformed line\ndatabase_url = ok\n")
 
 	got := readKey(path, "database_url")
 	if got != "ok" {
@@ -117,9 +119,6 @@ func TestLoadEmptyEnvFallsToFile(t *testing.T) {
 	t.Setenv("DATABASE_URL", "")
 
 	cfg := Load()
-	// With no config file present, DatabaseURL should be empty
-	// (configPath() points to user config dir which won't have our file)
-	// This tests the fallback path is exercised without error
 	_ = cfg
 }
 

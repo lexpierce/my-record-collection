@@ -242,13 +242,11 @@ bun run build         # Production build
 
 ```bash
 cd tui/
-go test ./... -cover  # All packages with coverage
-go vet ./...          # Static analysis
-gofmt -l .            # Formatting check
-golangci-lint run     # Full lint (if installed)
+go test ./... -cover   # All packages with coverage
+golangci-lint run      # Lint (includes errcheck, staticcheck, govet, gofmt)
 ```
 
-Preferred lint stack: `golangci-lint` > `go vet` + `gofmt`. Use whichever is available.
+`golangci-lint` is the single lint gate. It subsumes `go vet`, `gofmt`, `errcheck`, and `staticcheck`.
 
 | Package | Coverage | Notes |
 |---------|----------|-------|

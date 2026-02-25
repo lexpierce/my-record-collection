@@ -6,7 +6,6 @@ import (
 	"image/png"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 )
@@ -187,21 +186,14 @@ func TestFetchImageInvalidURL(t *testing.T) {
 }
 
 func TestRenderImageDispatches(t *testing.T) {
-	// renderImage with nil image will panic for native protocols,
-	// but mosaic should handle gracefully with small dimensions
 	defer func() {
-		if r := recover(); r != nil {
-			// Expected for some protocols with nil image
-		}
+		recover() //nolint:errcheck // expected panic from nil image
 	}()
 
 	_ = renderImage(protoMosaic, nil, nil, 1, 1)
 }
 
 func TestFetchImageBadStatusCode(t *testing.T) {
-	// This test verifies the HTTP status code check path.
-	// We can't easily spin up a test server without net/http/httptest,
-	// but fetchImage("") will fail at the URL parse level.
 	_, _, err := fetchImage("")
 	if err == nil {
 		t.Error("fetchImage with empty URL should error")
@@ -210,7 +202,7 @@ func TestFetchImageBadStatusCode(t *testing.T) {
 
 func TestDetectImageProtoSaved(t *testing.T) {
 	for _, key := range []string{"TERM_PROGRAM", "TERM", "KITTY_WINDOW_ID"} {
-		os.Unsetenv(key)
+		t.Setenv(key, "")
 	}
 	got := detectImageProto()
 	if got != protoMosaic {
@@ -226,6 +218,16 @@ func testImage() image.Image {
 		}
 	}
 	return img
+}
+
+func servePNG(t *testing.T) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "image/png")
+		if err := png.Encode(w, testImage()); err != nil {
+			t.Errorf("png.Encode: %v", err)
+		}
+	}))
 }
 
 func TestRenderKitty(t *testing.T) {
@@ -274,11 +276,7 @@ func TestRenderImageAllProtos(t *testing.T) {
 }
 
 func TestFetchImageHTTPServer(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "image/png")
-		img := testImage()
-		png.Encode(w, img)
-	}))
+	server := servePNG(t)
 	defer server.Close()
 
 	img, raw, err := fetchImage(server.URL + "/test.png")
@@ -294,15 +292,14 @@ func TestFetchImageHTTPServer(t *testing.T) {
 }
 
 func TestFetchImageHTTPServerJPEG(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "image/jpeg")
-		img := testImage()
-		png.Encode(w, img)
+		if err := png.Encode(w, testImage()); err != nil {
+			t.Errorf("png.Encode: %v", err)
+		}
 	}))
 	defer server.Close()
 
-	// Content-Type says jpeg but data is PNG — jpeg.Decode will fail,
-	// which tests the error path in fetchImage
 	_, _, err := fetchImage(server.URL + "/test.jpg")
 	if err == nil {
 		t.Log("jpeg decode of png data may or may not error depending on header bytes")
@@ -310,7 +307,7 @@ func TestFetchImageHTTPServerJPEG(t *testing.T) {
 }
 
 func TestFetchImageHTTPServer404(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	}))
 	defer server.Close()
@@ -325,9 +322,11 @@ func TestFetchImageHTTPServer404(t *testing.T) {
 }
 
 func TestFetchImageHTTPServerBadImage(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "image/png")
-		w.Write([]byte("not-an-image"))
+		if _, err := w.Write([]byte("not-an-image")); err != nil {
+			t.Errorf("w.Write: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -338,11 +337,7 @@ func TestFetchImageHTTPServerBadImage(t *testing.T) {
 }
 
 func TestFetchAndRenderSuccess(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "image/png")
-		img := testImage()
-		png.Encode(w, img)
-	}))
+	server := servePNG(t)
 	defer server.Close()
 
 	result, err := fetchAndRender(protoMosaic, server.URL+"/img.png", 20, 10)
@@ -355,10 +350,11 @@ func TestFetchAndRenderSuccess(t *testing.T) {
 }
 
 func TestFetchImageDefaultDecode(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "image/bmp")
-		img := testImage()
-		png.Encode(w, img)
+		if err := png.Encode(w, testImage()); err != nil {
+			t.Errorf("png.Encode: %v", err)
+		}
 	}))
 	defer server.Close()
 
