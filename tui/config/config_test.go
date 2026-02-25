@@ -135,3 +135,52 @@ func TestConfigPath(t *testing.T) {
 		t.Errorf("configPath() dir = %q, want %q", dir, ConfigDir)
 	}
 }
+
+func TestConfigPathFallbackToXDG(t *testing.T) {
+	// Create a temp dir that simulates ~/.config layout.
+	tmp := t.TempDir()
+	xdgDir := filepath.Join(tmp, ".config", ConfigDir)
+	if err := os.MkdirAll(xdgDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, filepath.Join(xdgDir, ConfigFile), `database_url = "from_xdg"`)
+
+	t.Setenv("HOME", tmp)
+
+	// configPaths should include the XDG path.
+	paths := configPaths()
+	found := false
+	for _, p := range paths {
+		if p == filepath.Join(xdgDir, ConfigFile) {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("configPaths() = %v, want XDG path %q", paths, filepath.Join(xdgDir, ConfigFile))
+	}
+
+	// configPath should resolve to the XDG file when the platform dir doesn't exist.
+	got := configPath()
+	if got != filepath.Join(xdgDir, ConfigFile) {
+		t.Errorf("configPath() = %q, want %q", got, filepath.Join(xdgDir, ConfigFile))
+	}
+}
+
+func TestLoadFallbackXDGConfig(t *testing.T) {
+	t.Setenv("DATABASE_URL", "")
+
+	tmp := t.TempDir()
+	xdgDir := filepath.Join(tmp, ".config", ConfigDir)
+	if err := os.MkdirAll(xdgDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, filepath.Join(xdgDir, ConfigFile), `database_url = "postgres://xdg/db"`)
+
+	t.Setenv("HOME", tmp)
+
+	cfg := Load()
+	if cfg.DatabaseURL != "postgres://xdg/db" {
+		t.Errorf("Load().DatabaseURL = %q, want %q", cfg.DatabaseURL, "postgres://xdg/db")
+	}
+}
