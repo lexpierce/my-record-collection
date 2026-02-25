@@ -205,6 +205,16 @@ Never duplicate in component files.
 
 `~/.config/myrecords/config.toml` with `database_url` key. `DATABASE_URL` env var overrides. Simple line parser (no TOML library).
 
+### go.sum maintenance
+
+After `go get`, gopls may cache stale errors. Run `go build ./...` to verify, then restart gopls.
+
+```bash
+go get <module>@<version>
+go build ./...        # verify
+go mod tidy           # clean up
+```
+
 ### db.Connect()
 
 Accepts URL as parameter. Caller owns config. Testable.

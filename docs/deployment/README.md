@@ -18,7 +18,7 @@ Platform: Render. Config: `render.yaml` (Blueprint).
 
 ## Build filter
 
-Skips rebuild on `docs/**` and `*.md` changes.
+Skips rebuild on changes to `docs/**`, `*.md`, and `tui/**`.
 
 ## Environment variables
 

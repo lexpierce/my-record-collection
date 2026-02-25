@@ -17,6 +17,9 @@ None.
 ## Completed (this session)
 
 - [x] Rewrote all 25 docs for agent-first consumption (tables, flat facts, no prose)
+- [x] Added `tui/**` to `render.yaml` `buildFilter.ignoredPaths`
+- [x] Fixed missing `go.sum` entry for `charmbracelet/x/ansi/sixel`
+- [x] Documented `go.sum` maintenance gotcha in coding-standards.md
 - [x] Go TUI: native image protocol support (kitty/iTerm2/sixel/mosaic)
 - [x] Go TUI: config file at `~/.config/myrecords/config.toml`
 - [x] Go TUI: `db.Connect()` accepts URL parameter
