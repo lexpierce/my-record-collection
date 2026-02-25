@@ -47,7 +47,7 @@ func detectImageProto() imageProto {
 	termName := strings.ToLower(term)
 
 	switch {
-	case termName == "kitty":
+	case termName == "kitty" || termName == "ghostty":
 		return protoKitty
 	case strings.Contains(termName, "iterm") || strings.Contains(termName, "wezterm"):
 		return protoITerm2
