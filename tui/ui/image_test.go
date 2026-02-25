@@ -83,6 +83,15 @@ func TestDetectImageProtoGhostty(t *testing.T) {
 	}
 }
 
+func TestDetectImageProtoGhosttyTerm(t *testing.T) {
+	t.Setenv("TERM_PROGRAM", "")
+	t.Setenv("TERM", "xterm-ghostty")
+	t.Setenv("KITTY_WINDOW_ID", "")
+	if got := detectImageProto(); got != protoKitty {
+		t.Errorf("detectImageProto() = %v, want kitty", got)
+	}
+}
+
 func TestDetectImageProtoMosaicFallback(t *testing.T) {
 	t.Setenv("TERM_PROGRAM", "")
 	t.Setenv("TERM", "xterm-256color")

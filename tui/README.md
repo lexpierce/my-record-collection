@@ -91,7 +91,7 @@ rendering method. The first match wins:
 
 | Priority | Protocol | Detection |
 |----------|----------|-----------|
-| 1 | **Kitty graphics** | `TERM_PROGRAM=kitty`, `TERM=xterm-kitty`, or `KITTY_WINDOW_ID` set |
+| 1 | **Kitty graphics** | `TERM_PROGRAM=kitty` or `ghostty`, `TERM=xterm-kitty` or `xterm-ghostty`, or `KITTY_WINDOW_ID` set |
 | 2 | **iTerm2 inline images** | `TERM_PROGRAM=iTerm.app` or `TERM_PROGRAM=WezTerm` |
 | 3 | **Sixel** | *(not auto-detected — reserved for future probing)* |
 | 4 | **Mosaic** (fallback) | Half-block Unicode characters via `charmbracelet/x/mosaic` |

@@ -198,8 +198,8 @@ Never duplicate in component files.
 
 | Env var | Value | Protocol |
 |---------|-------|----------|
-| `TERM_PROGRAM` | `kitty` | kitty |
-| `TERM` | `xterm-kitty` | kitty |
+| `TERM_PROGRAM` | `kitty` / `ghostty` | kitty |
+| `TERM` | `xterm-kitty` / `xterm-ghostty` | kitty |
 | `KITTY_WINDOW_ID` | any | kitty |
 | `TERM_PROGRAM` | `iTerm.app` / `WezTerm` | iTerm2 |
 | none matched | — | mosaic fallback |

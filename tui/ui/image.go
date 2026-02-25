@@ -53,7 +53,8 @@ func detectImageProto() imageProto {
 		return protoITerm2
 	}
 
-	if strings.Contains(os.Getenv("TERM"), "xterm-kitty") {
+	termVal := strings.ToLower(os.Getenv("TERM"))
+	if strings.Contains(termVal, "xterm-kitty") || strings.Contains(termVal, "xterm-ghostty") {
 		return protoKitty
 	}
 
@@ -137,11 +138,14 @@ func renderMosaic(img image.Image, width, height int) string {
 }
 
 func renderKitty(img image.Image) string {
+	bounds := img.Bounds()
 	var buf bytes.Buffer
 	if err := kitty.EncodeGraphics(&buf, img, &kitty.Options{
 		Action:       kitty.TransmitAndPut,
 		Transmission: kitty.Direct,
 		Format:       kitty.RGBA,
+		ImageWidth:   bounds.Dx(),
+		ImageHeight:  bounds.Dy(),
 		Chunk:        true,
 		Quite:        2,
 	}); err != nil {
