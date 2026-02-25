@@ -36,3 +36,6 @@ next-env.d.ts
 
 # drizzle studio snapshots only (not migrations)
 # drizzle/
+
+# Go TUI binary
+/tui/records-tui
