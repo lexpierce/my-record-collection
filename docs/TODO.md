@@ -24,15 +24,25 @@ None.
 
 ## Completed (this session)
 
-- [x] Removed `max-width: 80rem` from `.shelfSection` in `app/page.module.scss` — the record grid now fills the full viewport width so `auto-fill` packs as many 180px columns as the screen allows.
-- [x] Updated `docs/ui-ux.md` Layout section to reflect that the shelf section no longer has a max-width cap (header/search/sync sections still use `80rem`).
-- [x] Responsive initial page size: 50 on desktop (>640px), 25 on mobile (≤640px) via lazy `useState` initializer in `RecordShelf.tsx`.
-- [x] Removed redundant `paths: ["**"]` from `render.yaml` buildFilter — `ignoredPaths` alone is sufficient.
+- [x] Go TUI: native image protocol support (kitty graphics, iTerm2 inline images, sixel, mosaic fallback)
+- [x] Go TUI: config file at `~/.config/myrecords/config.toml` with `database_url` key, `DATABASE_URL` env var override
+- [x] Go TUI: rewrote `db/connect.go` to accept URL parameter (no internal env var reading)
+- [x] Go TUI: created `config/config.go` package with simple TOML-like parser (no external library)
+- [x] Go TUI: `tui/README.md` documents config, keybindings, and image protocol detection table
+- [x] Docs: added TUI to `docs/README.md` directory tree and quick links
+- [x] Docs: added Go TUI tech stack, build commands, and design decisions to `development/README.md`
+- [x] Docs: added BubbleTea v2 / Lipgloss v2 gotchas and TUI patterns to `coding-standards.md`
+- [x] Docs: cross-referenced Go `Record` struct in `database-schema.md`
+- [x] Docs: added TUI config note to `deployment/README.md` environment variables section
 
 ---
 
 ## Completed (previous sessions)
 
+- [x] Removed `max-width: 80rem` from `.shelfSection` in `app/page.module.scss` — the record grid now fills the full viewport width so `auto-fill` packs as many 180px columns as the screen allows.
+- [x] Updated `docs/ui-ux.md` Layout section to reflect that the shelf section no longer has a max-width cap (header/search/sync sections still use `80rem`).
+- [x] Responsive initial page size: 50 on desktop (>640px), 25 on mobile (≤640px) via lazy `useState` initializer in `RecordShelf.tsx`.
+- [x] Removed redundant `paths: ["**"]` from `render.yaml` buildFilter — `ignoredPaths` alone is sufficient.
 - [x] `RecordCard` — replaced `window.confirm()` / `window.alert()` with inline confirmation UI and inline error state; no blocking dialogs.
 - [x] `SearchBar` — fixed `setTimeout` leak: timer now lives in a `useEffect` with a `clearTimeout` cleanup.
 - [x] `RecordCard` — `discogsUri` rendered as a clickable "View on Discogs" link on the card back.

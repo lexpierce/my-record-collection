@@ -46,6 +46,11 @@ Required environment variables:
 - `DISCOGS_TOKEN` - Your Discogs API token
 - `DISCOGS_USER_AGENT` - User agent for API requests (default: MyRecordCollection/1.0)
 
+> **TUI note**: The Go terminal UI also uses `DATABASE_URL`. When running
+> locally, the TUI reads from `~/.config/myrecords/config.toml` (key:
+> `database_url`) with `DATABASE_URL` env var as override. See
+> [TUI README](../../tui/README.md) for details.
+
 ## Deployment Steps
 
 1. **Push code** to GitHub main branch

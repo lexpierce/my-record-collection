@@ -10,6 +10,7 @@ Welcome to the My Record Collection documentation. This documentation covers the
 - **[Feature Documentation](./features/README.md)**: Application features and workflows
 - **[Development Guidelines](./development/README.md)**: Coding standards and patterns
 - **[Deployment Guide](./deployment/README.md)**: Deployment instructions and configuration
+- **[TUI README](../tui/README.md)**: Terminal UI for browsing the collection
 
 ## Documentation Structure
 
@@ -41,6 +42,13 @@ docs/
 │   └── vinyl-metadata.md
 └── deployment/             # Deployment guides
     └── README.md           # Deployment overview
+
+tui/                        # Go terminal UI (separate Go module)
+├── README.md               # TUI setup, config, keybindings, image protocols
+├── main.go                 # Entry point
+├── config/config.go        # Config file + env var reader
+├── db/                     # pgx database layer
+└── ui/                     # Bubble Tea model, styles, image rendering
 ```
 
 ## Getting Started

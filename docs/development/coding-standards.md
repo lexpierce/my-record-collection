@@ -747,6 +747,7 @@ When building a navigation bar from a variable-length list, use a two-pass appro
 **Pass 2 — merge undersized groups:** Walk the flat page list and greedily accumulate adjacent pages until the next addition would exceed `MAX_SIZE`. Emit a merged page with a range label (e.g. `A–C`).
 
 Key invariants:
+
 - Sub-groups produced by splitting a single source group are never merged with pages from a different source group.
 - Special catch-all groups (`#`, "Unknown") are never split or merged with normal groups — always emit last.
 
@@ -788,6 +789,89 @@ __tests__/lib/pagination/buckets.test.ts  ← unit-tests the pure function
 ```
 
 **Why**: Duplicating logic (e.g. defining `artistSortKey` inline in the component AND redefining it in a test helper) creates drift. A single source in `lib/` ensures component and API always agree on normalisation.
+
+## Go TUI Patterns (`tui/`)
+
+The terminal UI is a separate Go module that shares the PostgreSQL database
+with the web app. These patterns were discovered building with Bubble Tea v2
+and Lip Gloss v2.
+
+### Bubble Tea v2 API gotchas
+
+Bubble Tea v2 changed several core types. Using v1 patterns silently compiles
+but produces wrong behaviour or won't compile at all.
+
+| v1 | v2 | Notes |
+|----|----|-------|
+| `tea.KeyMsg` | `tea.KeyPressMsg` | Key events renamed |
+| `View() string` | `View() tea.View` | Return `tea.NewView(s)` |
+| `lipgloss.AdaptiveColor{...}` | `lipgloss.Color("#hex")` | `AdaptiveColor` moved to `lipgloss/compat` |
+| `github.com/charmbracelet/bubbletea` | `charm.land/bubbletea/v2` | Module path changed entirely |
+| `github.com/charmbracelet/lipgloss` | `charm.land/lipgloss/v2` | Module path changed entirely |
+
+### Lip Gloss v2 and terminal escape sequences
+
+`lipgloss.JoinHorizontal` mangles terminal escape sequences (kitty graphics,
+iTerm2 inline images, sixel). It splits strings by newline and interleaves
+columns — this corrupts binary-encoded image data.
+
+```go
+// BAD: escape sequences get mangled
+content := lipgloss.JoinHorizontal(lipgloss.Top, imageEscapeSeq, infoBlock)
+
+// GOOD: render info above image for native protocols
+b.WriteString(detailBoxStyle.Render(infoBlock))
+b.WriteString("\n")
+b.WriteString(imageEscapeSeq)
+```
+
+Mosaic (half-block characters) is plain text and works fine with
+`JoinHorizontal`.
+
+### Image protocol detection
+
+Detect via environment variables at startup — no async terminal negotiation
+needed:
+
+| Env var | Value | Protocol |
+|---------|-------|----------|
+| `TERM_PROGRAM` | `kitty` | kitty graphics |
+| `TERM` | `xterm-kitty` | kitty graphics |
+| `KITTY_WINDOW_ID` | (any) | kitty graphics |
+| `TERM_PROGRAM` | `iTerm.app` or `WezTerm` | iTerm2 inline images |
+| (none matched) | — | mosaic fallback |
+
+### Config file pattern — no external TOML library
+
+For a simple config with one or two keys, a line-by-line parser avoids
+pulling in a full TOML dependency. The parser handles `key = "value"`,
+strips quotes, skips `#` comments and `[section]` headers.
+
+```go
+func readKey(path, key string) string {
+    // bufio.Scanner line-by-line, strings.Cut on "=", strings.Trim quotes
+}
+```
+
+`DATABASE_URL` env var overrides the config file. This follows the
+twelve-factor principle (env overrides file) while still giving users a
+persistent config at `~/.config/myrecords/config.toml`.
+
+### Database connection — accept URL as parameter
+
+`db.Connect()` takes the connection string as a parameter rather than reading
+env vars internally. This makes the function testable and keeps configuration
+concerns in `main.go` / `config.Load()`.
+
+```go
+// GOOD: caller owns configuration
+func Connect(databaseURL string) (*pgxpool.Pool, error)
+
+// BAD: function reads env internally, hard to test
+func Connect() (*pgxpool.Pool, error) {
+    url := os.Getenv("DATABASE_URL")
+}
+```
 
 ## File Organization
 

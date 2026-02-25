@@ -134,4 +134,13 @@ The `hash` and `created_at` values must match the journal entry exactly (`drizzl
 - `lib/db/schema.ts` — Drizzle schema definition
 - `lib/db/client.ts` — Database connection
 - `lib/discogs/sync.ts` — Sync logic that reads/writes this table
+- `tui/db/records.go` — Go `Record` struct mapping 1:1 to the same table (read-only, no migrations)
 - [Vinyl Metadata](../features/vinyl-metadata.md)
+- [TUI README](../../tui/README.md)
+
+### TUI cross-reference
+
+The Go TUI reads the same `records` table via `jackc/pgx/v5`. The `Record`
+struct in `tui/db/records.go` mirrors every column. When the web app schema
+changes (via Drizzle migration), the Go struct must be updated manually to
+match — there is no shared code generation.
