@@ -1,108 +1,47 @@
-# API Documentation
+# API endpoint reference
 
-The My Record Collection API provides REST endpoints for managing vinyl records and integrating with the Discogs API.
+Base URL: `http://localhost:3000/api` (dev), `https://<app>.onrender.com/api` (prod).
 
-## Base URL
+No authentication. All endpoints public.
 
-- **Development**: `http://localhost:3000/api`
-- **Production**: `https://your-app.onrender.com/api`
+## Endpoints
 
-## Authentication
+| Method | Path | Purpose | Docs |
+|--------|------|---------|------|
+| GET | `/api/am_i_evil` | Health check | [health-check.md](./endpoints/health-check.md) |
+| GET | `/api/records` | List records | [records-crud.md](./endpoints/records-crud.md) |
+| POST | `/api/records` | Create record manually | [records-crud.md](./endpoints/records-crud.md) |
+| GET | `/api/records/[id]` | Get single record | [records-crud.md](./endpoints/records-crud.md) |
+| PUT | `/api/records/[id]` | Update record | [records-crud.md](./endpoints/records-crud.md) |
+| DELETE | `/api/records/[id]` | Delete record | [records-crud.md](./endpoints/records-crud.md) |
+| GET | `/api/records/search` | Search Discogs | [discogs-integration.md](./endpoints/discogs-integration.md) |
+| POST | `/api/records/fetch-from-discogs` | Fetch + save from Discogs | [discogs-integration.md](./endpoints/discogs-integration.md) |
+| POST | `/api/records/update-from-discogs` | Refresh from Discogs | [discogs-integration.md](./endpoints/discogs-integration.md) |
+| POST | `/api/records/sync` | Full sync (SSE) | [discogs-integration.md](./endpoints/discogs-integration.md) |
+| GET | `/api/records/sync/status` | Check env var config | [sync-status.md](./endpoints/sync-status.md) |
 
-Currently, the API does not require authentication. All endpoints are publicly accessible.
+## GET /api/records query params
 
-## API Endpoints
+| Param | Values | Default | Notes |
+|-------|--------|---------|-------|
+| `sortBy` | `artist` `title` `year` `createdAt` | `createdAt` | |
+| `sortDir` | `asc` `desc` | `desc` for `createdAt`/`year`, `asc` otherwise | |
+| `size` | e.g. `12"`, `7"` | — | Repeatable. Null `record_size` excluded when active. |
+| `shaped` | `true` | — | Shaped/picture disc only |
 
-### Health Check
-
-- `GET /api/am_i_evil` - Health check endpoint
-
-### Records
-
-- `GET /api/records` - Fetch records; optional query params: `sortBy`, `sortDir`, `size`, `shaped`
-- `POST /api/records` - Add a record manually (future feature)
-- `GET /api/records/[recordId]` - Fetch a single record by ID
-- `PUT /api/records/[recordId]` - Update a record
-- `DELETE /api/records/[recordId]` - Delete a record from the collection
-
-### Discogs Integration
-
-- `GET /api/records/search` - Search for records on Discogs
-- `POST /api/records/fetch-from-discogs` - Fetch and save a record from Discogs
-- `POST /api/records/update-from-discogs` - Update an existing record with latest Discogs data
-- `POST /api/records/sync` - Sync full Discogs collection to local database
-
-### Configuration
-
-- `GET /api/records/sync/status` - Check if Discogs env vars are configured
-
-## Response Format
-
-All API responses follow a consistent JSON format:
-
-**Success Response:**
+## Response format
 
 ```json
-{
-  "data": { ... },
-  "message": "Success message"
-}
+{ "record": { ... }, "message": "..." }
+{ "records": [...], "count": N }
+{ "error": "Type", "message": "Detail" }
 ```
 
-**Error Response:**
+## Discogs rate limits
 
-```json
-{
-  "error": "Error type",
-  "message": "Detailed error message"
-}
-```
+Authenticated: 60 req/min. Unauthenticated: 25 req/min. Token bucket in `DiscogsClient`.
 
-## GET /api/records Query Parameters
+## Related
 
-All parameters are optional. Without them the response is identical to the previous behaviour (all records, newest-first).
-
-| Parameter | Values | Default | Notes |
-|---|---|---|---|
-| `sortBy` | `artist` \| `title` \| `year` \| `createdAt` | `createdAt` | Column to sort by |
-| `sortDir` | `asc` \| `desc` | `desc` for `createdAt`/`year`; `asc` otherwise | Sort direction |
-| `size` | e.g. `12"`, `7"` | — | Filter by `record_size`; repeat for multiple values |
-| `shaped` | `true` | — | Filter to shaped/picture-disc records only |
-
-Example:
-
-```text
-GET /api/records?sortBy=artist&sortDir=asc&size=12%22&size=7%22
-```
-
-Note: the `size` filter matches the `record_size` column exactly. Records with a null `record_size` are excluded when a size filter is active (client-side `effectiveSize` defaulting is **not** applied server-side).
-
-## Rate Limiting
-
-### Discogs API Limits
-
-- **Authenticated**: 60 requests per minute
-- **Unauthenticated**: 25 requests per minute
-
-The application automatically handles rate limiting internally using a token bucket algorithm.
-
-## Detailed Endpoint Documentation
-
-Detailed documentation for each endpoint will be added in `./endpoints/`:
-
-- [x] Health check endpoint — `./endpoints/health-check.md`
-- [x] Sync status — `./endpoints/sync-status.md`
-- [x] Records CRUD operations — `./endpoints/records-crud.md`
-- [x] Discogs search and integration — `./endpoints/discogs-integration.md`
-
-## Common Status Codes
-
-- `200 OK` - Request succeeded
-- `201 Created` - Resource created successfully
-- `400 Bad Request` - Invalid request parameters
-- `404 Not Found` - Resource not found
-- `500 Internal Server Error` - Server error
-
-## Examples
-
-See individual endpoint documentation in the `./endpoints/` directory for curl examples and detailed usage.
+- [Discogs client](./discogs-client.md)
+- [API design patterns](../development/api-design-patterns.md)

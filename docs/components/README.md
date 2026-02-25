@@ -1,43 +1,14 @@
-# Component Documentation
+# Component reference
 
-React components for the My Record Collection application.
+| Component | File | Type | Purpose |
+|-----------|------|------|---------|
+| RecordCard | `components/records/RecordCard.tsx` | client | Flip card: album art front, details back |
+| RecordShelf | `components/records/RecordShelf.tsx` | client | Grid with sort/filter/pagination |
+| AlphaNav | `components/records/AlphaNav.tsx` | client | Letter-bucket nav bar |
+| SearchBar | `components/records/SearchBar.tsx` | client | Discogs search + add to collection |
 
-## Component Overview
+All use Sass CSS Modules (`.module.scss`). All `"use client"`.
 
-### Record Display Components
-
-- **RecordCard**: Flip card with width expansion (180px → 250px), 216px back thumbnail
-- **RecordShelf**: Grid layout with sort (artist/title/year) and filters (size, shaped/picture disc)
-
-### Search Components
-
-- **SearchBar**: Search Discogs by artist/title, catalog #, or UPC. Accepts `onRecordAdded` callback for no-reload updates.
-
-## Component Architecture
-
-All components follow these patterns:
-
-- **TypeScript**: Fully typed with interfaces for props
-- **Sass CSS Modules**: Scoped styles per component (`.module.scss`)
-- **Client/Server Split**: Marked with `"use client"` when interactive
-- **Verbose Naming**: Descriptive names for clarity
-- **Inline Documentation**: JSDoc comments for complex logic
-
-## Styling Approach
-
-- **Warm Color Palette**: CSS custom properties in `styles/_variables.scss`
-- **Global Utilities**: Defined in `styles/globals.scss` (flip-card, album-art-size)
-- **Responsive Design**: Mobile-first approach
-- **Animation**: CSS 3D transforms for interactive elements
-
-## Detailed Component Documentation
-
-Individual component documentation will be added as separate files:
-
-- [x] RecordCard component — see [record-card.md](./record-card.md)
-- [x] RecordShelf component — see [record-shelf.md](./record-shelf.md)
-- [x] SearchBar component — see [search-bar.md](./search-bar.md)
-
-## Usage Patterns
-
-Components are used in the main page layout (`app/page.tsx`) and follow Next.js App Router conventions.
+- [RecordCard](./record-card.md)
+- [RecordShelf](./record-shelf.md)
+- [SearchBar](./search-bar.md)

@@ -1,131 +1,120 @@
-# Development Guidelines
+# Development reference
 
-Development standards and patterns for the My Record Collection project.
-
-## Getting Started
-
-1. Clone the repository
-2. Install dependencies: `bun install`
-3. Set up environment variables (see `.env.example`)
-4. Run database migrations: `bun run db:push`
-5. Start development server: `bun run dev`
-
-## Tech Stack
+## Tech stack
 
 ### Web app
 
-- **Framework**: Next.js 16 (App Router)
-- **Runtime**: Bun 1.3.9
-- **Language**: TypeScript (strict mode)
-- **Database**: PostgreSQL 18 with Drizzle ORM
-- **Styling**: Sass (CSS Modules per component + global partials)
-- **API Integration**: Discogs API
+| Layer | Technology | Notes |
+|-------|-----------|-------|
+| Framework | Next.js 16 (App Router) | `app/` directory |
+| Runtime | Bun 1.3.9 | Not npm |
+| Language | TypeScript (strict) | `tsconfig.json` |
+| Database | PostgreSQL 18 + Drizzle ORM | `lib/db/schema.ts` |
+| Styling | Sass CSS Modules | `.module.scss` per component + `styles/globals.scss` |
+| External API | Discogs | `lib/discogs/client.ts` |
+| Testing | Vitest + React Testing Library | See [testing.md](../testing.md) |
 
 ### Terminal UI (`tui/`)
 
-- **Language**: Go 1.25+
-- **TUI framework**: [Bubble Tea v2](https://github.com/charmbracelet/bubbletea) (`charm.land/bubbletea/v2`)
-- **Styling**: [Lip Gloss v2](https://github.com/charmbracelet/lipgloss) (`charm.land/lipgloss/v2`)
-- **Database**: Same PostgreSQL, accessed via `jackc/pgx/v5` (no ORM)
-- **Image rendering**: kitty / iTerm2 / sixel protocols with mosaic half-block fallback
-- **Config**: `~/.config/myrecords/config.toml` (key: `database_url`), `DATABASE_URL` env var override
+| Layer | Technology | Notes |
+|-------|-----------|-------|
+| Language | Go 1.25+ | Separate module: `tui/go.mod` |
+| TUI framework | Bubble Tea v2 | `charm.land/bubbletea/v2` |
+| Styling | Lip Gloss v2 | `charm.land/lipgloss/v2` |
+| Database | pgx v5 (no ORM) | `jackc/pgx/v5`, same PostgreSQL |
+| Image rendering | kitty / iTerm2 / sixel / mosaic | `tui/ui/image.go` |
+| Config | `~/.config/myrecords/config.toml` | `database_url` key, `DATABASE_URL` env override |
 
-## Coding Standards
-
-### General Principles
-
-- **Verbose naming**: Descriptive variable and function names
-- **Inline comments**: Explain complex logic and rationale
-- **Type safety**: Leverage TypeScript fully
-- **Non-ASCII support**: Preserve special characters in text
-
-### File Organization
-
-- API routes: `app/api/*/route.ts`
-- Components: `components/*/*.tsx`
-- Database: `lib/db/schema.ts`
-- External APIs: `lib/*/client.ts`
-
-### Component Patterns
-
-- Use `"use client"` for interactive components
-- Define Props interfaces above components
-- Document component purpose with JSDoc
-- Keep components focused and single-purpose
-
-### Database Patterns
-
-- Use `text` type for artist/title fields (non-ASCII preservation)
-- UUID primary keys for all tables
-- Include vinyl-specific metadata
-- Timestamps on all records
-
-### API Patterns
-
-- Rate limiting for external APIs
-- Consistent error handling
-- Detailed response messages
-- Proper HTTP status codes
-
-## Development Workflow
-
-1. **Create issue**: Use beads to track work (`bd create`)
-2. **Branch**: Work on feature branches
-3. **Code + Docs**: Update documentation with code changes
-4. **Test**: Run type checks and linters
-5. **Commit**: Follow commit message conventions
-6. **Review**: Submit pull request
-7. **Close issue**: Mark work complete in beads
-
-## Scripts
+## Commands
 
 ### Web app (project root)
 
-- `bun run dev` - Development server with Turbopack
-- `bun run build` - Production build
-- `bun run start` - Start production server
-- `bun run lint` - Run ESLint (uses `eslint .`, migrated from `next lint` for Next.js 16)
-- `bun run lint:md` - Run markdownlint-cli2 on all Markdown files
-- `bun run type-check` - TypeScript type checking
-- `bun run test` - Vitest unit + component tests
-- `bun run db:generate` - Generate Drizzle migrations
-- `bun run db:push` - Push schema changes to database
-- `bun run db:studio` - Open Drizzle Studio
+```bash
+bun run dev           # Dev server (Turbopack)
+bun run build         # Production build
+bun run start         # Start production server
+bun run lint          # ESLint (eslint .)
+bun run lint:md       # markdownlint-cli2
+bun run type-check    # tsc --noEmit
+bun run test          # Vitest
+bun run test:watch    # Vitest watch mode
+bun run test:coverage # Vitest with coverage
+bun run db:generate   # Drizzle migration generation
+bun run db:push       # Push schema to DB (dev only)
+bun run db:migrate    # Apply pending migrations
+bun run db:studio     # Drizzle Studio GUI
+```
 
 ### TUI (`cd tui/`)
 
-- `go build -o records-tui .` - Build the binary
-- `go vet ./...` - Static analysis
-- `go mod tidy` - Resolve dependencies
+```bash
+go build -o records-tui .   # Build binary
+go vet ./...                # Static analysis
+go mod tidy                 # Resolve deps
+```
 
-## Detailed Guidelines
+## File layout
 
-Individual guideline documents will be added as separate files:
+```text
+app/
+├── api/*/route.ts          # API routes
+├── layout.tsx              # Root layout
+├── page.tsx                # Main page (client component)
+└── page.module.scss
 
-- [x] [Coding standards and patterns](./coding-standards.md)
-- [x] [Database schema guidelines](./database-schema.md)
-- [x] [API design patterns](./api-design-patterns.md)
-- [x] [Testing strategy](../testing.md)
+components/records/
+├── RecordCard.tsx + .module.scss
+├── RecordShelf.tsx + .module.scss
+├── AlphaNav.tsx + .module.scss
+└── SearchBar.tsx + .module.scss
 
-## Design Decisions
+styles/
+├── _variables.scss         # CSS custom properties
+├── _reset.scss             # Base reset
+├── _animations.scss        # @keyframes
+└── globals.scss            # Imports partials + global classes
+
+lib/
+├── db/schema.ts + client.ts
+├── discogs/client.ts + sync.ts
+└── pagination/buckets.ts
+
+tui/                        # Separate Go module
+├── config/config.go
+├── db/connect.go + records.go
+└── ui/model.go + styles.go + image.go
+```
+
+## Design decisions
 
 ### Web app
 
-- **Border radius**: 0px on all elements (sharp, square edges)
-- **Package manager**: bun (not npm)
-- **Linting**: ESLint CLI (`eslint .`) instead of `next lint` (migrated for Next.js 16 compatibility)
-- **Styling**: Sass CSS Modules (`.module.scss` per component) + global partials in `styles/`
-- **Color tokens**: CSS custom properties in `styles/_variables.scss` (e.g. `--warm-bg-primary`)
-- **Card sizing**: 180px wide (250px flipped), content-driven height (no min-height), 144px album art
-- **Font sizes**: `0.75rem` for card titles (front AND back matched), `0.625rem` (10px) for dense metadata
-- **Color family**: Warm greens/olives only — no red/blue for errors or buttons
-- **Page layout**: `max-width: 80rem` centered container, `var(--warm-bg-secondary)` page background
-- **No overflow clipping on grid container**: `overflow-x: clip` clips both axes and truncates flipped cards
-- **Search**: Behind collapsible "Add an album" button in header
+| Decision | Rule |
+|----------|------|
+| Border radius | `0` everywhere (sharp edges) |
+| Package manager | bun, never npm |
+| Linter | `eslint .` (not `next lint`) |
+| Styling | Sass CSS Modules only, no Tailwind |
+| Color tokens | CSS custom properties in `styles/_variables.scss` |
+| Card size | 180px wide (250px flipped), content-driven height, 144px album art |
+| Font sizes | `0.75rem` card titles, `0.625rem` dense metadata |
+| Color family | Warm greens/olives only, no red/blue |
+| Page layout | `max-width: 80rem` header/search, full-width grid |
+| Overflow | No `overflow-x: clip` on grid ancestors |
 
 ### TUI
 
-- **Direct pgx, no ORM**: Go `Record` struct maps 1:1 to PostgreSQL columns. Schema is owned by the web app's Drizzle migrations.
-- **Config file over .env**: `~/.config/myrecords/config.toml` with a simple line-by-line parser (no external TOML library).
-- **Image protocol detection via env vars**: Checks `TERM_PROGRAM`, `TERM`, `KITTY_WINDOW_ID` at startup. No async terminal capability negotiation.
-- **Native vs mosaic layout**: Native image protocols (kitty/iTerm2/sixel) render info above the image because `lipgloss.JoinHorizontal` mangles escape sequences. Mosaic renders side-by-side.
+| Decision | Rule |
+|----------|------|
+| ORM | None. `Record` struct maps 1:1 to PostgreSQL columns. |
+| Config | `~/.config/myrecords/config.toml`, custom line parser, no TOML library |
+| Image detection | Env vars at startup (`TERM_PROGRAM`, `TERM`, `KITTY_WINDOW_ID`) |
+| Native image layout | Info above image (not side-by-side) — `JoinHorizontal` mangles escape sequences |
+| Mosaic layout | Side-by-side (half-block chars are plain text) |
+
+## Related
+
+- [Coding standards](./coding-standards.md)
+- [Database schema](./database-schema.md)
+- [API design patterns](./api-design-patterns.md)
+- [Testing](../testing.md)

@@ -1,84 +1,65 @@
-# Documentation
+# Documentation index
 
-Welcome to the My Record Collection documentation. This documentation covers the API, components, features, development guidelines, and deployment instructions.
+Agent-oriented documentation for the My Record Collection project. See
+[STYLE_GUIDE.md](./STYLE_GUIDE.md) for doc conventions.
 
-## Quick Links
-
-- **[Style Guide](./STYLE_GUIDE.md)**: Documentation standards and conventions
-- **[API Documentation](./api/README.md)**: REST API endpoints and usage
-- **[Component Documentation](./components/README.md)**: React component reference
-- **[Feature Documentation](./features/README.md)**: Application features and workflows
-- **[Development Guidelines](./development/README.md)**: Coding standards and patterns
-- **[Deployment Guide](./deployment/README.md)**: Deployment instructions and configuration
-- **[TUI README](../tui/README.md)**: Terminal UI for browsing the collection
-
-## Documentation Structure
+## File map
 
 ```text
 docs/
-├── README.md               # This file — documentation index
-├── STYLE_GUIDE.md          # Documentation standards
-├── TODO.md                 # Known issues and future work
-├── testing.md              # Testing guide (Vitest + RTL)
-├── error-handling.md       # Error handling patterns
-├── ui-ux.md                # UI/UX patterns and conventions
-├── api/                    # API endpoint documentation
-│   ├── README.md           # API overview
-│   ├── discogs-client.md   # Discogs client reference
-│   └── endpoints/          # Individual endpoint docs
-│       └── health-check.md
-├── components/             # Component usage and architecture
-│   ├── README.md           # Component overview
-│   ├── record-card.md      # RecordCard reference
-│   ├── record-shelf.md     # RecordShelf reference
-│   └── search-bar.md       # SearchBar reference
-├── development/            # Development guidelines
-│   ├── README.md           # Development overview
-│   ├── coding-standards.md # Naming and patterns
-│   └── database-schema.md  # Schema reference
-├── features/               # Feature documentation
-│   ├── README.md           # Feature overview
-│   ├── flip-card-animation.md # cool feature
-│   └── vinyl-metadata.md
-└── deployment/             # Deployment guides
-    └── README.md           # Deployment overview
+├── STYLE_GUIDE.md              # Doc conventions (agent-first)
+├── TODO.md                     # Tracked work items
+├── api/
+│   ├── README.md               # API endpoint reference
+│   ├── discogs-client.md       # DiscogsClient class reference
+│   └── endpoints/
+│       ├── health-check.md
+│       ├── records-crud.md
+│       ├── discogs-integration.md
+│       └── sync-status.md
+├── components/
+│   ├── README.md               # Component index
+│   ├── record-card.md
+│   ├── record-shelf.md
+│   └── search-bar.md
+├── development/
+│   ├── README.md               # Tech stack, commands, design decisions
+│   ├── coding-standards.md     # Code rules (TS, Go, CSS, testing)
+│   ├── database-schema.md      # records table schema
+│   └── api-design-patterns.md  # Route handler conventions
+├── features/
+│   ├── README.md               # Feature index
+│   ├── discogs-integration.md  # Search/fetch/sync workflows
+│   ├── flip-card-animation.md  # CSS 3D flip card rules
+│   └── vinyl-metadata.md       # Vinyl format extraction logic
+├── deployment/
+│   └── README.md               # Render deployment config
+├── error-handling.md           # Error propagation rules
+├── testing.md                  # Vitest/RTL test patterns
+└── ui-ux.md                    # Color tokens, layout rules, interactions
 
-tui/                        # Go terminal UI (separate Go module)
-├── README.md               # TUI setup, config, keybindings, image protocols
-├── main.go                 # Entry point
-├── config/config.go        # Config file + env var reader
-├── db/                     # pgx database layer
-└── ui/                     # Bubble Tea model, styles, image rendering
+tui/
+├── README.md                   # TUI setup, config, keybindings, image protocols
+├── main.go
+├── config/config.go            # Config file + env var reader
+├── db/
+│   ├── connect.go              # pgxpool connection
+│   └── records.go              # Record struct, queries
+└── ui/
+    ├── model.go                # Bubble Tea model
+    ├── styles.go               # Lip Gloss styles
+    └── image.go                # Image protocol detection + rendering
 ```
 
-## Getting Started
+## Quick lookup
 
-1. **New to the project?** Start with the main [README](../README.md) in the project root
-2. **Developing features?** Review [Development Guidelines](./development/README.md)
-3. **Using the API?** See [API Documentation](./api/README.md)
-4. **Building components?** Check [Component Documentation](./components/README.md)
-5. **Deploying?** Follow the [Deployment Guide](./deployment/README.md)
-
-## Contributing to Documentation
-
-When adding or updating documentation:
-
-1. Follow the [Style Guide](./STYLE_GUIDE.md)
-2. Update docs in the same commit as code changes
-3. Test all code examples before committing
-4. Run markdown linter before submitting
-5. Request documentation review in pull requests
-
-## Documentation Standards
-
-All documentation in this project follows the standards defined in [STYLE_GUIDE.md](./STYLE_GUIDE.md). Key principles:
-
-- **Write for humans first**: Clear, concise, easy to scan
-- **Keep docs close to code**: Update together
-- **Show working examples**: Test all code snippets
-- **Use consistent formatting**: Follow markdown conventions
-- **Maintain actively**: Stale docs are worse than no docs
-
----
-
-**Need help?** File an issue or reach out to the maintainers.
+| What | Where |
+|------|-------|
+| Database schema | [development/database-schema.md](./development/database-schema.md) |
+| API endpoints | [api/README.md](./api/README.md) |
+| Code rules (TS + Go) | [development/coding-standards.md](./development/coding-standards.md) |
+| Test patterns | [testing.md](./testing.md) |
+| CSS color tokens | [ui-ux.md](./ui-ux.md) |
+| Deployment config | [deployment/README.md](./deployment/README.md) |
+| TUI config + image protocols | [../tui/README.md](../tui/README.md) |
+| Build commands | [development/README.md](./development/README.md) |
