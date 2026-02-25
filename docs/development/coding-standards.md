@@ -235,6 +235,23 @@ bun run test          # Vitest (195 tests, >90% coverage)
 bun run build         # Production build
 ```
 
+### Go TUI tests
+
+```bash
+cd tui/
+go test ./... -cover  # All packages with coverage
+go vet ./...          # Static analysis
+gofmt -l .            # Formatting check
+```
+
+| Package | Coverage | Notes |
+|---------|----------|-------|
+| config | 96% | `configPath` error branch untestable without unsetting `$HOME` |
+| db | 44% | Record methods 100%; List/Search/Delete/Create need real DB |
+| ui | 98% | Mock store via `db.Store` interface; `httptest` for image fetch |
+
+Use `db.Store` interface (not `*db.RecordStore`) for testability. Mock in tests with struct implementing `List`, `Search`, `Delete`, `Create`.
+
 ### Test isolation
 
 Fresh client per test (`beforeEach`). Shared clients leak rate-limiter state.

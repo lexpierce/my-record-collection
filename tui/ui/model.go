@@ -18,7 +18,7 @@ const (
 )
 
 type Model struct {
-	store      *db.RecordStore
+	store      db.Store
 	records    []db.Record
 	filtered   []db.Record
 	cursor     int
@@ -36,7 +36,7 @@ type Model struct {
 	artLoading bool
 }
 
-func NewModel(store *db.RecordStore) Model {
+func NewModel(store db.Store) Model {
 	return Model{
 		store:    store,
 		loading:  true,
@@ -55,14 +55,14 @@ type imageLoadedMsg struct {
 	render string
 }
 
-func loadRecords(store *db.RecordStore) tea.Cmd {
+func loadRecords(store db.Store) tea.Cmd {
 	return func() tea.Msg {
 		records, err := store.List(context.Background())
 		return recordsLoadedMsg{records: records, err: err}
 	}
 }
 
-func searchRecords(store *db.RecordStore, query string) tea.Cmd {
+func searchRecords(store db.Store, query string) tea.Cmd {
 	return func() tea.Msg {
 		records, err := store.Search(context.Background(), query)
 		return recordsLoadedMsg{records: records, err: err}
@@ -246,7 +246,7 @@ func (m Model) renderList() string {
 	b.WriteString(titleLine + "\n")
 
 	if m.searching {
-		b.WriteString(searchStyle.Render("Search: " + m.search + "█") + "\n")
+		b.WriteString(searchStyle.Render("Search: "+m.search+"█") + "\n")
 	} else {
 		b.WriteString("\n")
 	}

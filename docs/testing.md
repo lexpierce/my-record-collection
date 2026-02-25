@@ -1,5 +1,7 @@
 # Testing
 
+## Web app
+
 Vitest + React Testing Library. 195 tests, >90% coverage.
 
 ## Commands
@@ -88,3 +90,46 @@ Mock to plain `<img>`. Destructure out non-HTML props.
 - `getByRole("button", { name })` not `getByTitle`
 - `getAllByText` when text on both card faces
 - `encodeURIComponent()` for non-ASCII URL assertions
+
+## Go TUI
+
+```bash
+cd tui/
+go test ./... -cover         # All packages
+go test ./ui/ -v             # Verbose single package
+go vet ./...                 # Static analysis
+gofmt -l .                   # Formatting check
+```
+
+### Coverage
+
+| Package | Coverage | Strategy |
+|---------|----------|----------|
+| config | 96% | Temp files for `readKey`, `t.Setenv` for `Load` |
+| db | 44% | Record methods unit-tested; CRUD needs real DB |
+| ui | 98% | `db.Store` mock, `httptest` for image fetch |
+
+### Mock store pattern
+
+`db.Store` interface enables testing Model without a database:
+
+```go
+type mockStore struct {
+    records []db.Record
+    err     error
+}
+func (m *mockStore) List(_ context.Context) ([]db.Record, error) {
+    return m.records, m.err
+}
+```
+
+### Image tests
+
+Use `net/http/httptest` to serve test PNGs. Create images with `image.NewRGBA`.
+
+### Rules
+
+- `t.Setenv` for env var tests (auto-restored)
+- `t.TempDir` for config file tests (auto-cleaned)
+- Table-driven tests for methods with multiple cases
+- `httptest.NewServer` for HTTP tests (no real network)

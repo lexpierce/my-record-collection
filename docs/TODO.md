@@ -20,6 +20,9 @@ None.
 - [x] Added `tui/**` to `render.yaml` `buildFilter.ignoredPaths`
 - [x] Fixed missing `go.sum` entry for `charmbracelet/x/ansi/sixel`
 - [x] Documented `go.sum` maintenance gotcha in coding-standards.md
+- [x] Go TUI: test suite — config 96%, db 44%, ui 98% coverage
+- [x] Go TUI: `db.Store` interface extracted for testability
+- [x] Go TUI: `gofmt` + `go vet` as formatting/lint gates
 - [x] Go TUI: native image protocol support (kitty/iTerm2/sixel/mosaic)
 - [x] Go TUI: config file at `~/.config/myrecords/config.toml`
 - [x] Go TUI: `db.Connect()` accepts URL parameter

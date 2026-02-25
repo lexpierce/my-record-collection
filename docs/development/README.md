@@ -49,8 +49,11 @@ bun run db:studio     # Drizzle Studio GUI
 
 ```bash
 go build -o records-tui .   # Build binary
-go vet ./...                # Static analysis
-go mod tidy                 # Resolve deps
+go test ./... -cover         # Tests with coverage
+go vet ./...                 # Static analysis
+gofmt -l .                   # Check formatting (empty = clean)
+gofmt -w .                   # Fix formatting
+go mod tidy                  # Resolve deps
 ```
 
 ## File layout

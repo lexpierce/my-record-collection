@@ -10,26 +10,26 @@ import (
 )
 
 type Record struct {
-	RecordID           string
-	ArtistName         string
-	AlbumTitle         string
-	YearReleased       *int
-	LabelName          *string
-	CatalogNumber      *string
-	DiscogsID          *string
-	DiscogsURI         *string
+	RecordID            string
+	ArtistName          string
+	AlbumTitle          string
+	YearReleased        *int
+	LabelName           *string
+	CatalogNumber       *string
+	DiscogsID           *string
+	DiscogsURI          *string
 	IsSyncedWithDiscogs bool
-	ThumbnailURL       *string
-	CoverImageURL      *string
-	Genres             []string
-	Styles             []string
-	UPCCode            *string
-	RecordSize         *string
-	VinylColor         *string
-	IsShapedVinyl      *bool
-	DataSource         string
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
+	ThumbnailURL        *string
+	CoverImageURL       *string
+	Genres              []string
+	Styles              []string
+	UPCCode             *string
+	RecordSize          *string
+	VinylColor          *string
+	IsShapedVinyl       *bool
+	DataSource          string
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
 }
 
 func (r Record) YearString() string {
@@ -82,6 +82,13 @@ func (r Record) ImageURL() string {
 		return *r.ThumbnailURL
 	}
 	return ""
+}
+
+type Store interface {
+	List(ctx context.Context) ([]Record, error)
+	Search(ctx context.Context, query string) ([]Record, error)
+	Delete(ctx context.Context, id string) error
+	Create(ctx context.Context, r Record) error
 }
 
 type RecordStore struct {
@@ -183,4 +190,3 @@ func (s *RecordStore) Create(ctx context.Context, r Record) error {
 	}
 	return nil
 }
-
