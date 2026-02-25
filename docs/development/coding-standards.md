@@ -182,7 +182,10 @@ Never duplicate in component files.
 | v1 | v2 |
 |----|----|
 | `tea.KeyMsg` | `tea.KeyPressMsg` |
+| `msg.String()` key matching | `tea.KeyPressMsg{Code: rune, Mod: tea.KeyMod}` |
+| `tea.KeyCtrlC` | `tea.KeyPressMsg{Code: 'c', Mod: tea.ModCtrl}` |
 | `View() string` | `View() tea.View` → `tea.NewView(s)` |
+| read view as string | `view.Content` (not `.Body()` — no such method) |
 | `lipgloss.AdaptiveColor{...}` | `lipgloss.Color("#hex")` |
 | `github.com/charmbracelet/bubbletea` | `charm.land/bubbletea/v2` |
 | `github.com/charmbracelet/lipgloss` | `charm.land/lipgloss/v2` |
@@ -242,7 +245,10 @@ cd tui/
 go test ./... -cover  # All packages with coverage
 go vet ./...          # Static analysis
 gofmt -l .            # Formatting check
+golangci-lint run     # Full lint (if installed)
 ```
+
+Preferred lint stack: `golangci-lint` > `go vet` + `gofmt`. Use whichever is available.
 
 | Package | Coverage | Notes |
 |---------|----------|-------|

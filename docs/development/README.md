@@ -83,9 +83,9 @@ lib/
 └── pagination/buckets.ts
 
 tui/                        # Separate Go module
-├── config/config.go
-├── db/connect.go + records.go
-└── ui/model.go + styles.go + image.go
+├── config/config.go + config_test.go
+├── db/connect.go + connect_test.go + records.go + records_test.go
+└── ui/model.go + model_test.go + styles.go + image.go + image_test.go
 ```
 
 ## Design decisions
