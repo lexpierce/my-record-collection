@@ -204,6 +204,16 @@ Never duplicate in component files.
 | `TERM_PROGRAM` | `iTerm.app` / `WezTerm` | iTerm2 |
 | none matched | — | mosaic fallback |
 
+`TERM`-based detection matters inside tmux/screen where `TERM_PROGRAM` gets stripped.
+
+### Kitty graphics protocol pitfalls
+
+| Rule | Why |
+|------|-----|
+| Always set `ImageWidth` + `ImageHeight` when using `Format: kitty.RGBA` or `kitty.RGB` | Raw pixel data has no header; terminal cannot infer dimensions without `s=`/`v=` options |
+| `kitty.PNG` format does not need explicit dimensions | PNG header encodes width/height |
+| Upstream `Options.Quite` is a typo for "Quiet" | Don't "fix" it — matches the library API (`q=` suppression level 0/1/2) |
+
 ### Config
 
 `~/.config/myrecords/config.toml` with `database_url` key. `DATABASE_URL` env var overrides. Simple line parser (no TOML library).

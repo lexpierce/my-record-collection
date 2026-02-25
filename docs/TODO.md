@@ -16,6 +16,12 @@ None.
 
 ## Completed (this session)
 
+- [x] Fixed Kitty graphics rendering: added `ImageWidth`/`ImageHeight` to `renderKitty` options (`tui/ui/image.go`)
+- [x] Added `xterm-ghostty` TERM detection for Ghostty inside tmux/screen
+- [x] Documented Kitty graphics protocol pitfalls (RGBA requires explicit dimensions) in coding-standards.md
+
+## Completed (previous sessions)
+
 - [x] Rewrote all 25 docs for agent-first consumption (tables, flat facts, no prose)
 - [x] Added `tui/**` to `render.yaml` `buildFilter.ignoredPaths`
 - [x] Fixed missing `go.sum` entry for `charmbracelet/x/ansi/sixel`
@@ -29,9 +35,6 @@ None.
 - [x] Go TUI: `db.Connect()` accepts URL parameter
 - [x] TUI README documents config, keybindings, image protocol detection
 - [x] BubbleTea v2 / Lipgloss v2 gotchas documented in coding-standards.md
-
-## Completed (previous sessions)
-
 - [x] Removed `max-width: 80rem` from `.shelfSection`
 - [x] Responsive initial page size (50 desktop, 25 mobile)
 - [x] Removed redundant `paths: ["**"]` from `render.yaml` buildFilter
