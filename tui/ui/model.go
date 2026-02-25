@@ -51,8 +51,9 @@ type recordsLoadedMsg struct {
 }
 
 type imageLoadedMsg struct {
-	url    string
-	render string
+	url      string
+	render   string
+	transmit string
 }
 
 func loadRecords(store db.Store) tea.Cmd {
@@ -71,8 +72,8 @@ func searchRecords(store db.Store, query string) tea.Cmd {
 
 func loadImage(proto imageProto, url string, width, height int) tea.Cmd {
 	return func() tea.Msg {
-		rendered, _ := fetchAndRender(proto, url, width, height)
-		return imageLoadedMsg{url: url, render: rendered}
+		result, _ := fetchAndRender(proto, url, width, height)
+		return imageLoadedMsg{url: url, render: result.render, transmit: result.transmit}
 	}
 }
 
@@ -100,9 +101,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case imageLoadedMsg:
-		m.imgCache.set(msg.url, msg.render)
+		m.imgCache.set(msg.url, cachedImage{render: msg.render, transmit: msg.transmit})
 		m.artRender = msg.render
 		m.artLoading = false
+		if msg.transmit != "" {
+			return m, tea.Raw(msg.transmit)
+		}
 		return m, nil
 
 	case tea.KeyPressMsg:
@@ -190,8 +194,11 @@ func (m Model) handleListKey(key string) (tea.Model, tea.Cmd) {
 			rec := m.filtered[m.cursor]
 			url := rec.ImageURL()
 			if cached, ok := m.imgCache.get(url); ok {
-				m.artRender = cached
+				m.artRender = cached.render
 				m.artLoading = false
+				if cached.transmit != "" {
+					return m, tea.Raw(cached.transmit)
+				}
 				return m, nil
 			}
 			return m, loadImage(m.imgProto, url, 30, 15)

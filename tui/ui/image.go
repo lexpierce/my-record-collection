@@ -65,23 +65,28 @@ func detectImageProto() imageProto {
 	return protoMosaic
 }
 
+type cachedImage struct {
+	render   string
+	transmit string
+}
+
 type imageCache struct {
-	cache map[string]string
+	cache map[string]cachedImage
 }
 
 func newImageCache() *imageCache {
 	return &imageCache{
-		cache: make(map[string]string),
+		cache: make(map[string]cachedImage),
 	}
 }
 
-func (c *imageCache) get(url string) (string, bool) {
+func (c *imageCache) get(url string) (cachedImage, bool) {
 	v, ok := c.cache[url]
 	return v, ok
 }
 
-func (c *imageCache) set(url string, rendered string) {
-	c.cache[url] = rendered
+func (c *imageCache) set(url string, entry cachedImage) {
+	c.cache[url] = entry
 }
 
 func fetchImage(url string) (image.Image, []byte, error) {
@@ -119,10 +124,17 @@ func fetchImage(url string) (image.Image, []byte, error) {
 	return img, raw, nil
 }
 
+type kittyResult struct {
+	transmit    string
+	placeholder string
+}
+
+var kittyImageIDCounter int
+
 func renderImage(proto imageProto, img image.Image, raw []byte, width, height int) string {
 	switch proto {
 	case protoKitty:
-		return renderKitty(img)
+		return renderKitty(img).placeholder
 	case protoITerm2:
 		return renderITerm2(raw, width, height)
 	case protoSixel:
@@ -137,21 +149,52 @@ func renderMosaic(img image.Image, width, height int) string {
 	return m.Render(img)
 }
 
-func renderKitty(img image.Image) string {
+func renderKitty(img image.Image) kittyResult {
+	kittyImageIDCounter++
+	imgID := kittyImageIDCounter
+
 	bounds := img.Bounds()
 	var buf bytes.Buffer
 	if err := kitty.EncodeGraphics(&buf, img, &kitty.Options{
-		Action:       kitty.TransmitAndPut,
-		Transmission: kitty.Direct,
-		Format:       kitty.RGBA,
-		ImageWidth:   bounds.Dx(),
-		ImageHeight:  bounds.Dy(),
-		Chunk:        true,
-		Quite:        2,
+		Action:           kitty.TransmitAndPut,
+		Transmission:     kitty.Direct,
+		Format:           kitty.RGBA,
+		ImageWidth:       bounds.Dx(),
+		ImageHeight:      bounds.Dy(),
+		ID:               imgID,
+		VirtualPlacement: true,
+		Columns:          30,
+		Rows:             15,
+		Chunk:            true,
+		Quite:            2,
 	}); err != nil {
-		return ""
+		return kittyResult{}
 	}
-	return buf.String()
+
+	placeholder := kittyPlaceholder(imgID, 30, 15)
+	return kittyResult{
+		transmit:    buf.String(),
+		placeholder: placeholder,
+	}
+}
+
+func kittyPlaceholder(imgID, cols, rows int) string {
+	var b strings.Builder
+	fg := fmt.Sprintf("\033[38;5;%dm", imgID)
+	reset := "\033[39m"
+	b.WriteString(fg)
+	for row := range rows {
+		for col := range cols {
+			b.WriteRune(kitty.Placeholder)
+			b.WriteRune(kitty.Diacritic(row))
+			b.WriteRune(kitty.Diacritic(col))
+		}
+		if row < rows-1 {
+			b.WriteByte('\n')
+		}
+	}
+	b.WriteString(reset)
+	return b.String()
 }
 
 func renderITerm2(raw []byte, width, height int) string {
@@ -174,21 +217,34 @@ func renderSixel(img image.Image) string {
 	return ansi.SixelGraphics(0, 1, 0, buf.Bytes())
 }
 
-func fetchAndRender(proto imageProto, url string, width, height int) (string, error) {
+type fetchResult struct {
+	render   string
+	transmit string
+}
+
+func fetchAndRender(proto imageProto, url string, width, height int) (fetchResult, error) {
 	if url == "" {
-		return renderPlaceholder(width, height), nil
+		return fetchResult{render: renderPlaceholder(width, height)}, nil
 	}
 
 	img, raw, err := fetchImage(url)
 	if err != nil {
-		return renderPlaceholder(width, height), nil
+		return fetchResult{render: renderPlaceholder(width, height)}, nil
+	}
+
+	if proto == protoKitty {
+		kr := renderKitty(img)
+		if kr.placeholder == "" {
+			return fetchResult{render: renderPlaceholder(width, height)}, nil
+		}
+		return fetchResult{render: kr.placeholder, transmit: kr.transmit}, nil
 	}
 
 	rendered := renderImage(proto, img, raw, width, height)
 	if rendered == "" {
-		return renderPlaceholder(width, height), nil
+		return fetchResult{render: renderPlaceholder(width, height)}, nil
 	}
-	return rendered, nil
+	return fetchResult{render: rendered}, nil
 }
 
 func renderPlaceholder(width, height int) string {

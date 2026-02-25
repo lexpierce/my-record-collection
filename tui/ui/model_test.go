@@ -123,7 +123,7 @@ func TestModelUpdateImageLoaded(t *testing.T) {
 		t.Errorf("artRender = %q, want %q", model.artRender, "rendered")
 	}
 	cached, ok := model.imgCache.get("http://img.jpg")
-	if !ok || cached != "rendered" {
+	if !ok || cached.render != "rendered" {
 		t.Error("image should be cached")
 	}
 }
@@ -212,7 +212,7 @@ func TestListNavigationGShift(t *testing.T) {
 func TestEnterDetailView(t *testing.T) {
 	m := newTestModel(testRecords())
 	// Pre-cache an image to test the cached path
-	m.imgCache.set("", "cached-placeholder")
+	m.imgCache.set("", cachedImage{render: "cached-placeholder"})
 
 	updated, cmd := m.Update(tea.KeyPressMsg{Code: tea.KeyEnter})
 	model := updated.(Model)

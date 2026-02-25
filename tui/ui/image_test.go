@@ -109,22 +109,22 @@ func TestImageCacheGetSet(t *testing.T) {
 		t.Error("empty cache should return !ok")
 	}
 
-	c.set("http://example.com/img.jpg", "rendered-data")
+	c.set("http://example.com/img.jpg", cachedImage{render: "rendered-data"})
 	got, ok := c.get("http://example.com/img.jpg")
 	if !ok {
 		t.Error("cache hit should return ok")
 	}
-	if got != "rendered-data" {
+	if got.render != "rendered-data" {
 		t.Errorf("cached value = %q, want %q", got, "rendered-data")
 	}
 }
 
 func TestImageCacheOverwrite(t *testing.T) {
 	c := newImageCache()
-	c.set("url", "first")
-	c.set("url", "second")
+	c.set("url", cachedImage{render: "first"})
+	c.set("url", cachedImage{render: "second"})
 	got, _ := c.get("url")
-	if got != "second" {
+	if got.render != "second" {
 		t.Errorf("overwritten value = %q, want %q", got, "second")
 	}
 }
@@ -181,7 +181,7 @@ func TestFetchAndRenderEmptyURL(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fetchAndRender empty URL err: %v", err)
 	}
-	if !strings.Contains(result, "No Image") {
+	if !strings.Contains(result.render, "No Image") {
 		t.Error("empty URL should return placeholder")
 	}
 }
@@ -191,7 +191,7 @@ func TestFetchAndRenderInvalidURL(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fetchAndRender invalid URL err: %v", err)
 	}
-	if !strings.Contains(result, "No Image") {
+	if !strings.Contains(result.render, "No Image") {
 		t.Error("failed fetch should return placeholder")
 	}
 }
@@ -251,8 +251,11 @@ func servePNG(t *testing.T) *httptest.Server {
 func TestRenderKitty(t *testing.T) {
 	img := testImage()
 	result := renderKitty(img)
-	if result == "" {
-		t.Error("renderKitty should produce non-empty output for valid image")
+	if result.placeholder == "" {
+		t.Error("renderKitty should produce non-empty placeholder for valid image")
+	}
+	if result.transmit == "" {
+		t.Error("renderKitty should produce non-empty transmit for valid image")
 	}
 }
 
@@ -362,7 +365,7 @@ func TestFetchAndRenderSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fetchAndRender err: %v", err)
 	}
-	if strings.Contains(result, "No Image") {
+	if strings.Contains(result.render, "No Image") {
 		t.Error("successful fetch should not show placeholder")
 	}
 }
