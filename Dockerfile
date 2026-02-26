@@ -2,7 +2,7 @@
 # Multi-stage build for optimal image size
 
 # Stage 1: Dependencies
-FROM oven/bun:1 AS dependencies
+FROM oven/bun:1.3.10 AS dependencies
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ COPY package.json bun.lockb* ./
 RUN bun install --frozen-lockfile --production=false
 
 # Stage 2: Builder
-FROM oven/bun:1 AS builder
+FROM oven/bun:1.3.10 AS builder
 
 WORKDIR /app
 
@@ -31,7 +31,7 @@ ENV NODE_ENV=production
 RUN bun run build
 
 # Stage 3: Runner
-FROM oven/bun:1-slim AS runner
+FROM oven/bun:1.3.10-slim AS runner
 
 WORKDIR /app
 

@@ -23,7 +23,7 @@ projects:
               - key: NODE_ENV
                 value: production
               - key: BUN_VERSION
-                value: 1.3.9
+                value: 1.3.10
               - key: DATABASE_URL
                 fromDatabase:
                   name: my-record-collection-db
@@ -40,7 +40,7 @@ projects:
                 - "*.md"
                 - tui/**
             # Bun is available by default on Render when BUN_VERSION is set
-            buildCommand: bun install && bun run build
+            buildCommand: bun install --frozen-lockfile && bun run build
             startCommand: bun run start
             # Run database migrations before each deployment
             preDeployCommand: bun run db:migrate

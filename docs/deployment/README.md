@@ -11,8 +11,8 @@ Platform: Render. Config: `render.yaml` (Blueprint).
 
 ## Build pipeline
 
-1. Install Bun (`BUN_VERSION=1.3.9`)
-2. `bun install && bun run build`
+1. Install Bun (`BUN_VERSION=1.3.10`)
+2. `bun install --frozen-lockfile && bun run build`
 3. Pre-deploy: `bun run db:migrate`
 4. Start: `bun run start`
 
@@ -29,7 +29,7 @@ Skips rebuild on changes to `docs/**`, `*.md`, and `tui/**`.
 | `DISCOGS_TOKEN` | Manual (secret) | Yes |
 | `DISCOGS_USERNAME` | `Lexpierce` | Yes (for sync) |
 | `DISCOGS_USER_AGENT` | `MyRecordCollection/1.0` | No (has default) |
-| `BUN_VERSION` | `1.3.9` | Yes |
+| `BUN_VERSION` | `1.3.10` | Yes |
 
 > **TUI**: also uses `DATABASE_URL`. TUI reads from
 > `~/.config/myrecords/config.toml` (`database_url` key) with `DATABASE_URL`
