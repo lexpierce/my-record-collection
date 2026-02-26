@@ -339,6 +339,23 @@ Use `getByRole("button", { name })`, not `getByTitle`. Use `getAllByText` when t
 
 Use `encodeURIComponent()` to generate expected strings. Never hardcode percent-encoded values.
 
+### Bun dependency updates
+
+When refreshing dependencies:
+
+```bash
+bun update
+bun run test
+bun run type-check
+bun run lint
+```
+
+Rules:
+
+- Commit `bun.lock` with every `bun update`
+- Keep Bun pinned to an exact version in `package.json` (`engines.bun`, `packageManager`)
+- Use `bun install --frozen-lockfile` in CI/deploy builds
+
 ## Commit messages
 
 ```text

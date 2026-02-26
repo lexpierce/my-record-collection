@@ -16,11 +16,16 @@ None.
 
 ## Completed (this session)
 
+- [x] Upgraded Bun runtime references to `1.3.10` (`package.json`, `render.yaml`, `Dockerfile`, deployment docs)
+- [x] Regenerated and committed `bun.lock` via `bun update`
+- [x] Enforced lockfile installs in deploy docs/config (`bun install --frozen-lockfile`)
+- [x] Added Bun update workflow rules to `docs/development/coding-standards.md`
+
+## Completed (previous sessions)
+
 - [x] Fixed Kitty image flash-and-disappear: switched to Unicode virtual placements (`tui/ui/image.go`, `tui/ui/model.go`)
 - [x] Documented Kitty virtual placement pattern in `docs/development/coding-standards.md`
 - [x] Updated `tui/README.md` album art section for virtual placements
-
-## Completed (previous sessions)
 
 - [x] Fixed Kitty graphics rendering: added `ImageWidth`/`ImageHeight` to `renderKitty` options (`tui/ui/image.go`)
 - [x] Added `xterm-ghostty` TERM detection for Ghostty inside tmux/screen
