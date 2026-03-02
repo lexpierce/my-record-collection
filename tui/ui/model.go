@@ -255,8 +255,9 @@ func (m Model) handleSearchKey(key string) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 	default:
-		if len(key) == 1 && utf8.RuneCountInString(m.search) < maxSearchRunes {
-			m.search += key
+		r, ok := inputKeyRune(key)
+		if ok && utf8.RuneCountInString(m.search) < maxSearchRunes {
+			m.search += string(r)
 		}
 		return m, nil
 	}
@@ -450,12 +451,16 @@ func (m Model) handleAddDiscogsKey(key string) (tea.Model, tea.Cmd) {
 		m.discogsSearching = true
 		return m, runDiscogsSearch(query)
 	default:
-		if len(key) != 1 || m.discogsSearching || m.discogsSaving {
+		if m.discogsSearching || m.discogsSaving {
+			return m, nil
+		}
+		r, ok := inputKeyRune(key)
+		if !ok {
 			return m, nil
 		}
 		field := m.activeDiscogsField()
 		if utf8.RuneCountInString(*field) < maxSearchRunes {
-			*field += key
+			*field += string(r)
 		}
 		return m, nil
 	}
@@ -858,4 +863,18 @@ func truncPad(s string, width int) string {
 		return string(runes[:width])
 	}
 	return s + strings.Repeat(" ", width-len(runes))
+}
+
+func inputKeyRune(key string) (rune, bool) {
+	if key == "space" {
+		return ' ', true
+	}
+	if utf8.RuneCountInString(key) != 1 {
+		return 0, false
+	}
+	r, _ := utf8.DecodeRuneInString(key)
+	if r == utf8.RuneError {
+		return 0, false
+	}
+	return r, true
 }

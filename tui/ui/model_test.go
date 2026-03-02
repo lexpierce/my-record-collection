@@ -307,6 +307,18 @@ func TestSearchMode(t *testing.T) {
 	}
 }
 
+func TestSearchAcceptsSpaceKeyName(t *testing.T) {
+	m := newTestModel(testRecords())
+	m.searching = true
+	m.search = "miles"
+
+	updated, _ := m.Update(tea.KeyPressMsg{Code: tea.KeySpace})
+	model := updated.(Model)
+	if model.search != "miles " {
+		t.Errorf("space key should append a space, got %q", model.search)
+	}
+}
+
 func TestSearchBackspaceEmpty(t *testing.T) {
 	m := newTestModel(testRecords())
 	m.searching = true
@@ -496,6 +508,20 @@ func TestDiscogsAddSearchCommand(t *testing.T) {
 	}
 	if !model.discogsSearching {
 		t.Error("discogsSearching should be true while search command is running")
+	}
+}
+
+func TestDiscogsInputAcceptsSpaceKeyName(t *testing.T) {
+	m := newTestModel(testRecords())
+	m.view = addDiscogsView
+	m.discogsSearchMethod = discogsSearchArtistTitle
+	m.discogsCursor = 0
+	m.discogsArtist = "Miles"
+
+	updated, _ := m.Update(tea.KeyPressMsg{Code: tea.KeySpace})
+	model := updated.(Model)
+	if model.discogsArtist != "Miles " {
+		t.Errorf("space key should append a space, got %q", model.discogsArtist)
 	}
 }
 
