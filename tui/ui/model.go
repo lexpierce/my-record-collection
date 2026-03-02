@@ -3,7 +3,11 @@ package ui
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
+	"time"
+	"unicode/utf8"
 
 	tea "charm.land/bubbletea/v2"
 	lipgloss "charm.land/lipgloss/v2"
@@ -15,7 +19,20 @@ type view int
 const (
 	listView view = iota
 	detailView
+	addView
 )
+
+const (
+	maxArtistRunes = 200
+	maxAlbumRunes  = 200
+	maxLabelRunes  = 120
+	maxSizeRunes   = 40
+	maxColorRunes  = 80
+	maxSearchRunes = 200
+	minReleaseYear = 1850
+)
+
+var sqlInjectionPattern = regexp.MustCompile(`(?i)(--|/\*|\*/|;|\b(select|union|drop|delete|insert|update|alter|truncate|create)\b)`)
 
 type Model struct {
 	store      db.Store
@@ -34,14 +51,36 @@ type Model struct {
 	imgProto   imageProto
 	artRender  string
 	artLoading bool
+	addFields  []addField
+	addCursor  int
+	addErr     string
+	addSaving  bool
+}
+
+type addField struct {
+	label    string
+	value    string
+	required bool
 }
 
 func NewModel(store db.Store) Model {
 	return Model{
-		store:    store,
-		loading:  true,
-		imgCache: newImageCache(),
-		imgProto: detectImageProto(),
+		store:     store,
+		loading:   true,
+		imgCache:  newImageCache(),
+		imgProto:  detectImageProto(),
+		addFields: defaultAddFields(),
+	}
+}
+
+func defaultAddFields() []addField {
+	return []addField{
+		{label: "Artist", required: true},
+		{label: "Album", required: true},
+		{label: "Year"},
+		{label: "Label"},
+		{label: "Size"},
+		{label: "Color"},
 	}
 }
 
@@ -54,6 +93,10 @@ type imageLoadedMsg struct {
 	url      string
 	render   string
 	transmit string
+}
+
+type recordCreatedMsg struct {
+	err error
 }
 
 func loadRecords(store db.Store) tea.Cmd {
@@ -77,6 +120,13 @@ func loadImage(proto imageProto, url string, width, height int) tea.Cmd {
 	}
 }
 
+func createRecord(store db.Store, r db.Record) tea.Cmd {
+	return func() tea.Msg {
+		err := store.Create(context.Background(), r)
+		return recordCreatedMsg{err: err}
+	}
+}
+
 func (m Model) Init() tea.Cmd {
 	return loadRecords(m.store)
 }
@@ -94,6 +144,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.err = msg.err
 			return m, nil
 		}
+		m.err = nil
 		m.records = msg.records
 		m.filtered = msg.records
 		m.cursor = 0
@@ -108,6 +159,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Raw(msg.transmit)
 		}
 		return m, nil
+
+	case recordCreatedMsg:
+		m.addSaving = false
+		if msg.err != nil {
+			m.addErr = msg.err.Error()
+			return m, nil
+		}
+		m.view = listView
+		m.addFields = defaultAddFields()
+		m.addCursor = 0
+		m.addErr = ""
+		m.loading = true
+		return m, loadRecords(m.store)
 
 	case tea.KeyPressMsg:
 		return m.handleKey(msg)
@@ -128,6 +192,8 @@ func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		return m.handleListKey(key)
 	case detailView:
 		return m.handleDetailKey(key)
+	case addView:
+		return m.handleAddKey(key)
 	}
 
 	return m, nil
@@ -149,11 +215,12 @@ func (m Model) handleSearchKey(key string) (tea.Model, tea.Cmd) {
 		return m, searchRecords(m.store, m.search)
 	case "backspace":
 		if len(m.search) > 0 {
-			m.search = m.search[:len(m.search)-1]
+			runes := []rune(m.search)
+			m.search = string(runes[:len(runes)-1])
 		}
 		return m, nil
 	default:
-		if len(key) == 1 {
+		if len(key) == 1 && utf8.RuneCountInString(m.search) < maxSearchRunes {
 			m.search += key
 		}
 		return m, nil
@@ -206,6 +273,12 @@ func (m Model) handleListKey(key string) (tea.Model, tea.Cmd) {
 	case "/":
 		m.searching = true
 		m.search = ""
+	case "a":
+		m.view = addView
+		m.addFields = defaultAddFields()
+		m.addCursor = 0
+		m.addErr = ""
+		m.addSaving = false
 	case "r":
 		m.loading = true
 		return m, loadRecords(m.store)
@@ -224,6 +297,160 @@ func (m Model) handleDetailKey(key string) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+func (m Model) handleAddKey(key string) (tea.Model, tea.Cmd) {
+	switch key {
+	case "ctrl+c":
+		return m, tea.Quit
+	case "esc":
+		m.view = listView
+		m.addErr = ""
+		m.addSaving = false
+		return m, nil
+	case "up", "k":
+		if m.addCursor > 0 {
+			m.addCursor--
+		}
+		return m, nil
+	case "down", "j", "tab":
+		if m.addCursor < len(m.addFields)-1 {
+			m.addCursor++
+		}
+		return m, nil
+	case "shift+tab":
+		if m.addCursor > 0 {
+			m.addCursor--
+		}
+		return m, nil
+	case "backspace":
+		if m.addSaving || len(m.addFields) == 0 {
+			return m, nil
+		}
+		field := &m.addFields[m.addCursor]
+		if len(field.value) > 0 {
+			runes := []rune(field.value)
+			field.value = string(runes[:len(runes)-1])
+		}
+		return m, nil
+	case "enter":
+		if m.addSaving {
+			return m, nil
+		}
+		rec, validationErr := m.addRecordFromFields()
+		if validationErr != "" {
+			m.addErr = validationErr
+			return m, nil
+		}
+		m.addErr = ""
+		m.addSaving = true
+		return m, createRecord(m.store, rec)
+	default:
+		if m.addSaving || len(m.addFields) == 0 {
+			return m, nil
+		}
+		if len(key) == 1 {
+			field := &m.addFields[m.addCursor]
+			if utf8.RuneCountInString(field.value) < maxFieldLength(m.addCursor) {
+				field.value += key
+			}
+		}
+		return m, nil
+	}
+}
+
+func (m Model) addRecordFromFields() (db.Record, string) {
+	if len(m.addFields) < 2 {
+		return db.Record{}, "add form is not initialized"
+	}
+
+	artist, errMsg := validateTextField(m.addFields[0].value, "artist", true, maxArtistRunes)
+	if errMsg != "" {
+		return db.Record{}, errMsg
+	}
+	album, errMsg := validateTextField(m.addFields[1].value, "album", true, maxAlbumRunes)
+	if errMsg != "" {
+		return db.Record{}, errMsg
+	}
+
+	rec := db.Record{
+		ArtistName: artist,
+		AlbumTitle: album,
+	}
+
+	yearText := strings.TrimSpace(m.addFields[2].value)
+	if yearText != "" {
+		year, err := strconv.Atoi(yearText)
+		if err != nil {
+			return db.Record{}, "year must be a number"
+		}
+		if year < minReleaseYear || year > time.Now().Year()+1 {
+			return db.Record{}, fmt.Sprintf("year must be between %d and %d", minReleaseYear, time.Now().Year()+1)
+		}
+		rec.YearReleased = &year
+	}
+
+	label, errMsg := validateTextField(m.addFields[3].value, "label", false, maxLabelRunes)
+	if errMsg != "" {
+		return db.Record{}, errMsg
+	}
+	if label != "" {
+		rec.LabelName = &label
+	}
+
+	size, errMsg := validateTextField(m.addFields[4].value, "size", false, maxSizeRunes)
+	if errMsg != "" {
+		return db.Record{}, errMsg
+	}
+	if size != "" {
+		rec.RecordSize = &size
+	}
+
+	color, errMsg := validateTextField(m.addFields[5].value, "color", false, maxColorRunes)
+	if errMsg != "" {
+		return db.Record{}, errMsg
+	}
+	if color != "" {
+		rec.VinylColor = &color
+	}
+
+	return rec, ""
+}
+
+func maxFieldLength(fieldIndex int) int {
+	switch fieldIndex {
+	case 0:
+		return maxArtistRunes
+	case 1:
+		return maxAlbumRunes
+	case 2:
+		return 4
+	case 3:
+		return maxLabelRunes
+	case 4:
+		return maxSizeRunes
+	case 5:
+		return maxColorRunes
+	default:
+		return maxArtistRunes
+	}
+}
+
+func validateTextField(input, name string, required bool, maxRunes int) (string, string) {
+	value := strings.TrimSpace(input)
+	if required && value == "" {
+		return "", "artist and album are required"
+	}
+	if value == "" {
+		return "", ""
+	}
+	if utf8.RuneCountInString(value) > maxRunes {
+		return "", fmt.Sprintf("%s is too long (max %d chars)", name, maxRunes)
+	}
+	if sqlInjectionPattern.MatchString(value) {
+		return "", fmt.Sprintf("%s contains blocked SQL patterns", name)
+	}
+	return value, ""
+}
+
 func (m Model) listVisibleRows() int {
 	return max(1, m.height-6)
 }
@@ -239,6 +466,8 @@ func (m Model) View() tea.View {
 		s = m.renderList()
 	case detailView:
 		s = m.renderDetail()
+	case addView:
+		s = m.renderAdd()
 	}
 
 	return tea.NewView(s)
@@ -380,11 +609,62 @@ func (m Model) renderDetail() string {
 	return b.String()
 }
 
+func (m Model) renderAdd() string {
+	var b strings.Builder
+
+	title := titleStyle.Render("♫ Add Record")
+	status := statusBarStyle.Render("manual entry")
+	b.WriteString(lipgloss.JoinHorizontal(lipgloss.Center, title, "  ", status))
+	b.WriteString("\n\n")
+
+	for i, field := range m.addFields {
+		prefix := "  "
+		if i == m.addCursor {
+			prefix = "→ "
+		}
+
+		name := field.label
+		if field.required {
+			name += "*"
+		}
+
+		value := field.value
+		if i == m.addCursor && !m.addSaving {
+			value += "█"
+		}
+
+		line := fmt.Sprintf("%s%s: %s", prefix, name, value)
+		if i == m.addCursor {
+			b.WriteString(selectedRowStyle.Render(line))
+		} else {
+			b.WriteString(normalRowStyle.Render(line))
+		}
+		b.WriteString("\n")
+	}
+
+	if m.addErr != "" {
+		b.WriteString("\n")
+		b.WriteString(errorStyle.Render("  " + m.addErr))
+		b.WriteString("\n")
+	}
+
+	if m.addSaving {
+		b.WriteString("\n")
+		b.WriteString(statusBarStyle.Render("Saving..."))
+		b.WriteString("\n")
+	}
+
+	b.WriteString("\n")
+	b.WriteString(helpStyle.Render("  enter save  tab/down next  shift+tab/up prev  esc cancel  ctrl+c quit"))
+
+	return b.String()
+}
+
 func (m Model) renderHelp() string {
 	if m.searching {
 		return helpStyle.Render("  enter confirm  esc cancel")
 	}
-	return helpStyle.Render("  ↑/k up  ↓/j down  enter detail  / search  r reload  q quit")
+	return helpStyle.Render("  ↑/k up  ↓/j down  enter detail  a add  / search  r reload  q quit")
 }
 
 func (m Model) columnWidths() [5]int {

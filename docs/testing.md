@@ -132,3 +132,6 @@ Use `net/http/httptest` to serve test PNGs. Create images with `image.NewRGBA`.
 - `t.TempDir` for config file tests (auto-cleaned)
 - Table-driven tests for methods with multiple cases
 - `httptest.NewServer` for HTTP tests (no real network)
+- Add explicit tests for invalid numeric identifiers (`NaN`, non-numeric strings, unsafe integers)
+- Add boundary tests for numeric ranges (min/max and just-outside values)
+- Assert input length caps by attempting over-limit input and verifying truncation/rejection

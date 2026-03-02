@@ -3,8 +3,11 @@ package ui
 import (
 	"context"
 	"errors"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
+	"unicode/utf8"
 
 	tea "charm.land/bubbletea/v2"
 	"my-record-collection-tui/db"
@@ -13,6 +16,7 @@ import (
 type mockStore struct {
 	records []db.Record
 	err     error
+	created []db.Record
 }
 
 func (m *mockStore) List(_ context.Context) ([]db.Record, error) {
@@ -33,8 +37,15 @@ func (m *mockStore) Search(_ context.Context, query string) ([]db.Record, error)
 	return results, nil
 }
 
-func (m *mockStore) Delete(_ context.Context, _ string) error    { return m.err }
-func (m *mockStore) Create(_ context.Context, _ db.Record) error { return m.err }
+func (m *mockStore) Delete(_ context.Context, _ string) error { return m.err }
+
+func (m *mockStore) Create(_ context.Context, r db.Record) error {
+	if m.err != nil {
+		return m.err
+	}
+	m.created = append(m.created, r)
+	return nil
+}
 
 func testRecords() []db.Record {
 	return []db.Record{
@@ -395,6 +406,214 @@ func TestReload(t *testing.T) {
 	}
 	if cmd == nil {
 		t.Error("r should return load command")
+	}
+}
+
+func TestOpenAddView(t *testing.T) {
+	m := newTestModel(testRecords())
+
+	updated, _ := m.Update(keyMsg("a"))
+	model := updated.(Model)
+	if model.view != addView {
+		t.Error("a should open add view")
+	}
+	if len(model.addFields) != 6 {
+		t.Errorf("add fields count = %d, want 6", len(model.addFields))
+	}
+	if model.addCursor != 0 {
+		t.Errorf("add cursor = %d, want 0", model.addCursor)
+	}
+}
+
+func TestAddViewValidationRequiredFields(t *testing.T) {
+	m := newTestModel(testRecords())
+	updated, _ := m.Update(keyMsg("a"))
+	m = updated.(Model)
+
+	updated, cmd := m.Update(keyMsg("enter"))
+	model := updated.(Model)
+	if cmd != nil {
+		t.Error("invalid add form should not return create command")
+	}
+	if model.addErr != "artist and album are required" {
+		t.Errorf("addErr = %q", model.addErr)
+	}
+}
+
+func TestAddViewValidationYear(t *testing.T) {
+	m := newTestModel(testRecords())
+	updated, _ := m.Update(keyMsg("a"))
+	m = updated.(Model)
+	m = typeText(m, "Miles")
+	updated, _ = m.Update(keyMsg("j"))
+	m = updated.(Model)
+	m = typeText(m, "Kind of Blue")
+	updated, _ = m.Update(keyMsg("j"))
+	m = updated.(Model)
+	m = typeText(m, "19x9")
+
+	updated, cmd := m.Update(keyMsg("enter"))
+	model := updated.(Model)
+	if cmd != nil {
+		t.Error("invalid year should not return create command")
+	}
+	if model.addErr != "year must be a number" {
+		t.Errorf("addErr = %q", model.addErr)
+	}
+}
+
+func TestAddViewCreateRecord(t *testing.T) {
+	store := &mockStore{records: testRecords()}
+	m := NewModel(store)
+	m.width = 120
+	m.height = 40
+	m.loading = false
+	m.records = store.records
+	m.filtered = store.records
+
+	updated, _ := m.Update(keyMsg("a"))
+	m = updated.(Model)
+	m = typeText(m, "nina")
+	updated, _ = m.Update(keyMsg("j"))
+	m = updated.(Model)
+	m = typeText(m, "solo")
+	updated, _ = m.Update(keyMsg("j"))
+	m = updated.(Model)
+	m = typeText(m, "1967")
+	updated, _ = m.Update(keyMsg("j"))
+	m = updated.(Model)
+	m = typeText(m, "RCA")
+	updated, _ = m.Update(keyMsg("j"))
+	m = updated.(Model)
+	m = typeText(m, "12in")
+	updated, _ = m.Update(keyMsg("j"))
+	m = updated.(Model)
+	m = typeText(m, "blue")
+
+	updated, cmd := m.Update(keyMsg("enter"))
+	model := updated.(Model)
+	if cmd == nil {
+		t.Fatal("valid add form should return create command")
+	}
+	if !model.addSaving {
+		t.Error("addSaving should be true after submit")
+	}
+
+	createdMsg := cmd()
+	updated, _ = model.Update(createdMsg)
+	model = updated.(Model)
+	if model.view != listView {
+		t.Error("successful create should return to list view")
+	}
+	if !model.loading {
+		t.Error("successful create should reload records")
+	}
+	if len(store.created) != 1 {
+		t.Fatalf("created records = %d, want 1", len(store.created))
+	}
+	created := store.created[0]
+	if created.ArtistName != "nina" || created.AlbumTitle != "solo" {
+		t.Errorf("created record mismatch: %+v", created)
+	}
+	if created.YearReleased == nil || *created.YearReleased != 1967 {
+		t.Errorf("created year = %v, want 1967", created.YearReleased)
+	}
+	if created.LabelName == nil || *created.LabelName != "RCA" {
+		t.Errorf("created label = %v, want RCA", created.LabelName)
+	}
+	if created.RecordSize == nil || *created.RecordSize != "12in" {
+		t.Errorf("created size = %v, want 12in", created.RecordSize)
+	}
+	if created.VinylColor == nil || *created.VinylColor != "blue" {
+		t.Errorf("created color = %v, want blue", created.VinylColor)
+	}
+}
+
+func TestAddViewBlocksSQLPattern(t *testing.T) {
+	m := newTestModel(testRecords())
+	m.addFields = defaultAddFields()
+	m.addFields[0].value = "Miles'; DROP TABLE records; --"
+	m.addFields[1].value = "Kind"
+
+	_, errMsg := m.addRecordFromFields()
+	if errMsg != "artist contains blocked SQL patterns" {
+		t.Errorf("errMsg = %q", errMsg)
+	}
+}
+
+func TestAddViewYearBoundsAndOverflow(t *testing.T) {
+	m := newTestModel(testRecords())
+	m.addFields = defaultAddFields()
+	m.addFields[0].value = "Miles"
+	m.addFields[1].value = "Kind"
+
+	m.addFields[2].value = "9999999999999999999999999999999999999999"
+	_, errMsg := m.addRecordFromFields()
+	if errMsg != "year must be a number" {
+		t.Errorf("overflow year errMsg = %q", errMsg)
+	}
+
+	m.addFields[2].value = "1849"
+	_, errMsg = m.addRecordFromFields()
+	if errMsg != "year must be between 1850 and "+strconv.Itoa(time.Now().Year()+1) {
+		t.Errorf("low year errMsg = %q", errMsg)
+	}
+
+	m.addFields[2].value = strconv.Itoa(time.Now().Year() + 2)
+	_, errMsg = m.addRecordFromFields()
+	if errMsg != "year must be between 1850 and "+strconv.Itoa(time.Now().Year()+1) {
+		t.Errorf("high year errMsg = %q", errMsg)
+	}
+
+	m.addFields[2].value = "1850"
+	rec, errMsg := m.addRecordFromFields()
+	if errMsg != "" {
+		t.Errorf("boundary year should pass, errMsg = %q", errMsg)
+	}
+	if rec.YearReleased == nil || *rec.YearReleased != 1850 {
+		t.Errorf("year = %v, want 1850", rec.YearReleased)
+	}
+}
+
+func TestAddViewFieldLengthLimit(t *testing.T) {
+	m := newTestModel(testRecords())
+	m.addFields = defaultAddFields()
+	m.addFields[0].value = strings.Repeat("a", maxArtistRunes)
+	m.addFields[1].value = "Kind"
+
+	_, errMsg := m.addRecordFromFields()
+	if errMsg != "" {
+		t.Errorf("max length should pass, errMsg = %q", errMsg)
+	}
+
+	m.addFields[0].value = strings.Repeat("a", maxArtistRunes+1)
+	_, errMsg = m.addRecordFromFields()
+	if errMsg != "artist is too long (max 200 chars)" {
+		t.Errorf("errMsg = %q", errMsg)
+	}
+}
+
+func TestAddAndSearchInputRuneLimits(t *testing.T) {
+	m := newTestModel(testRecords())
+	updated, _ := m.Update(keyMsg("a"))
+	m = updated.(Model)
+
+	for range maxArtistRunes + 25 {
+		updated, _ = m.Update(keyMsg("x"))
+		m = updated.(Model)
+	}
+	if utf8.RuneCountInString(m.addFields[0].value) != maxArtistRunes {
+		t.Errorf("artist rune count = %d, want %d", utf8.RuneCountInString(m.addFields[0].value), maxArtistRunes)
+	}
+
+	m.searching = true
+	m.search = ""
+	for range maxSearchRunes + 25 {
+		updated, _ = m.Update(keyMsg("x"))
+		m = updated.(Model)
+	}
+	if utf8.RuneCountInString(m.search) != maxSearchRunes {
+		t.Errorf("search rune count = %d, want %d", utf8.RuneCountInString(m.search), maxSearchRunes)
 	}
 }
 
@@ -777,6 +996,14 @@ func TestDetailProtoLabel(t *testing.T) {
 	if !strings.Contains(v.Content, "sixel") {
 		t.Error("detail should show image protocol label")
 	}
+}
+
+func typeText(m Model, text string) Model {
+	for _, r := range text {
+		updated, _ := m.Update(keyMsg(string(r)))
+		m = updated.(Model)
+	}
+	return m
 }
 
 // keyMsg creates a tea.KeyPressMsg from a string representation.

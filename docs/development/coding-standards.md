@@ -313,6 +313,13 @@ go test ./... -cover   # All packages with coverage
 golangci-lint run      # Lint (includes errcheck, staticcheck, govet, gofmt)
 ```
 
+### Bounds and overflow guards
+
+- Never slice strings using `s[:len(s)-1]` for user input. Convert to `[]rune` first.
+- Cap user-entered field lengths with rune counts (`utf8.RuneCountInString`) before append.
+- For numeric IDs from DB/external APIs, parse with `Number.parseInt(..., 10)` and require `Number.isSafeInteger(id) && id > 0` before use.
+- In Go tests, avoid prefix checks via slicing (`got[:len(want)]`). Use `strings.HasPrefix` to prevent panics.
+
 `golangci-lint` is the single lint gate. It subsumes `go vet`, `gofmt`, `errcheck`, and `staticcheck`.
 
 | Package | Coverage | Notes |

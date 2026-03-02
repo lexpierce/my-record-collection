@@ -163,8 +163,15 @@ export async function executeSync(
   for (const record of recordsToPush) {
     if (!record.discogsId) continue;
 
+    const releaseId = Number.parseInt(record.discogsId, 10);
+    if (!Number.isSafeInteger(releaseId) || releaseId <= 0) {
+      progress.errors.push(`Push ${record.discogsId}: invalid discogs id`);
+      onProgress({ ...progress });
+      continue;
+    }
+
     try {
-      await client.addToCollection(username, parseInt(record.discogsId, 10));
+      await client.addToCollection(username, releaseId);
       await getDatabase()
         .update(schema.recordsTable)
         .set({ isSyncedWithDiscogs: true })

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -153,7 +154,7 @@ func TestConnectEmptyURL(t *testing.T) {
 		t.Fatal("Connect(\"\") should return error")
 	}
 	want := "database_url not configured"
-	if got := err.Error(); got[:len(want)] != want {
+	if got := err.Error(); !strings.HasPrefix(got, want) {
 		t.Errorf("Connect error = %q, want prefix %q", got, want)
 	}
 }

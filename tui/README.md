@@ -61,6 +61,7 @@ Scrollable table of all records showing artist, album, year, label, and genres.
 | `g` / `Home` | Jump to top       |
 | `G` / `End`  | Jump to bottom    |
 | `Enter`      | Open detail view  |
+| `a`          | Add a new record  |
 | `/`          | Search            |
 | `r`          | Reload from DB    |
 | `q`          | Quit              |
@@ -78,6 +79,21 @@ active image protocol (e.g. `[image: kitty]`).
 
 Press `/` to start a search, type an artist or album name, then `Enter` to
 filter. `Esc` cancels and restores the full list.
+
+### Add Record
+
+Press `a` in list view to open the manual entry form.
+
+| Key | Action |
+|-----|--------|
+| `↑` / `k` | Previous field |
+| `↓` / `j` / `Tab` | Next field |
+| `Backspace` | Delete character |
+| `Enter` | Save record |
+| `Esc` | Cancel and return to list |
+
+Required fields: Artist, Album. Optional: Year, Label, Size, Color.
+Year must be numeric.
 
 ## Album Art
 

@@ -287,6 +287,18 @@ describe("executeSync — push phase", () => {
     expect(mockAddToCollection).not.toHaveBeenCalled();
     expect(result.pushed).toBe(0);
   });
+
+  it("skips invalid non-numeric discogsId values", async () => {
+    mockGetUserCollection.mockResolvedValue(singlePageCollection([]));
+    mockSelect
+      .mockReturnValueOnce(drizzleChain([]))
+      .mockReturnValueOnce(drizzleChain([{ recordId: "uuid-1", discogsId: "abc", isSyncedWithDiscogs: false }]));
+
+    const result = await executeSync(() => {});
+    expect(mockAddToCollection).not.toHaveBeenCalled();
+    expect(result.pushed).toBe(0);
+    expect(result.errors[0]).toContain("invalid discogs id");
+  });
 });
 
 // ---------------------------------------------------------------------------
