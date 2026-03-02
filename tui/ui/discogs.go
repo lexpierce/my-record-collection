@@ -41,21 +41,54 @@ type discogsSearchResult struct {
 	IsShapedVinyl bool
 }
 
+type discogsYear int
+
+func (y *discogsYear) UnmarshalJSON(data []byte) error {
+	trimmed := strings.TrimSpace(string(data))
+	if trimmed == "" || trimmed == "null" {
+		*y = 0
+		return nil
+	}
+
+	var number int
+	if err := json.Unmarshal(data, &number); err == nil {
+		*y = discogsYear(number)
+		return nil
+	}
+
+	var asString string
+	if err := json.Unmarshal(data, &asString); err == nil {
+		asString = strings.TrimSpace(asString)
+		if asString == "" {
+			*y = 0
+			return nil
+		}
+		parsed, err := strconv.Atoi(asString)
+		if err != nil {
+			return fmt.Errorf("invalid year value %q", asString)
+		}
+		*y = discogsYear(parsed)
+		return nil
+	}
+
+	return fmt.Errorf("invalid year value %s", trimmed)
+}
+
 type discogsSearchResponse struct {
 	Results []struct {
-		ID    int      `json:"id"`
-		Title string   `json:"title"`
-		Year  int      `json:"year"`
-		CatNo string   `json:"catno"`
+		ID    int         `json:"id"`
+		Title string      `json:"title"`
+		Year  discogsYear `json:"year"`
+		CatNo string      `json:"catno"`
 	} `json:"results"`
 }
 
 type discogsRelease struct {
-	ID         int    `json:"id"`
-	Title      string `json:"title"`
-	URI        string `json:"uri"`
-	Year       int    `json:"year"`
-	Thumb      string `json:"thumb"`
+	ID         int         `json:"id"`
+	Title      string      `json:"title"`
+	URI        string      `json:"uri"`
+	Year       discogsYear `json:"year"`
+	Thumb      string      `json:"thumb"`
 	CoverImage string `json:"cover_image"`
 	Genres     []string `json:"genres"`
 	Styles     []string `json:"styles"`
@@ -129,7 +162,7 @@ func searchDiscogs(query discogsSearchQuery) ([]discogsSearchResult, error) {
 		result := discogsSearchResult{
 			ID:    item.ID,
 			Title: item.Title,
-			Year:  yearString(item.Year),
+			Year:  yearString(int(item.Year)),
 			CatNo: strings.TrimSpace(item.CatNo),
 		}
 
@@ -155,7 +188,7 @@ func addDiscogsReleaseToStore(store db.Store, releaseID int) error {
 	rec := db.Record{
 		ArtistName:          firstArtist(release),
 		AlbumTitle:          release.Title,
-		YearReleased:        yearPointer(release.Year),
+		YearReleased:        yearPointer(int(release.Year)),
 		LabelName:           firstLabel(release),
 		CatalogNumber:       firstCatalogNumber(release),
 		DiscogsID:           stringPointer(strconv.Itoa(release.ID)),
