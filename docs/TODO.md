@@ -21,6 +21,8 @@ None.
 - [x] TUI Discogs add supports artist+album, catalog number, and UPC search modes
 - [x] TUI store insert updated to persist Discogs metadata fields (`catalog_number`, `discogs_id`, artwork URLs, UPC, format metadata, sync flag)
 - [x] Updated TUI docs/tests for Discogs-only add and delete behavior
+- [x] Fixed TUI Discogs decode failure when `results[].year` is a JSON string by adding mixed-type year unmarshalling
+- [x] Added Discogs decoder regression tests for numeric and string year payloads in `tui/ui/discogs_test.go`
 
 ## Completed (previous sessions)
 

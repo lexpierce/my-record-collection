@@ -257,6 +257,13 @@ type cachedImage struct {
 - Keep `a` mapped to Discogs add flow only (no manual add mode).
 - Keep delete as two-step confirm in list view: first `d` arms confirmation, second `d` or `y` executes delete, `esc`/`n` cancels.
 
+### Discogs JSON typing in TUI
+
+- `year` from Discogs can be either JSON number (`1984`) or JSON string (`"1984"`) in search payloads.
+- TUI decoder must use a custom unmarshal type (`discogsYear`) that accepts both formats.
+- Preserve zero-value behavior: empty string or `null` maps to `0`, then existing `yearPointer`/`yearString` helpers handle display/storage.
+- Keep regression tests covering mixed-type `year` payloads in `tui/ui/discogs_test.go`.
+
 ### go.sum maintenance
 
 After `go get`, gopls may cache stale errors. Run `go build ./...` to verify, then restart gopls.
