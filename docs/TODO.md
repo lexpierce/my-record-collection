@@ -16,10 +16,11 @@ None.
 
 ## Completed (this session)
 
-- [x] Upgraded Bun runtime references to `1.3.10` (`package.json`, `render.yaml`, `Dockerfile`, deployment docs)
-- [x] Regenerated and committed `bun.lock` via `bun update`
-- [x] Enforced lockfile installs in deploy docs/config (`bun install --frozen-lockfile`)
-- [x] Added Bun update workflow rules to `docs/development/coding-standards.md`
+- [x] TUI list view: added delete flow with two-step confirmation (`d` then `d`/`y`, cancel with `esc`/`n`)
+- [x] TUI add flow: removed manual form; Discogs search is now the only add path
+- [x] TUI Discogs add supports artist+album, catalog number, and UPC search modes
+- [x] TUI store insert updated to persist Discogs metadata fields (`catalog_number`, `discogs_id`, artwork URLs, UPC, format metadata, sync flag)
+- [x] Updated TUI docs/tests for Discogs-only add and delete behavior
 
 ## Completed (previous sessions)
 

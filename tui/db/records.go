@@ -179,12 +179,69 @@ func (s *RecordStore) Delete(ctx context.Context, id string) error {
 }
 
 func (s *RecordStore) Create(ctx context.Context, r Record) error {
+	dataSource := r.DataSource
+	if dataSource == "" {
+		dataSource = "manual"
+	}
+
 	_, err := s.pool.Exec(ctx, `
-		INSERT INTO records (artist_name, album_title, year_released, label_name,
-			record_size, vinyl_color, data_source)
-		VALUES ($1, $2, $3, $4, $5, $6, 'manual')
-	`, r.ArtistName, r.AlbumTitle, r.YearReleased, r.LabelName,
-		r.RecordSize, r.VinylColor)
+		INSERT INTO records (
+			artist_name,
+			album_title,
+			year_released,
+			label_name,
+			catalog_number,
+			discogs_id,
+			discogs_uri,
+			is_synced_with_discogs,
+			thumbnail_url,
+			cover_image_url,
+			genres,
+			styles,
+			upc_code,
+			record_size,
+			vinyl_color,
+			is_shaped_vinyl,
+			data_source
+		)
+		VALUES (
+			$1,
+			$2,
+			$3,
+			$4,
+			$5,
+			$6,
+			$7,
+			$8,
+			$9,
+			$10,
+			$11,
+			$12,
+			$13,
+			$14,
+			$15,
+			$16,
+			$17
+		)
+	`,
+		r.ArtistName,
+		r.AlbumTitle,
+		r.YearReleased,
+		r.LabelName,
+		r.CatalogNumber,
+		r.DiscogsID,
+		r.DiscogsURI,
+		r.IsSyncedWithDiscogs,
+		r.ThumbnailURL,
+		r.CoverImageURL,
+		r.Genres,
+		r.Styles,
+		r.UPCCode,
+		r.RecordSize,
+		r.VinylColor,
+		r.IsShapedVinyl,
+		dataSource,
+	)
 	if err != nil {
 		return fmt.Errorf("insert record: %w", err)
 	}

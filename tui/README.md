@@ -61,7 +61,8 @@ Scrollable table of all records showing artist, album, year, label, and genres.
 | `g` / `Home` | Jump to top       |
 | `G` / `End`  | Jump to bottom    |
 | `Enter`      | Open detail view  |
-| `a`          | Add a new record  |
+| `a`          | Add via Discogs search |
+| `d`          | Delete selected record (press twice to confirm) |
 | `/`          | Search            |
 | `r`          | Reload from DB    |
 | `q`          | Quit              |
@@ -82,18 +83,20 @@ filter. `Esc` cancels and restores the full list.
 
 ### Add Record
 
-Press `a` in list view to open the manual entry form.
+Press `a` in list view to open Discogs add.
+
+#### Discogs add
+
+Search supports three methods: artist+album, catalog number, and UPC.
 
 | Key | Action |
 |-----|--------|
-| `↑` / `k` | Previous field |
-| `↓` / `j` / `Tab` | Next field |
+| `1` / `2` / `3` | Switch search method (Artist+Album / Catalog # / UPC) |
+| `↑` / `k` | Previous field/result |
+| `↓` / `j` / `Tab` | Next field/result |
 | `Backspace` | Delete character |
-| `Enter` | Save record |
+| `Enter` | Search (in fields) or add selected result |
 | `Esc` | Cancel and return to list |
-
-Required fields: Artist, Album. Optional: Year, Label, Size, Color.
-Year must be numeric.
 
 ## Album Art
 
@@ -126,8 +129,8 @@ rendering method. The first match wins:
 ## Database
 
 Reads directly from the `records` table using `jackc/pgx`. No ORM, no
-migrations — the TUI is read-only against the existing schema managed by the
-web app's Drizzle migrations.
+migrations — the TUI writes records and deletes existing ones against the
+same schema managed by the web app's Drizzle migrations.
 
 ## Project Structure
 

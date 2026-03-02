@@ -252,6 +252,11 @@ type cachedImage struct {
 
 `~/.config/myrecords/config.toml` with `database_url` key. `DATABASE_URL` env var overrides. Simple line parser (no TOML library).
 
+### TUI add/delete key rules
+
+- Keep `a` mapped to Discogs add flow only (no manual add mode).
+- Keep delete as two-step confirm in list view: first `d` arms confirmation, second `d` or `y` executes delete, `esc`/`n` cancels.
+
 ### go.sum maintenance
 
 After `go get`, gopls may cache stale errors. Run `go build ./...` to verify, then restart gopls.

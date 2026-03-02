@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
-	"time"
 	"unicode/utf8"
 
 	tea "charm.land/bubbletea/v2"
@@ -19,68 +17,54 @@ type view int
 const (
 	listView view = iota
 	detailView
-	addView
+	addDiscogsView
 )
 
-const (
-	maxArtistRunes = 200
-	maxAlbumRunes  = 200
-	maxLabelRunes  = 120
-	maxSizeRunes   = 40
-	maxColorRunes  = 80
-	maxSearchRunes = 200
-	minReleaseYear = 1850
-)
+const maxSearchRunes = 200
 
 var sqlInjectionPattern = regexp.MustCompile(`(?i)(--|/\*|\*/|;|\b(select|union|drop|delete|insert|update|alter|truncate|create)\b)`)
 
 type Model struct {
-	store      db.Store
-	records    []db.Record
-	filtered   []db.Record
-	cursor     int
-	offset     int
-	width      int
-	height     int
-	view       view
-	search     string
-	searching  bool
-	err        error
-	loading    bool
-	imgCache   *imageCache
-	imgProto   imageProto
-	artRender  string
-	artLoading bool
-	addFields  []addField
-	addCursor  int
-	addErr     string
-	addSaving  bool
-}
-
-type addField struct {
-	label    string
-	value    string
-	required bool
+	store                db.Store
+	records              []db.Record
+	filtered             []db.Record
+	cursor               int
+	offset               int
+	width                int
+	height               int
+	view                 view
+	search               string
+	searching            bool
+	err                  error
+	loading              bool
+	imgCache             *imageCache
+	imgProto             imageProto
+	artRender            string
+	artLoading           bool
+	deleteConfirm        bool
+	deleteErr            string
+	deleting             bool
+	discogsSearchMethod  discogsSearchMethod
+	discogsArtist        string
+	discogsTitle         string
+	discogsCatalogNumber string
+	discogsUPC           string
+	discogsCursor        int
+	discogsResults       []discogsSearchResult
+	discogsResultCursor  int
+	discogsResultsFocus  bool
+	discogsErr           string
+	discogsSearching     bool
+	discogsSaving        bool
 }
 
 func NewModel(store db.Store) Model {
 	return Model{
-		store:     store,
-		loading:   true,
-		imgCache:  newImageCache(),
-		imgProto:  detectImageProto(),
-		addFields: defaultAddFields(),
-	}
-}
-
-func defaultAddFields() []addField {
-	return []addField{
-		{label: "Artist", required: true},
-		{label: "Album", required: true},
-		{label: "Year"},
-		{label: "Label"},
-		{label: "Size"},
-		{label: "Color"},
+		store:               store,
+		loading:             true,
+		imgCache:            newImageCache(),
+		imgProto:            detectImageProto(),
+		discogsSearchMethod: discogsSearchArtistTitle,
 	}
 }
 
@@ -95,7 +79,16 @@ type imageLoadedMsg struct {
 	transmit string
 }
 
-type recordCreatedMsg struct {
+type recordDeletedMsg struct {
+	err error
+}
+
+type discogsSearchResultsMsg struct {
+	results []discogsSearchResult
+	err     error
+}
+
+type discogsRecordAddedMsg struct {
 	err error
 }
 
@@ -120,10 +113,24 @@ func loadImage(proto imageProto, url string, width, height int) tea.Cmd {
 	}
 }
 
-func createRecord(store db.Store, r db.Record) tea.Cmd {
+func deleteRecord(store db.Store, id string) tea.Cmd {
 	return func() tea.Msg {
-		err := store.Create(context.Background(), r)
-		return recordCreatedMsg{err: err}
+		err := store.Delete(context.Background(), id)
+		return recordDeletedMsg{err: err}
+	}
+}
+
+func runDiscogsSearch(query discogsSearchQuery) tea.Cmd {
+	return func() tea.Msg {
+		results, err := searchDiscogs(query)
+		return discogsSearchResultsMsg{results: results, err: err}
+	}
+}
+
+func addDiscogsRecord(store db.Store, releaseID int) tea.Cmd {
+	return func() tea.Msg {
+		err := addDiscogsReleaseToStore(store, releaseID)
+		return discogsRecordAddedMsg{err: err}
 	}
 }
 
@@ -149,6 +156,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.filtered = msg.records
 		m.cursor = 0
 		m.offset = 0
+		m.deleteConfirm = false
+		m.deleting = false
+		m.deleteErr = ""
 		return m, nil
 
 	case imageLoadedMsg:
@@ -160,16 +170,41 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
-	case recordCreatedMsg:
-		m.addSaving = false
+	case recordDeletedMsg:
+		m.deleting = false
+		m.deleteConfirm = false
 		if msg.err != nil {
-			m.addErr = msg.err.Error()
+			m.deleteErr = msg.err.Error()
 			return m, nil
 		}
+		m.deleteErr = ""
+		m.loading = true
+		return m, loadRecords(m.store)
+
+	case discogsSearchResultsMsg:
+		m.discogsSearching = false
+		if msg.err != nil {
+			m.discogsErr = msg.err.Error()
+			return m, nil
+		}
+		m.discogsErr = ""
+		m.discogsResults = msg.results
+		m.discogsResultCursor = 0
+		m.discogsResultsFocus = len(msg.results) > 0
+		if len(msg.results) == 0 {
+			m.discogsErr = "No results found. Try a different search."
+		}
+		return m, nil
+
+	case discogsRecordAddedMsg:
+		m.discogsSaving = false
+		if msg.err != nil {
+			m.discogsErr = msg.err.Error()
+			return m, nil
+		}
+		m.discogsErr = ""
+		m.resetDiscogsAddState()
 		m.view = listView
-		m.addFields = defaultAddFields()
-		m.addCursor = 0
-		m.addErr = ""
 		m.loading = true
 		return m, loadRecords(m.store)
 
@@ -192,8 +227,8 @@ func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		return m.handleListKey(key)
 	case detailView:
 		return m.handleDetailKey(key)
-	case addView:
-		return m.handleAddKey(key)
+	case addDiscogsView:
+		return m.handleAddDiscogsKey(key)
 	}
 
 	return m, nil
@@ -238,6 +273,7 @@ func (m Model) handleListKey(key string) (tea.Model, tea.Cmd) {
 				m.offset = m.cursor
 			}
 		}
+		m.deleteConfirm = false
 	case "down", "j":
 		if m.cursor < len(m.filtered)-1 {
 			m.cursor++
@@ -246,13 +282,16 @@ func (m Model) handleListKey(key string) (tea.Model, tea.Cmd) {
 				m.offset = m.cursor - visible + 1
 			}
 		}
+		m.deleteConfirm = false
 	case "home", "g":
 		m.cursor = 0
 		m.offset = 0
+		m.deleteConfirm = false
 	case "end", "G":
 		m.cursor = max(0, len(m.filtered)-1)
 		visible := m.listVisibleRows()
 		m.offset = max(0, m.cursor-visible+1)
+		m.deleteConfirm = false
 	case "enter":
 		if len(m.filtered) > 0 {
 			m.view = detailView
@@ -273,14 +312,28 @@ func (m Model) handleListKey(key string) (tea.Model, tea.Cmd) {
 	case "/":
 		m.searching = true
 		m.search = ""
+		m.deleteConfirm = false
 	case "a":
-		m.view = addView
-		m.addFields = defaultAddFields()
-		m.addCursor = 0
-		m.addErr = ""
-		m.addSaving = false
+		m.view = addDiscogsView
+		m.resetDiscogsAddState()
+	case "d", "y":
+		if len(m.filtered) == 0 || m.deleting {
+			return m, nil
+		}
+		if !m.deleteConfirm {
+			m.deleteConfirm = true
+			m.deleteErr = ""
+			return m, nil
+		}
+		m.deleting = true
+		recordID := m.filtered[m.cursor].RecordID
+		return m, deleteRecord(m.store, recordID)
+	case "esc", "n":
+		m.deleteConfirm = false
 	case "r":
 		m.loading = true
+		m.deleteConfirm = false
+		m.deleteErr = ""
 		return m, loadRecords(m.store)
 	}
 	return m, nil
@@ -297,158 +350,198 @@ func (m Model) handleDetailKey(key string) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) handleAddKey(key string) (tea.Model, tea.Cmd) {
+func (m Model) handleAddDiscogsKey(key string) (tea.Model, tea.Cmd) {
 	switch key {
 	case "ctrl+c":
 		return m, tea.Quit
 	case "esc":
 		m.view = listView
-		m.addErr = ""
-		m.addSaving = false
+		m.discogsErr = ""
+		m.discogsSearching = false
+		m.discogsSaving = false
 		return m, nil
+	case "1":
+		m.discogsSearchMethod = discogsSearchArtistTitle
+		m.discogsCursor = 0
+		m.discogsResultsFocus = false
+		m.discogsErr = ""
+		return m, nil
+	case "2":
+		m.discogsSearchMethod = discogsSearchCatalog
+		m.discogsCursor = 0
+		m.discogsResultsFocus = false
+		m.discogsErr = ""
+		return m, nil
+	case "3":
+		m.discogsSearchMethod = discogsSearchUPC
+		m.discogsCursor = 0
+		m.discogsResultsFocus = false
+		m.discogsErr = ""
+		return m, nil
+	}
+
+	if m.discogsResultsFocus {
+		switch key {
+		case "up", "k":
+			if m.discogsResultCursor > 0 {
+				m.discogsResultCursor--
+			}
+			return m, nil
+		case "down", "j":
+			if m.discogsResultCursor < len(m.discogsResults)-1 {
+				m.discogsResultCursor++
+			}
+			return m, nil
+		case "tab", "shift+tab":
+			m.discogsResultsFocus = false
+			return m, nil
+		case "enter":
+			if m.discogsSaving || m.discogsSearching || len(m.discogsResults) == 0 {
+				return m, nil
+			}
+			m.discogsSaving = true
+			m.discogsErr = ""
+			releaseID := m.discogsResults[m.discogsResultCursor].ID
+			return m, addDiscogsRecord(m.store, releaseID)
+		}
+	}
+
+	switch key {
 	case "up", "k":
-		if m.addCursor > 0 {
-			m.addCursor--
+		if m.discogsCursor > 0 {
+			m.discogsCursor--
 		}
 		return m, nil
 	case "down", "j", "tab":
-		if m.addCursor < len(m.addFields)-1 {
-			m.addCursor++
+		if m.discogsCursor < m.discogsFieldCount()-1 {
+			m.discogsCursor++
+		} else if len(m.discogsResults) > 0 {
+			m.discogsResultsFocus = true
 		}
 		return m, nil
 	case "shift+tab":
-		if m.addCursor > 0 {
-			m.addCursor--
+		if m.discogsCursor > 0 {
+			m.discogsCursor--
 		}
 		return m, nil
 	case "backspace":
-		if m.addSaving || len(m.addFields) == 0 {
+		if m.discogsSearching || m.discogsSaving {
 			return m, nil
 		}
-		field := &m.addFields[m.addCursor]
-		if len(field.value) > 0 {
-			runes := []rune(field.value)
-			field.value = string(runes[:len(runes)-1])
+		field := m.activeDiscogsField()
+		runes := []rune(*field)
+		if len(runes) > 0 {
+			*field = string(runes[:len(runes)-1])
 		}
 		return m, nil
 	case "enter":
-		if m.addSaving {
+		if m.discogsSearching || m.discogsSaving {
 			return m, nil
 		}
-		rec, validationErr := m.addRecordFromFields()
-		if validationErr != "" {
-			m.addErr = validationErr
+		query, errMsg := m.discogsQueryFromState()
+		if errMsg != "" {
+			m.discogsErr = errMsg
 			return m, nil
 		}
-		m.addErr = ""
-		m.addSaving = true
-		return m, createRecord(m.store, rec)
+		m.discogsErr = ""
+		m.discogsResults = nil
+		m.discogsResultCursor = 0
+		m.discogsResultsFocus = false
+		m.discogsSearching = true
+		return m, runDiscogsSearch(query)
 	default:
-		if m.addSaving || len(m.addFields) == 0 {
+		if len(key) != 1 || m.discogsSearching || m.discogsSaving {
 			return m, nil
 		}
-		if len(key) == 1 {
-			field := &m.addFields[m.addCursor]
-			if utf8.RuneCountInString(field.value) < maxFieldLength(m.addCursor) {
-				field.value += key
-			}
+		field := m.activeDiscogsField()
+		if utf8.RuneCountInString(*field) < maxSearchRunes {
+			*field += key
 		}
 		return m, nil
 	}
 }
 
-func (m Model) addRecordFromFields() (db.Record, string) {
-	if len(m.addFields) < 2 {
-		return db.Record{}, "add form is not initialized"
-	}
-
-	artist, errMsg := validateTextField(m.addFields[0].value, "artist", true, maxArtistRunes)
-	if errMsg != "" {
-		return db.Record{}, errMsg
-	}
-	album, errMsg := validateTextField(m.addFields[1].value, "album", true, maxAlbumRunes)
-	if errMsg != "" {
-		return db.Record{}, errMsg
-	}
-
-	rec := db.Record{
-		ArtistName: artist,
-		AlbumTitle: album,
-	}
-
-	yearText := strings.TrimSpace(m.addFields[2].value)
-	if yearText != "" {
-		year, err := strconv.Atoi(yearText)
-		if err != nil {
-			return db.Record{}, "year must be a number"
-		}
-		if year < minReleaseYear || year > time.Now().Year()+1 {
-			return db.Record{}, fmt.Sprintf("year must be between %d and %d", minReleaseYear, time.Now().Year()+1)
-		}
-		rec.YearReleased = &year
-	}
-
-	label, errMsg := validateTextField(m.addFields[3].value, "label", false, maxLabelRunes)
-	if errMsg != "" {
-		return db.Record{}, errMsg
-	}
-	if label != "" {
-		rec.LabelName = &label
-	}
-
-	size, errMsg := validateTextField(m.addFields[4].value, "size", false, maxSizeRunes)
-	if errMsg != "" {
-		return db.Record{}, errMsg
-	}
-	if size != "" {
-		rec.RecordSize = &size
-	}
-
-	color, errMsg := validateTextField(m.addFields[5].value, "color", false, maxColorRunes)
-	if errMsg != "" {
-		return db.Record{}, errMsg
-	}
-	if color != "" {
-		rec.VinylColor = &color
-	}
-
-	return rec, ""
+func (m *Model) resetDiscogsAddState() {
+	m.discogsSearchMethod = discogsSearchArtistTitle
+	m.discogsArtist = ""
+	m.discogsTitle = ""
+	m.discogsCatalogNumber = ""
+	m.discogsUPC = ""
+	m.discogsCursor = 0
+	m.discogsResults = nil
+	m.discogsResultCursor = 0
+	m.discogsResultsFocus = false
+	m.discogsErr = ""
+	m.discogsSearching = false
+	m.discogsSaving = false
 }
 
-func maxFieldLength(fieldIndex int) int {
-	switch fieldIndex {
-	case 0:
-		return maxArtistRunes
-	case 1:
-		return maxAlbumRunes
-	case 2:
-		return 4
-	case 3:
-		return maxLabelRunes
-	case 4:
-		return maxSizeRunes
-	case 5:
-		return maxColorRunes
+func (m Model) discogsFieldCount() int {
+	if m.discogsSearchMethod == discogsSearchArtistTitle {
+		return 2
+	}
+	return 1
+}
+
+func (m *Model) activeDiscogsField() *string {
+	if m.discogsSearchMethod == discogsSearchArtistTitle {
+		if m.discogsCursor == 0 {
+			return &m.discogsArtist
+		}
+		return &m.discogsTitle
+	}
+	if m.discogsSearchMethod == discogsSearchCatalog {
+		return &m.discogsCatalogNumber
+	}
+	return &m.discogsUPC
+}
+
+func (m Model) discogsQueryFromState() (discogsSearchQuery, string) {
+	switch m.discogsSearchMethod {
+	case discogsSearchCatalog:
+		catalog := strings.TrimSpace(m.discogsCatalogNumber)
+		if catalog == "" {
+			return discogsSearchQuery{}, "catalog number is required"
+		}
+		if utf8.RuneCountInString(catalog) > maxSearchRunes {
+			return discogsSearchQuery{}, fmt.Sprintf("catalog number is too long (max %d chars)", maxSearchRunes)
+		}
+		if sqlInjectionPattern.MatchString(catalog) {
+			return discogsSearchQuery{}, "catalog number contains blocked SQL patterns"
+		}
+		return discogsSearchQuery{Method: discogsSearchCatalog, Catalog: catalog}, ""
+	case discogsSearchUPC:
+		upc := strings.TrimSpace(m.discogsUPC)
+		if upc == "" {
+			return discogsSearchQuery{}, "upc is required"
+		}
+		if utf8.RuneCountInString(upc) > maxSearchRunes {
+			return discogsSearchQuery{}, fmt.Sprintf("upc is too long (max %d chars)", maxSearchRunes)
+		}
+		if sqlInjectionPattern.MatchString(upc) {
+			return discogsSearchQuery{}, "upc contains blocked SQL patterns"
+		}
+		return discogsSearchQuery{Method: discogsSearchUPC, UPC: upc}, ""
 	default:
-		return maxArtistRunes
+		artist := strings.TrimSpace(m.discogsArtist)
+		title := strings.TrimSpace(m.discogsTitle)
+		if artist == "" || title == "" {
+			return discogsSearchQuery{}, "artist and album are required"
+		}
+		if utf8.RuneCountInString(artist) > maxSearchRunes {
+			return discogsSearchQuery{}, fmt.Sprintf("artist is too long (max %d chars)", maxSearchRunes)
+		}
+		if utf8.RuneCountInString(title) > maxSearchRunes {
+			return discogsSearchQuery{}, fmt.Sprintf("album is too long (max %d chars)", maxSearchRunes)
+		}
+		if sqlInjectionPattern.MatchString(artist) {
+			return discogsSearchQuery{}, "artist contains blocked SQL patterns"
+		}
+		if sqlInjectionPattern.MatchString(title) {
+			return discogsSearchQuery{}, "album contains blocked SQL patterns"
+		}
+		return discogsSearchQuery{Method: discogsSearchArtistTitle, Artist: artist, Title: title}, ""
 	}
-}
-
-func validateTextField(input, name string, required bool, maxRunes int) (string, string) {
-	value := strings.TrimSpace(input)
-	if required && value == "" {
-		return "", "artist and album are required"
-	}
-	if value == "" {
-		return "", ""
-	}
-	if utf8.RuneCountInString(value) > maxRunes {
-		return "", fmt.Sprintf("%s is too long (max %d chars)", name, maxRunes)
-	}
-	if sqlInjectionPattern.MatchString(value) {
-		return "", fmt.Sprintf("%s contains blocked SQL patterns", name)
-	}
-	return value, ""
 }
 
 func (m Model) listVisibleRows() int {
@@ -466,8 +559,8 @@ func (m Model) View() tea.View {
 		s = m.renderList()
 	case detailView:
 		s = m.renderDetail()
-	case addView:
-		s = m.renderAdd()
+	case addDiscogsView:
+		s = m.renderAddDiscogs()
 	}
 
 	return tea.NewView(s)
@@ -497,16 +590,19 @@ func (m Model) renderList() string {
 	}
 	if len(m.filtered) == 0 {
 		b.WriteString("\n  No records found.\n")
+		if m.deleteErr != "" {
+			b.WriteString(errorStyle.Render("  "+m.deleteErr) + "\n")
+		}
 		b.WriteString(m.renderHelp())
 		return b.String()
 	}
 
 	colW := m.columnWidths()
 	header := headerStyle.Render(
-		truncPad("Artist", colW[0]) + " " +
-			truncPad("Album", colW[1]) + " " +
-			truncPad("Year", colW[2]) + " " +
-			truncPad("Label", colW[3]) + " " +
+		truncPad("Artist", colW[0])+" "+
+			truncPad("Album", colW[1])+" "+
+			truncPad("Year", colW[2])+" "+
+			truncPad("Label", colW[3])+" "+
 			truncPad("Genres", colW[4]))
 	b.WriteString(header + "\n")
 
@@ -531,6 +627,13 @@ func (m Model) renderList() string {
 	if len(m.filtered) > visible {
 		scrollInfo := fmt.Sprintf(" %d-%d of %d ", m.offset+1, end, len(m.filtered))
 		b.WriteString(statusBarStyle.Render(scrollInfo) + "\n")
+	}
+
+	if m.deleteErr != "" {
+		b.WriteString(errorStyle.Render("  "+m.deleteErr) + "\n")
+	}
+	if m.deleteConfirm {
+		b.WriteString(errorStyle.Render("  delete selected record? press d again (or y) to confirm, esc/n to cancel") + "\n")
 	}
 
 	b.WriteString(m.renderHelp())
@@ -609,53 +712,118 @@ func (m Model) renderDetail() string {
 	return b.String()
 }
 
-func (m Model) renderAdd() string {
+func (m Model) renderAddDiscogs() string {
 	var b strings.Builder
-
 	title := titleStyle.Render("♫ Add Record")
-	status := statusBarStyle.Render("manual entry")
+	status := statusBarStyle.Render("discogs search")
 	b.WriteString(lipgloss.JoinHorizontal(lipgloss.Center, title, "  ", status))
 	b.WriteString("\n\n")
 
-	for i, field := range m.addFields {
-		prefix := "  "
-		if i == m.addCursor {
-			prefix = "→ "
-		}
+	methodLine := "  Methods: "
+	if m.discogsSearchMethod == discogsSearchArtistTitle {
+		methodLine += selectedRowStyle.Render("1 Artist+Album") + "  2 Catalog #  3 UPC"
+	} else if m.discogsSearchMethod == discogsSearchCatalog {
+		methodLine += "1 Artist+Album  " + selectedRowStyle.Render("2 Catalog #") + "  3 UPC"
+	} else {
+		methodLine += "1 Artist+Album  2 Catalog #  " + selectedRowStyle.Render("3 UPC")
+	}
+	b.WriteString(methodLine)
+	b.WriteString("\n\n")
 
-		name := field.label
-		if field.required {
-			name += "*"
+	if m.discogsSearchMethod == discogsSearchArtistTitle {
+		artist := m.discogsArtist
+		titleValue := m.discogsTitle
+		if !m.discogsResultsFocus && m.discogsCursor == 0 && !m.discogsSearching && !m.discogsSaving {
+			artist += "█"
 		}
+		if !m.discogsResultsFocus && m.discogsCursor == 1 && !m.discogsSearching && !m.discogsSaving {
+			titleValue += "█"
+		}
+		artistLine := "  Artist: " + artist
+		titleLine := "  Album: " + titleValue
+		if !m.discogsResultsFocus && m.discogsCursor == 0 {
+			artistLine = selectedRowStyle.Render("→ " + strings.TrimPrefix(artistLine, "  "))
+		}
+		if !m.discogsResultsFocus && m.discogsCursor == 1 {
+			titleLine = selectedRowStyle.Render("→ " + strings.TrimPrefix(titleLine, "  "))
+		}
+		b.WriteString(artistLine + "\n")
+		b.WriteString(titleLine + "\n")
+	} else if m.discogsSearchMethod == discogsSearchCatalog {
+		catalog := m.discogsCatalogNumber
+		if !m.discogsResultsFocus && !m.discogsSearching && !m.discogsSaving {
+			catalog += "█"
+		}
+		line := "  Catalog #: " + catalog
+		if !m.discogsResultsFocus {
+			line = selectedRowStyle.Render("→ " + strings.TrimPrefix(line, "  "))
+		}
+		b.WriteString(line + "\n")
+	} else {
+		upc := m.discogsUPC
+		if !m.discogsResultsFocus && !m.discogsSearching && !m.discogsSaving {
+			upc += "█"
+		}
+		line := "  UPC: " + upc
+		if !m.discogsResultsFocus {
+			line = selectedRowStyle.Render("→ " + strings.TrimPrefix(line, "  "))
+		}
+		b.WriteString(line + "\n")
+	}
 
-		value := field.value
-		if i == m.addCursor && !m.addSaving {
-			value += "█"
-		}
-
-		line := fmt.Sprintf("%s%s: %s", prefix, name, value)
-		if i == m.addCursor {
-			b.WriteString(selectedRowStyle.Render(line))
-		} else {
-			b.WriteString(normalRowStyle.Render(line))
-		}
+	if m.discogsSearching {
+		b.WriteString("\n")
+		b.WriteString(statusBarStyle.Render("Searching Discogs..."))
+		b.WriteString("\n")
+	}
+	if m.discogsSaving {
+		b.WriteString("\n")
+		b.WriteString(statusBarStyle.Render("Adding selected release..."))
+		b.WriteString("\n")
+	}
+	if m.discogsErr != "" {
+		b.WriteString("\n")
+		b.WriteString(errorStyle.Render("  " + m.discogsErr))
 		b.WriteString("\n")
 	}
 
-	if m.addErr != "" {
+	if len(m.discogsResults) > 0 {
 		b.WriteString("\n")
-		b.WriteString(errorStyle.Render("  " + m.addErr))
+		b.WriteString(statusBarStyle.Render(fmt.Sprintf("Results (%d)", len(m.discogsResults))))
 		b.WriteString("\n")
-	}
-
-	if m.addSaving {
-		b.WriteString("\n")
-		b.WriteString(statusBarStyle.Render("Saving..."))
-		b.WriteString("\n")
+		for i, result := range m.discogsResults {
+			prefix := "  "
+			if m.discogsResultsFocus && i == m.discogsResultCursor {
+				prefix = "→ "
+			}
+			parts := []string{result.Title}
+			if result.Year != "" {
+				parts = append(parts, result.Year)
+			}
+			if result.CatNo != "" {
+				parts = append(parts, "Cat#: "+result.CatNo)
+			}
+			if result.RecordSize != "" {
+				parts = append(parts, result.RecordSize)
+			}
+			if result.VinylColor != "" {
+				parts = append(parts, result.VinylColor)
+			}
+			if result.IsShapedVinyl {
+				parts = append(parts, "Picture Disc")
+			}
+			line := prefix + strings.Join(parts, " • ")
+			if m.discogsResultsFocus && i == m.discogsResultCursor {
+				b.WriteString(selectedRowStyle.Render(line))
+			} else {
+				b.WriteString(normalRowStyle.Render(line))
+			}
+			b.WriteString("\n")
+		}
 	}
 
 	b.WriteString("\n")
-	b.WriteString(helpStyle.Render("  enter save  tab/down next  shift+tab/up prev  esc cancel  ctrl+c quit"))
+	b.WriteString(helpStyle.Render("  enter search/add  tab switch fields/results  1/2/3 method  esc cancel  ctrl+c quit"))
 
 	return b.String()
 }
@@ -664,7 +832,7 @@ func (m Model) renderHelp() string {
 	if m.searching {
 		return helpStyle.Render("  enter confirm  esc cancel")
 	}
-	return helpStyle.Render("  ↑/k up  ↓/j down  enter detail  a add  / search  r reload  q quit")
+	return helpStyle.Render("  ↑/k up  ↓/j down  enter detail  a add discogs  d delete  / search  r reload  q quit")
 }
 
 func (m Model) columnWidths() [5]int {
