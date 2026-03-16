@@ -365,7 +365,7 @@ func (m Model) handleListKey(key string) (tea.Model, tea.Cmd) {
 	switch key {
 	case "q", "ctrl+c":
 		return m, tea.Quit
-	case "up", "k":
+	case "up":
 		if m.cursor > 0 {
 			m.cursor--
 			if m.cursor < m.offset {
@@ -373,7 +373,7 @@ func (m Model) handleListKey(key string) (tea.Model, tea.Cmd) {
 			}
 		}
 		m.deleteConfirm = false
-	case "down", "j":
+	case "down":
 		if m.cursor < len(m.filtered)-1 {
 			m.cursor++
 			visible := m.listVisibleRows()
@@ -497,12 +497,12 @@ func (m Model) handleAddDiscogsKey(key string) (tea.Model, tea.Cmd) {
 
 	if m.discogsResultsFocus {
 		switch key {
-		case "up", "k":
+			case "up":
 			if m.discogsResultCursor > 0 {
 				m.discogsResultCursor--
 			}
 			return m, nil
-		case "down", "j":
+		case "down":
 			if m.discogsResultCursor < len(m.discogsResults)-1 {
 				m.discogsResultCursor++
 			}
@@ -522,12 +522,12 @@ func (m Model) handleAddDiscogsKey(key string) (tea.Model, tea.Cmd) {
 	}
 
 	switch key {
-	case "up", "k":
+	case "up":
 		if m.discogsCursor > 0 {
 			m.discogsCursor--
 		}
 		return m, nil
-	case "down", "j", "tab":
+	case "down", "tab":
 		if m.discogsCursor < m.discogsFieldCount()-1 {
 			m.discogsCursor++
 		} else if len(m.discogsResults) > 0 {
@@ -960,16 +960,50 @@ func (m Model) renderAddDiscogs() string {
 	}
 
 	b.WriteString("\n")
-	b.WriteString(helpStyle.Render("  enter search/add  tab switch fields/results  1/2/3 method  esc cancel  ctrl+c quit"))
+	helpItems := []string{
+		helpItem("enter", "search/add"),
+		helpItem("tab", "switch fields/results"),
+		helpItem("1/2/3", "method"),
+		helpItem("esc", "cancel"),
+		helpItem("ctrl+c", "quit"),
+	}
+	b.WriteString("  " + strings.Join(helpItems, helpSep()))
 
 	return b.String()
 }
 
+func helpKey(key string) string {
+	return helpKeyStyle.Render(key)
+}
+
+func helpSep() string {
+	return helpSepStyle.Render(" │ ")
+}
+
+func helpItem(key, desc string) string {
+	return helpKey(key) + helpDescStyle.Render(" "+desc)
+}
+
 func (m Model) renderHelp() string {
 	if m.searching {
-		return helpStyle.Render("  enter confirm  esc cancel")
+		items := []string{
+			helpItem("enter", "confirm"),
+			helpItem("esc", "cancel"),
+		}
+		return "  " + strings.Join(items, helpSep())
 	}
-	return helpStyle.Render("  ↑/k up  ↓/j down  enter detail  a add discogs  M add manual  d delete  / search  s sync  r reload  q quit")
+	items := []string{
+		helpItem("↑↓", "scroll"),
+		helpItem("enter", "detail"),
+		helpItem("a", "add discogs"),
+		helpItem("M", "add manual"),
+		helpItem("d", "delete"),
+		helpItem("/", "search"),
+		helpItem("s", "sync"),
+		helpItem("r", "reload"),
+		helpItem("q", "quit"),
+	}
+	return "  " + strings.Join(items, helpSep())
 }
 
 func (m Model) columnWidths() [5]int {
@@ -1069,12 +1103,12 @@ func (m Model) handleAddManualKey(key string) (tea.Model, tea.Cmd) {
 		m.manualErr = ""
 		m.manualSaving = false
 		return m, nil
-	case "up", "k":
+	case "up":
 		if m.manualCursor > 0 {
 			m.manualCursor--
 		}
 		return m, nil
-	case "down", "j", "tab":
+	case "down", "tab":
 		if m.manualCursor < manualFieldCount-1 {
 			m.manualCursor++
 		}
@@ -1203,6 +1237,12 @@ func (m Model) renderAddManual() string {
 	}
 
 	b.WriteString("\n")
-	b.WriteString(helpStyle.Render("  * required  enter save  tab/↑↓ navigate  esc cancel  ctrl+c quit"))
+	manualHelpItems := []string{
+		helpItem("enter", "save"),
+		helpItem("tab/↑↓", "navigate"),
+		helpItem("esc", "cancel"),
+		helpItem("ctrl+c", "quit"),
+	}
+	b.WriteString("  " + strings.Join(manualHelpItems, helpSep()))
 	return b.String()
 }

@@ -204,14 +204,14 @@ func TestListNavigationJK(t *testing.T) {
 
 	updated, _ := m.Update(keyMsg("j"))
 	model := updated.(Model)
-	if model.cursor != 1 {
-		t.Errorf("cursor after j = %d, want 1", model.cursor)
+	if model.cursor != 0 {
+		t.Errorf("j should not move cursor, got %d", model.cursor)
 	}
 
 	updated, _ = model.Update(keyMsg("k"))
 	model = updated.(Model)
 	if model.cursor != 0 {
-		t.Errorf("cursor after k = %d, want 0", model.cursor)
+		t.Errorf("k should not move cursor, got %d", model.cursor)
 	}
 }
 
