@@ -15,6 +15,28 @@ const handleUpdateFromDiscogs = async () => { ... }
 const update = async () => { ... }
 ```
 
+**Acronym casing**: Acronyms follow camelCase position — all-caps when leading a
+capitalized segment, all-lowercase when starting a local variable.
+
+| Context | Correct | Wrong |
+|---------|---------|-------|
+| Local variable | `databaseURL`, `baseURL`, `releaseID` | `databaseUrl`, `baseUrl`, `releaseId` |
+| camelCase field | `thumbnailUrl` → NO — Drizzle schema exception (see below) | — |
+| Class private field | `baseURL` | `baseUrl` |
+
+Drizzle ORM schema fields use lowercase acronyms (`discogsId`, `thumbnailUrl`,
+`coverImageUrl`) because Drizzle's snake_case→camelCase mapping produces that
+form. This is intentional and consistent; do not change schema field names.
+
+**Private implementation details**: The verbose-name rule has one carve-out —
+private fields/variables that never appear in a public API may use established
+abbreviations when the full form is disproportionately long.
+
+```typescript
+private readonly minDelayMs: number;  // YES — private, Ms is established
+private readonly minimumDelayMilliseconds: number;  // NO — over-verbose
+```
+
 ### Verifying before deleting
 
 Before removing any import, field, variable, or function: `rg -n "<name>" app/ lib/ components/`. Static analysis misses cross-file usages.
