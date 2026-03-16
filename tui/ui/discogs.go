@@ -438,6 +438,12 @@ func executeSync(store db.Store, onProgress func(syncProgress)) error {
 		}
 		discogsID := *rec.DiscogsID
 		if _, inCollection := discogsCollectionIDs[discogsID]; inCollection {
+			if markErr := store.MarkSyncedWithDiscogs(ctx, []string{discogsID}); markErr != nil {
+				progress.Errors = append(progress.Errors, fmt.Sprintf("mark synced %s: %s", discogsID, markErr.Error()))
+			} else {
+				progress.Pushed++
+			}
+			onProgress(progress)
 			continue
 		}
 
