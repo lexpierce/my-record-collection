@@ -15,7 +15,6 @@ import (
 
 	"my-record-collection-tui/db"
 )
-
 type discogsSearchMethod int
 
 const (
@@ -243,6 +242,236 @@ func addToDiscogsCollection(username string, releaseID int) error {
 	endpoint := "/users/" + url.PathEscape(username) + "/collection/folders/1/releases/" + strconv.Itoa(releaseID)
 	_, err := discogsRequest(http.MethodPost, baseURL, endpoint)
 	return err
+}
+
+type discogsCollectionBasicInfo struct {
+	ID           int         `json:"id"`
+	Title        string      `json:"title"`
+	Year         discogsYear `json:"year"`
+	Thumb        string      `json:"thumb"`
+	CoverImage   string      `json:"cover_image"`
+	ResourceURL  string      `json:"resource_url"`
+	Formats      []struct {
+		Name         string   `json:"name"`
+		Descriptions []string `json:"descriptions"`
+		Text         string   `json:"text"`
+	} `json:"formats"`
+	Labels  []struct {
+		Name  string `json:"name"`
+		CatNo string `json:"catno"`
+	} `json:"labels"`
+	Genres  []string `json:"genres"`
+	Styles  []string `json:"styles"`
+	Artists []struct {
+		Name string `json:"name"`
+	} `json:"artists"`
+}
+
+type discogsCollectionRelease struct {
+	BasicInformation discogsCollectionBasicInfo `json:"basic_information"`
+}
+
+type discogsCollectionResponse struct {
+	Pagination struct {
+		Page    int `json:"page"`
+		Pages   int `json:"pages"`
+		PerPage int `json:"per_page"`
+		Items   int `json:"items"`
+	} `json:"pagination"`
+	Releases []discogsCollectionRelease `json:"releases"`
+}
+
+type syncProgress struct {
+	Phase             string
+	Pulled            int
+	Pushed            int
+	Skipped           int
+	Errors            []string
+	TotalDiscogsItems int
+}
+
+func getUserCollection(username string, page int) (discogsCollectionResponse, error) {
+	baseURL := os.Getenv("DISCOGS_BASE_URL")
+	if strings.TrimSpace(baseURL) == "" {
+		baseURL = "https://api.discogs.com"
+	}
+
+	endpoint := fmt.Sprintf(
+		"/users/%s/collection/folders/0/releases?page=%d&per_page=100&sort=added&sort_order=desc",
+		url.PathEscape(username), page,
+	)
+
+	var response discogsCollectionResponse
+	if err := discogsGetJSON(baseURL, endpoint, &response); err != nil {
+		return discogsCollectionResponse{}, err
+	}
+	return response, nil
+}
+
+func collectionReleaseToRecord(info discogsCollectionBasicInfo) db.Record {
+	release := discogsRelease{
+		ID:         info.ID,
+		Title:      info.Title,
+		Year:       info.Year,
+		Thumb:      info.Thumb,
+		CoverImage: info.CoverImage,
+		URI:        info.ResourceURL,
+		Genres:     info.Genres,
+		Styles:     info.Styles,
+	}
+	for _, a := range info.Artists {
+		release.Artists = append(release.Artists, struct {
+			Name string `json:"name"`
+		}{Name: a.Name})
+	}
+	for _, l := range info.Labels {
+		release.Labels = append(release.Labels, struct {
+			Name  string `json:"name"`
+			CatNo string `json:"catno"`
+		}{Name: l.Name, CatNo: l.CatNo})
+	}
+	for _, f := range info.Formats {
+		release.Formats = append(release.Formats, struct {
+			Name         string   `json:"name"`
+			Descriptions []string `json:"descriptions"`
+			Text         string   `json:"text"`
+		}{Name: f.Name, Descriptions: f.Descriptions, Text: f.Text})
+	}
+
+	discogsIDStr := strconv.Itoa(info.ID)
+	return db.Record{
+		ArtistName:          firstArtist(release),
+		AlbumTitle:          release.Title,
+		YearReleased:        yearPointer(int(release.Year)),
+		LabelName:           firstLabel(release),
+		CatalogNumber:       firstCatalogNumber(release),
+		DiscogsID:           stringPointer(discogsIDStr),
+		DiscogsURI:          nonEmptyPointer(release.URI),
+		ThumbnailURL:        nonEmptyPointer(release.Thumb),
+		CoverImageURL:       nonEmptyPointer(release.CoverImage),
+		Genres:              release.Genres,
+		Styles:              release.Styles,
+		RecordSize:          nonEmptyPointer(extractRecordSize(release)),
+		VinylColor:          nonEmptyPointer(extractVinylColor(release)),
+		IsShapedVinyl:       boolPointer(isShapedVinyl(release)),
+		DataSource:          "discogs",
+		IsSyncedWithDiscogs: true,
+	}
+}
+
+func executeSync(store db.Store, onProgress func(syncProgress)) error {
+	username := strings.TrimSpace(os.Getenv("DISCOGS_USERNAME"))
+	if username == "" {
+		return fmt.Errorf("DISCOGS_USERNAME is required for sync")
+	}
+
+	ctx := context.Background()
+	progress := syncProgress{Phase: "pull"}
+	onProgress(progress)
+
+	existingIDs, err := store.ListDiscogsIDs(ctx)
+	if err != nil {
+		return fmt.Errorf("list discogs ids: %w", err)
+	}
+
+	discogsCollectionIDs := make(map[string]struct{})
+	page := 1
+	totalPages := 1
+
+	for page <= totalPages {
+		response, err := getUserCollection(username, page)
+		if err != nil {
+			return fmt.Errorf("fetch discogs collection page %d: %w", page, err)
+		}
+		totalPages = response.Pagination.Pages
+		progress.TotalDiscogsItems = response.Pagination.Items
+
+		for _, release := range response.Releases {
+			info := release.BasicInformation
+			discogsID := strconv.Itoa(info.ID)
+			discogsCollectionIDs[discogsID] = struct{}{}
+
+			if _, exists := existingIDs[discogsID]; exists {
+				progress.Skipped++
+				continue
+			}
+
+			rec := collectionReleaseToRecord(info)
+			if createErr := store.Create(ctx, rec); createErr != nil {
+				msg := createErr.Error()
+				if strings.Contains(msg, "unique") || strings.Contains(msg, "duplicate") {
+					progress.Skipped++
+				} else {
+					progress.Errors = append(progress.Errors, fmt.Sprintf("pull %s: %s", discogsID, msg))
+				}
+			} else {
+				progress.Pulled++
+				existingIDs[discogsID] = struct{}{}
+			}
+		}
+
+		onProgress(progress)
+		page++
+	}
+
+	idsToMark := make([]string, 0, len(discogsCollectionIDs))
+	for id := range discogsCollectionIDs {
+		idsToMark = append(idsToMark, id)
+	}
+	if len(idsToMark) > 0 {
+		if markErr := store.MarkSyncedWithDiscogs(ctx, idsToMark); markErr != nil {
+			progress.Errors = append(progress.Errors, fmt.Sprintf("mark synced: %s", markErr.Error()))
+		}
+	}
+
+	progress.Phase = "push"
+	onProgress(progress)
+
+	unsyncedRecords, err := store.ListUnsyncedDiscogsRecords(ctx)
+	if err != nil {
+		return fmt.Errorf("list unsynced records: %w", err)
+	}
+
+	for _, rec := range unsyncedRecords {
+		if rec.DiscogsID == nil {
+			continue
+		}
+		discogsID := *rec.DiscogsID
+		if _, inCollection := discogsCollectionIDs[discogsID]; inCollection {
+			continue
+		}
+
+		releaseID, parseErr := strconv.Atoi(discogsID)
+		if parseErr != nil || releaseID <= 0 {
+			progress.Errors = append(progress.Errors, fmt.Sprintf("push %s: invalid discogs id", discogsID))
+			onProgress(progress)
+			continue
+		}
+
+		pushErr := addToDiscogsCollection(username, releaseID)
+		if pushErr == nil {
+			if markErr := store.MarkSyncedWithDiscogs(ctx, []string{discogsID}); markErr != nil {
+				progress.Errors = append(progress.Errors, fmt.Sprintf("mark synced %s: %s", discogsID, markErr.Error()))
+			} else {
+				progress.Pushed++
+			}
+		} else {
+			if statusErr, ok := errors.AsType[discogsHTTPError](pushErr); ok && statusErr.status == http.StatusConflict {
+				if markErr := store.MarkSyncedWithDiscogs(ctx, []string{discogsID}); markErr != nil {
+					progress.Errors = append(progress.Errors, fmt.Sprintf("mark synced %s: %s", discogsID, markErr.Error()))
+				} else {
+					progress.Pushed++
+				}
+			} else {
+				progress.Errors = append(progress.Errors, fmt.Sprintf("push %s: %s", discogsID, pushErr.Error()))
+			}
+		}
+		onProgress(progress)
+	}
+
+	progress.Phase = "done"
+	onProgress(progress)
+	return nil
 }
 
 func discogsGetJSON(baseURL, endpoint string, destination any) error {

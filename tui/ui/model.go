@@ -60,6 +60,14 @@ type Model struct {
 	discogsSaving        bool
 	successMsg           string
 
+	syncing              bool
+	syncPhase            string
+	syncPulled           int
+	syncPushed           int
+	syncSkipped          int
+	syncTotal            int
+	syncErrors           []string
+
 	manualArtist         string
 	manualAlbum          string
 	manualYear           string
@@ -108,6 +116,14 @@ type discogsRecordAddedMsg struct {
 }
 
 type manualRecordAddedMsg struct {
+	err error
+}
+
+type syncProgressMsg struct {
+	progress syncProgress
+}
+
+type syncDoneMsg struct {
 	err error
 }
 
@@ -160,6 +176,17 @@ func addManualRecord(store db.Store, r db.Record) tea.Cmd {
 	}
 }
 
+func runSync(store db.Store) tea.Cmd {
+	return func() tea.Msg {
+		var lastProgress syncProgress
+		err := executeSync(store, func(p syncProgress) {
+			lastProgress = p
+		})
+		_ = lastProgress
+		return syncDoneMsg{err: err}
+	}
+}
+
 func (m Model) Init() tea.Cmd {
 	return loadRecords(m.store)
 }
@@ -190,6 +217,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyPressMsg:
 		if m.successMsg != "" {
 			m.successMsg = ""
+		}
+		if m.syncPhase == "done" {
+			m.syncPhase = ""
+			m.syncErrors = nil
 		}
 		return m.handleKey(msg)
 
@@ -251,6 +282,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.successMsg = "Record added successfully."
 		m.resetManualAddState()
 		m.view = listView
+		m.loading = true
+		return m, loadRecords(m.store)
+
+	case syncProgressMsg:
+		p := msg.progress
+		m.syncPhase = p.Phase
+		m.syncPulled = p.Pulled
+		m.syncPushed = p.Pushed
+		m.syncSkipped = p.Skipped
+		m.syncTotal = p.TotalDiscogsItems
+		m.syncErrors = p.Errors
+		return m, nil
+
+	case syncDoneMsg:
+		m.syncing = false
+		m.syncPhase = "done"
+		if msg.err != nil {
+			m.syncErrors = append(m.syncErrors, msg.err.Error())
+			return m, nil
+		}
 		m.loading = true
 		return m, loadRecords(m.store)
 
@@ -386,6 +437,19 @@ func (m Model) handleListKey(key string) (tea.Model, tea.Cmd) {
 		m.deleteConfirm = false
 		m.deleteErr = ""
 		return m, loadRecords(m.store)
+	case "s":
+		if m.syncing {
+			return m, nil
+		}
+		m.syncing = true
+		m.syncPhase = "pull"
+		m.syncPulled = 0
+		m.syncPushed = 0
+		m.syncSkipped = 0
+		m.syncTotal = 0
+		m.syncErrors = nil
+		m.deleteConfirm = false
+		return m, runSync(m.store)
 	}
 	return m, nil
 }
@@ -689,6 +753,19 @@ func (m Model) renderList() string {
 	if m.successMsg != "" {
 		b.WriteString(successStyle.Render("  "+m.successMsg) + "\n")
 	}
+	if m.syncing {
+		syncStatus := fmt.Sprintf("  Syncing... [%s] pulled:%d pushed:%d skipped:%d", m.syncPhase, m.syncPulled, m.syncPushed, m.syncSkipped)
+		if m.syncTotal > 0 {
+			syncStatus += fmt.Sprintf(" (%d/%d)", m.syncPulled+m.syncSkipped, m.syncTotal)
+		}
+		b.WriteString(statusBarStyle.Render(syncStatus) + "\n")
+	} else if m.syncPhase == "done" && (m.syncPulled > 0 || m.syncPushed > 0 || m.syncSkipped > 0 || len(m.syncErrors) > 0) {
+		summary := fmt.Sprintf("  Sync complete — pulled:%d pushed:%d skipped:%d", m.syncPulled, m.syncPushed, m.syncSkipped)
+		b.WriteString(successStyle.Render(summary) + "\n")
+	}
+	for _, syncErr := range m.syncErrors {
+		b.WriteString(errorStyle.Render("  sync error: "+syncErr) + "\n")
+	}
 	if m.deleteErr != "" {
 		b.WriteString(errorStyle.Render("  "+m.deleteErr) + "\n")
 	}
@@ -892,7 +969,7 @@ func (m Model) renderHelp() string {
 	if m.searching {
 		return helpStyle.Render("  enter confirm  esc cancel")
 	}
-	return helpStyle.Render("  ↑/k up  ↓/j down  enter detail  a add discogs  M add manual  d delete  / search  r reload  q quit")
+	return helpStyle.Render("  ↑/k up  ↓/j down  enter detail  a add discogs  M add manual  d delete  / search  s sync  r reload  q quit")
 }
 
 func (m Model) columnWidths() [5]int {

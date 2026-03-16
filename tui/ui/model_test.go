@@ -45,6 +45,36 @@ func (m *mockStore) Create(_ context.Context, r db.Record) error {
 	return nil
 }
 
+func (m *mockStore) ListDiscogsIDs(_ context.Context) (map[string]struct{}, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	ids := make(map[string]struct{})
+	for _, r := range m.records {
+		if r.DiscogsID != nil {
+			ids[*r.DiscogsID] = struct{}{}
+		}
+	}
+	return ids, nil
+}
+
+func (m *mockStore) MarkSyncedWithDiscogs(_ context.Context, _ []string) error {
+	return m.err
+}
+
+func (m *mockStore) ListUnsyncedDiscogsRecords(_ context.Context) ([]db.Record, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	var results []db.Record
+	for _, r := range m.records {
+		if r.DiscogsID != nil && !r.IsSyncedWithDiscogs {
+			results = append(results, r)
+		}
+	}
+	return results, nil
+}
+
 func testRecords() []db.Record {
 	return []db.Record{
 		{RecordID: "1", ArtistName: "Miles Davis", AlbumTitle: "Kind of Blue"},
@@ -972,5 +1002,99 @@ func keyMsg(key string) tea.KeyPressMsg {
 			return tea.KeyPressMsg{Code: rune(key[0])}
 		}
 		return tea.KeyPressMsg{}
+	}
+}
+
+func TestSyncKeyStartsSync(t *testing.T) {
+	m := newTestModel(testRecords())
+	updated, _ := m.Update(keyMsg("s"))
+	m = updated.(Model)
+	if !m.syncing {
+		t.Error("pressing s should set syncing = true")
+	}
+	if m.syncPhase != "pull" {
+		t.Errorf("syncPhase = %q, want %q", m.syncPhase, "pull")
+	}
+}
+
+func TestSyncKeyIgnoredWhenAlreadySyncing(t *testing.T) {
+	m := newTestModel(testRecords())
+	m.syncing = true
+	m.syncPulled = 5
+	updated, _ := m.Update(keyMsg("s"))
+	m = updated.(Model)
+	if m.syncPulled != 5 {
+		t.Error("pressing s while syncing should not reset syncPulled")
+	}
+}
+
+func TestSyncDoneMsgClearsState(t *testing.T) {
+	m := newTestModel(testRecords())
+	m.syncing = true
+	updated, _ := m.Update(syncDoneMsg{err: nil})
+	m = updated.(Model)
+	if m.syncing {
+		t.Error("syncDoneMsg should set syncing = false")
+	}
+	if m.syncPhase != "done" {
+		t.Errorf("syncPhase = %q, want %q", m.syncPhase, "done")
+	}
+}
+
+func TestSyncDoneMsgWithErrorKeepsSyncErrors(t *testing.T) {
+	m := newTestModel(testRecords())
+	m.syncing = true
+	updated, _ := m.Update(syncDoneMsg{err: errors.New("network error")})
+	m = updated.(Model)
+	if m.syncing {
+		t.Error("syncDoneMsg should set syncing = false")
+	}
+	if len(m.syncErrors) == 0 {
+		t.Error("syncDoneMsg with error should populate syncErrors")
+	}
+}
+
+func TestSyncCompleteSummaryInListView(t *testing.T) {
+	m := newTestModel(testRecords())
+	m.syncPhase = "done"
+	m.syncPulled = 3
+	m.syncPushed = 1
+	m.syncSkipped = 5
+	v := m.View()
+	if !strings.Contains(v.Content, "pulled:3") {
+		t.Error("list view should show sync summary after completion")
+	}
+}
+
+func TestSyncStatusClearedOnKeypress(t *testing.T) {
+	m := newTestModel(testRecords())
+	m.syncPhase = "done"
+	m.syncErrors = []string{"some error"}
+	updated, _ := m.Update(keyMsg("r"))
+	m = updated.(Model)
+	if m.syncPhase != "" {
+		t.Errorf("syncPhase should be cleared on keypress, got %q", m.syncPhase)
+	}
+	if len(m.syncErrors) != 0 {
+		t.Error("syncErrors should be cleared on keypress")
+	}
+}
+
+func TestSyncProgressMsgUpdatesState(t *testing.T) {
+	m := newTestModel(testRecords())
+	m.syncing = true
+	updated, _ := m.Update(syncProgressMsg{progress: syncProgress{
+		Phase:             "pull",
+		Pulled:            10,
+		Pushed:            2,
+		Skipped:           3,
+		TotalDiscogsItems: 50,
+	}})
+	m = updated.(Model)
+	if m.syncPulled != 10 {
+		t.Errorf("syncPulled = %d, want 10", m.syncPulled)
+	}
+	if m.syncTotal != 50 {
+		t.Errorf("syncTotal = %d, want 50", m.syncTotal)
 	}
 }

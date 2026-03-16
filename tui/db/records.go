@@ -89,6 +89,9 @@ type Store interface {
 	Search(ctx context.Context, query string) ([]Record, error)
 	Delete(ctx context.Context, id string) error
 	Create(ctx context.Context, r Record) error
+	ListDiscogsIDs(ctx context.Context) (map[string]struct{}, error)
+	MarkSyncedWithDiscogs(ctx context.Context, discogsIDs []string) error
+	ListUnsyncedDiscogsRecords(ctx context.Context) ([]Record, error)
 }
 
 type RecordStore struct {
@@ -246,4 +249,77 @@ func (s *RecordStore) Create(ctx context.Context, r Record) error {
 		return fmt.Errorf("insert record: %w", err)
 	}
 	return nil
+}
+
+func (s *RecordStore) ListDiscogsIDs(ctx context.Context) (map[string]struct{}, error) {
+	rows, err := s.pool.Query(ctx, `SELECT discogs_id FROM records WHERE discogs_id IS NOT NULL`)
+	if err != nil {
+		return nil, fmt.Errorf("query discogs ids: %w", err)
+	}
+	defer rows.Close()
+
+	ids := make(map[string]struct{})
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, fmt.Errorf("scan discogs id: %w", err)
+		}
+		ids[id] = struct{}{}
+	}
+	return ids, rows.Err()
+}
+
+func (s *RecordStore) MarkSyncedWithDiscogs(ctx context.Context, discogsIDs []string) error {
+	if len(discogsIDs) == 0 {
+		return nil
+	}
+	placeholders := make([]string, len(discogsIDs))
+	args := make([]any, len(discogsIDs))
+	for i, id := range discogsIDs {
+		placeholders[i] = fmt.Sprintf("$%d", i+1)
+		args[i] = id
+	}
+	query := fmt.Sprintf(
+		`UPDATE records SET is_synced_with_discogs = true WHERE discogs_id = ANY(ARRAY[%s])`,
+		strings.Join(placeholders, ","),
+	)
+	_, err := s.pool.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("mark synced: %w", err)
+	}
+	return nil
+}
+
+func (s *RecordStore) ListUnsyncedDiscogsRecords(ctx context.Context) ([]Record, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT record_id, artist_name, album_title, year_released, label_name,
+			catalog_number, discogs_id, discogs_uri, is_synced_with_discogs,
+			thumbnail_url, cover_image_url, genres, styles, upc_code,
+			record_size, vinyl_color, is_shaped_vinyl, data_source,
+			created_at, updated_at
+		FROM records
+		WHERE discogs_id IS NOT NULL AND is_synced_with_discogs = false
+		ORDER BY artist_name, album_title
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("query unsynced records: %w", err)
+	}
+	defer rows.Close()
+
+	var records []Record
+	for rows.Next() {
+		var r Record
+		err := rows.Scan(
+			&r.RecordID, &r.ArtistName, &r.AlbumTitle, &r.YearReleased,
+			&r.LabelName, &r.CatalogNumber, &r.DiscogsID, &r.DiscogsURI,
+			&r.IsSyncedWithDiscogs, &r.ThumbnailURL, &r.CoverImageURL,
+			&r.Genres, &r.Styles, &r.UPCCode, &r.RecordSize, &r.VinylColor,
+			&r.IsShapedVinyl, &r.DataSource, &r.CreatedAt, &r.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("scan record: %w", err)
+		}
+		records = append(records, r)
+	}
+	return records, rows.Err()
 }
