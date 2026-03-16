@@ -188,6 +188,19 @@ Never duplicate in component files.
 
 ## Go TUI
 
+### Go naming conventions
+
+Go naming diverges from the TypeScript rule above. Apply Go idiom strictly:
+
+| Rule | Correct | Wrong |
+|------|---------|-------|
+| Acronyms all-caps | `baseURL`, `releaseID`, `discogsID`, `dst` | `baseUrl`, `releaseId`, `destination` |
+| Short locals in tight scope | `n`, `s`, `v`, `dst` | `number`, `asString`, `destination` |
+| No type suffix on locals | `discogsID` (local `string`) | `discogsIDStr` |
+| Receiver: 1-2 letter abbreviation | `func (m Model)` | `func (model Model)` |
+
+The verbose-name rule in **General / Naming** above applies to TypeScript only.
+
 ### Go version
 
 `go 1.26.1`. Apply Go 1.26 language features where they improve clarity:
