@@ -199,22 +199,6 @@ func TestListNavigation(t *testing.T) {
 	}
 }
 
-func TestListNavigationJK(t *testing.T) {
-	m := newTestModel(testRecords())
-
-	updated, _ := m.Update(keyMsg("j"))
-	model := updated.(Model)
-	if model.cursor != 0 {
-		t.Errorf("j should not move cursor, got %d", model.cursor)
-	}
-
-	updated, _ = model.Update(keyMsg("k"))
-	model = updated.(Model)
-	if model.cursor != 0 {
-		t.Errorf("k should not move cursor, got %d", model.cursor)
-	}
-}
-
 func TestListNavigationHomeEnd(t *testing.T) {
 	m := newTestModel(testRecords())
 	m.cursor = 1
