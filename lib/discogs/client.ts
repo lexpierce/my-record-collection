@@ -90,15 +90,14 @@ interface DiscogsSearchResult {
  */
 class RateLimiter {
   private lastRequestTime: number = 0;
-  private readonly minimumDelayMilliseconds: number;
+  private readonly minDelayMs: number;
 
   /**
    * Creates a new rate limiter
    * @param requestsPerMinute - Maximum number of requests allowed per minute
    */
   constructor(requestsPerMinute: number) {
-    // Calculate minimum delay between requests in milliseconds
-    this.minimumDelayMilliseconds = (60 * 1000) / requestsPerMinute;
+    this.minDelayMs = (60 * 1000) / requestsPerMinute;
   }
 
   /**
@@ -108,8 +107,8 @@ class RateLimiter {
     const currentTime = Date.now();
     const timeSinceLastRequest = currentTime - this.lastRequestTime;
 
-    if (timeSinceLastRequest < this.minimumDelayMilliseconds) {
-      const delayNeeded = this.minimumDelayMilliseconds - timeSinceLastRequest;
+    if (timeSinceLastRequest < this.minDelayMs) {
+      const delayNeeded = this.minDelayMs - timeSinceLastRequest;
       await new Promise((resolve) => setTimeout(resolve, delayNeeded));
     }
 
@@ -122,7 +121,7 @@ class RateLimiter {
  * Provides methods to search and fetch release information
  */
 export class DiscogsClient {
-  private readonly baseUrl = "https://api.discogs.com";
+  private readonly baseURL = "https://api.discogs.com";
   private readonly userAgent: string;
   private readonly token?: string;
   private readonly rateLimiter: RateLimiter;
@@ -177,7 +176,7 @@ export class DiscogsClient {
 
     const maxRetries = 3;
     for (let attempt = 0; attempt < maxRetries; attempt++) {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, fetchOptions);
+      const response = await fetch(`${this.baseURL}${endpoint}`, fetchOptions);
 
       if (response.status === 429) {
         if (attempt === maxRetries - 1) {

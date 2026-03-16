@@ -21,13 +21,13 @@ let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
 export function getDatabase() {
   if (!_db) {
-    const databaseUrl = process.env.DATABASE_URL;
-    if (!databaseUrl) {
+    const databaseURL = process.env.DATABASE_URL;
+    if (!databaseURL) {
       throw new Error(
         "DATABASE_URL environment variable is not defined. Please set it in your .env file."
       );
     }
-    _db = drizzle(postgres(databaseUrl), { schema });
+    _db = drizzle(postgres(databaseURL), { schema });
   }
   return _db;
 }
