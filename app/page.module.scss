@@ -82,8 +82,8 @@ $bp-sm: 640px;
 // ─── Sync config warning ──────────────────────────────────────────────────────
 
 .syncWarning {
-  background-color: #fffbeb; // amber-50 equivalent — warm but distinct
-  border-bottom: 1px solid #d97706;
+  background-color: var(--ctp-base);
+  border-bottom: 1px solid var(--ctp-yellow);
   padding: 0.5rem 2rem;
 }
 
@@ -91,10 +91,10 @@ $bp-sm: 640px;
   max-width: 80rem;
   margin: 0 auto;
   font-size: 0.875rem;
-  color: #92400e; // amber-800
+  color: var(--ctp-peach);
 
   code {
-    font-family: monospace;
+    font-family: var(--font-mono);
     background-color: rgba(0, 0, 0, 0.06);
     padding: 0.1em 0.3em;
   }

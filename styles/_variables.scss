@@ -1,26 +1,54 @@
 /// Color tokens and design variables as CSS custom properties.
 /// All components reference these via var(--token-name).
+/// Colorscheme: Catppuccin Latte (https://catppuccin.com/palette)
 
 :root {
-  // Background palette
-  --warm-bg-primary:   #F7F9F2; // warm cream with green tint
-  --warm-bg-secondary: #ECF0E3; // light sage cream
-  --warm-bg-tertiary:  #D8DECC; // warm sage beige
+  // ─── Catppuccin Latte palette ─────────────────────────────────────────────
+  --ctp-rosewater: #dc8a78;
+  --ctp-flamingo:  #dd7878;
+  --ctp-pink:      #ea76cb;
+  --ctp-mauve:     #8839ef;
+  --ctp-red:       #d20f39;
+  --ctp-maroon:    #e64553;
+  --ctp-peach:     #fe640b;
+  --ctp-yellow:    #df8e1d;
+  --ctp-green:     #40a02b;
+  --ctp-teal:      #179299;
+  --ctp-sky:       #04a5e5;
+  --ctp-sapphire:  #209fb5;
+  --ctp-blue:      #1e66f5;
+  --ctp-lavender:  #7287fd;
+  --ctp-text:      #4c4f69;
+  --ctp-subtext1:  #5c5f77;
+  --ctp-subtext0:  #6c6f85;
+  --ctp-overlay2:  #7c7f93;
+  --ctp-overlay1:  #8c8fa1;
+  --ctp-overlay0:  #9ca0b0;
+  --ctp-surface2:  #acb0be;
+  --ctp-surface1:  #bcc0cc;
+  --ctp-surface0:  #ccd0da;
+  --ctp-base:      #eff1f5;
+  --ctp-mantle:    #e6e9ef;
+  --ctp-crust:     #dce0e8;
 
-  // Accent palette
-  --warm-accent-orange: #6B8E5A; // warm sage
-  --warm-accent-copper: #527542; // forest
-  --warm-accent-bronze: #3E5C2F; // dark moss
-  --warm-accent-gold:   #8B9E4A; // olive gold
+  // ─── Semantic tokens (mapped to Catppuccin Latte) ─────────────────────────
+  --warm-bg-primary:   var(--ctp-base);
+  --warm-bg-secondary: var(--ctp-mantle);
+  --warm-bg-tertiary:  var(--ctp-crust);
 
-  // Text palette
-  --warm-text-primary:   #2F3327; // dark olive-brown
-  --warm-text-secondary: #4A5040; // medium olive
-  --warm-text-tertiary:  #687060; // light olive
+  --warm-accent-orange: var(--ctp-peach);
+  --warm-accent-copper: var(--ctp-sapphire);
+  --warm-accent-bronze: var(--ctp-blue);
+  --warm-accent-gold:   var(--ctp-yellow);
 
-  // Font
-  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --warm-text-primary:   var(--ctp-text);
+  --warm-text-secondary: var(--ctp-subtext1);
+  --warm-text-tertiary:  var(--ctp-subtext0);
 
-  // Border commonly used
+  // ─── Typography ───────────────────────────────────────────────────────────
+  --font-sans:  "Input Sans", system-ui, sans-serif;
+  --font-mono:  "Input Mono", ui-monospace, monospace;
+
+  // ─── Border ───────────────────────────────────────────────────────────────
   --border-default: var(--warm-bg-tertiary);
 }

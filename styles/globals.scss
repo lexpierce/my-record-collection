@@ -2,6 +2,80 @@
 @use "reset";
 @use "animations";
 
+// ─── Input font family (place files under public/fonts/) ───────────────────
+// Download free for private use at https://input.djr.com/download/
+@font-face {
+  font-family: "Input Sans";
+  src: url("/fonts/InputSans-Regular.woff2") format("woff2"),
+       url("/fonts/InputSans-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Input Sans";
+  src: url("/fonts/InputSans-Italic.woff2") format("woff2"),
+       url("/fonts/InputSans-Italic.woff") format("woff");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Input Sans";
+  src: url("/fonts/InputSans-Medium.woff2") format("woff2"),
+       url("/fonts/InputSans-Medium.woff") format("woff");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Input Sans";
+  src: url("/fonts/InputSans-Bold.woff2") format("woff2"),
+       url("/fonts/InputSans-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Input Mono";
+  src: url("/fonts/InputMono-Regular.woff2") format("woff2"),
+       url("/fonts/InputMono-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Input Mono";
+  src: url("/fonts/InputMono-Italic.woff2") format("woff2"),
+       url("/fonts/InputMono-Italic.woff") format("woff");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Input Mono";
+  src: url("/fonts/InputMono-Medium.woff2") format("woff2"),
+       url("/fonts/InputMono-Medium.woff") format("woff");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Input Mono";
+  src: url("/fonts/InputMono-Bold.woff2") format("woff2"),
+       url("/fonts/InputMono-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 // Album art sizing — 144px (1.5 inches at 96 DPI)
 .album-art-size {
   width: 144px;
@@ -68,7 +142,7 @@
   transform: rotateY(0deg);
   border: 1px solid var(--warm-bg-tertiary);
   border-radius: 0;
-  box-shadow: 0 1px 3px rgba(62, 92, 47, 0.08);
+  box-shadow: 0 1px 3px rgba(76, 79, 105, 0.08);
 }
 
 // Back face: absolute so it overlays the front.
@@ -78,6 +152,6 @@
   left: 0;
   transform: rotateY(180deg);
   background-color: var(--warm-bg-secondary);
-  border: 2px solid #8BA87A; // warm sage border
+  border: 2px solid var(--ctp-lavender);
   border-radius: 0;
 }

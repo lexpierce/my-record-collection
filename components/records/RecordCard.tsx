@@ -219,7 +219,7 @@ export default function RecordCard({ record, onRecordMutated }: RecordCardProps)
                 {record.yearReleased && (
                   <div className={styles.metaRow}>
                     <span className={styles.metaLabel}>Year:</span>{" "}
-                    <span className={styles.metaValue}>{record.yearReleased}</span>
+                    <span className={styles.metaValueMono}>{record.yearReleased}</span>
                   </div>
                 )}
                 {record.recordSize && (
@@ -249,7 +249,7 @@ export default function RecordCard({ record, onRecordMutated }: RecordCardProps)
                 {record.catalogNumber && (
                   <div className={styles.metaRow}>
                     <span className={styles.metaLabel}>Cat#:</span>{" "}
-                    <span className={styles.metaValue}>{record.catalogNumber}</span>
+                    <span className={styles.metaValueMono}>{record.catalogNumber}</span>
                   </div>
                 )}
                 {record.upcCode && (
@@ -279,7 +279,7 @@ export default function RecordCard({ record, onRecordMutated }: RecordCardProps)
                 {record.discogsId && (
                   <div className={styles.metaRow}>
                     <span className={styles.metaLabel}>Discogs ID:</span>{" "}
-                    <span className={styles.metaValue}>{record.discogsId}</span>
+                    <span className={styles.metaValueMono}>{record.discogsId}</span>
                   </div>
                 )}
                 {/* discogsUri: rendered as a link to the Discogs release page */}
