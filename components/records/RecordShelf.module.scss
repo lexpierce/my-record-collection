@@ -8,13 +8,13 @@
 }
 
 .recordCount {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 500;
   color: var(--warm-text-tertiary);
 }
 
 .sortSelect {
-  font-size: 0.875rem;
+  font-size: 1rem;
   background-color: var(--warm-bg-primary);
   border: 1px solid var(--warm-bg-tertiary);
   color: var(--warm-text-secondary);
@@ -27,7 +27,7 @@
 }
 
 .sortDirBtn {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--warm-text-secondary);
   background: none;
   border: 0;
@@ -75,7 +75,7 @@
   height: 16px;
   background-color: var(--warm-accent-bronze);
   color: #fff;
-  font-size: 9px;
+  font-size: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -96,7 +96,7 @@
 }
 
 .filterGroupLabel {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--warm-text-primary);
   margin-bottom: 0.5rem;
@@ -106,7 +106,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--warm-text-secondary);
   padding: 0.125rem 0;
   cursor: pointer;
@@ -123,7 +123,7 @@
 
 .filterClearBtn {
   margin-top: 0.5rem;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--warm-accent-copper);
   background: none;
   border: 0;
@@ -137,7 +137,7 @@
 }
 
 .filterResultCount {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--warm-text-tertiary);
 }
 
@@ -152,7 +152,7 @@
 }
 
 .pageBtn {
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   line-height: 1;
   color: var(--warm-text-secondary);
   background: none;
@@ -173,7 +173,7 @@
 }
 
 .pageInfo {
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   color: var(--warm-text-tertiary);
   min-width: 4rem;
   text-align: center;
@@ -208,12 +208,12 @@
 }
 
 .loadingText {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--warm-text-tertiary);
 }
 
 .errorText {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--warm-accent-copper);
 }
 

@@ -22,7 +22,7 @@ $bp-sm: 640px;
 }
 
 .headerTitle {
-  font-size: 1.875rem;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--warm-text-primary);
   letter-spacing: -0.025em;
@@ -30,7 +30,7 @@ $bp-sm: 640px;
 }
 
 .headerSubtitle {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--warm-text-tertiary);
   margin: 0.125rem 0 0;
 }
@@ -47,7 +47,7 @@ $bp-sm: 640px;
   background-color: var(--warm-accent-bronze);
   color: #fff;
   font-weight: 500;
-  font-size: 0.875rem;
+  font-size: 1rem;
   border: 0;
   cursor: pointer;
   transition: background-color 0.15s ease;
@@ -67,7 +67,7 @@ $bp-sm: 640px;
   background-color: var(--warm-accent-orange);
   color: #fff;
   font-weight: 500;
-  font-size: 0.875rem;
+  font-size: 1rem;
   border: 0;
   cursor: pointer;
   transition: background-color 0.15s ease;
@@ -90,7 +90,7 @@ $bp-sm: 640px;
 .syncWarningInner {
   max-width: 80rem;
   margin: 0 auto;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--ctp-peach);
 
   code {
@@ -117,7 +117,7 @@ $bp-sm: 640px;
   display: flex;
   align-items: center;
   gap: 1rem;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--warm-text-secondary);
 }
 
@@ -150,7 +150,7 @@ $bp-sm: 640px;
 .syncErrorsInner {
   max-width: 80rem;
   margin: 0 auto;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--warm-accent-copper);
 }
 

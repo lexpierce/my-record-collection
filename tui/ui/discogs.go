@@ -3,6 +3,7 @@ package ui
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -211,8 +212,7 @@ func addDiscogsReleaseToStore(store db.Store, releaseID int) error {
 		if err == nil {
 			rec.IsSyncedWithDiscogs = true
 		} else {
-			var statusErr discogsHTTPError
-			if errorsAs(err, &statusErr) && statusErr.status == http.StatusConflict {
+			if statusErr, ok := errors.AsType[discogsHTTPError](err); ok && statusErr.status == http.StatusConflict {
 				rec.IsSyncedWithDiscogs = true
 			}
 		}
@@ -381,8 +381,8 @@ func releaseUPC(release discogsRelease) *string {
 			continue
 		}
 		value := strings.TrimSpace(strings.ReplaceAll(identifier.Value, " ", ""))
-		if value != "" {
-			return &value
+		if value != ""	{
+			return new(value)
 		}
 	}
 	return nil
@@ -392,7 +392,7 @@ func yearPointer(year int) *int {
 	if year <= 0 {
 		return nil
 	}
-	return &year
+	return new(year)
 }
 
 func nonEmptyPointer(value string) *string {
@@ -400,15 +400,15 @@ func nonEmptyPointer(value string) *string {
 	if trimmed == "" {
 		return nil
 	}
-	return &trimmed
+	return new(trimmed)
 }
 
 func stringPointer(value string) *string {
-	return &value
+	return new(value)
 }
 
 func boolPointer(value bool) *bool {
-	return &value
+	return new(value)
 }
 
 func yearString(year int) string {
@@ -416,18 +416,4 @@ func yearString(year int) string {
 		return ""
 	}
 	return strconv.Itoa(year)
-}
-
-func errorsAs(err error, target any) bool {
-	switch typed := target.(type) {
-	case *discogsHTTPError:
-		e, ok := err.(discogsHTTPError)
-		if !ok {
-			return false
-		}
-		*typed = e
-		return true
-	default:
-		return false
-	}
 }
