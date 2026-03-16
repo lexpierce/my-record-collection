@@ -11,7 +11,7 @@ Be extremely concise. Sacrifice grammar for the sake of concision.
 Create the following to-do list immediately.
 
 - Analyze user request.
-- Run `find docs/ -name "*.md" | sort` to see available docs.
+- Run `fd .md\$ docs/ | sort` to see available docs.
 - Read docs that may help to solve current task.
 - Read tsconfig.app.json or tsconfig.json to understand what path shortcuts exists.
 - Read packages.json to understand commands.
