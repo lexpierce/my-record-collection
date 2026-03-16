@@ -29,7 +29,7 @@ var sqlInjectionPattern = regexp.MustCompile(`(?i)(--|/\*|\*/|;|\b(select|union|
 type Model struct {
 	store                db.Store
 	discogsUsername      string
-	discogsToken         string
+	discogsCfg           discogsConfig
 	records              []db.Record
 	filtered             []db.Record
 	cursor               int
@@ -83,11 +83,11 @@ type Model struct {
 	manualErr            string
 }
 
-func NewModel(store db.Store, discogsUsername, discogsToken string) Model {
+func NewModel(store db.Store, discogsUsername, discogsToken, discogsUserAgent string) Model {
 	return Model{
 		store:               store,
 		discogsUsername:     discogsUsername,
-		discogsToken:        discogsToken,
+		discogsCfg:          discogsConfig{token: discogsToken, userAgent: discogsUserAgent},
 		loading:             true,
 		imgCache:            newImageCache(),
 		imgProto:            detectImageProto(),
@@ -160,16 +160,16 @@ func deleteRecord(store db.Store, id string) tea.Cmd {
 	}
 }
 
-func runDiscogsSearch(token string, query discogsSearchQuery) tea.Cmd {
+func runDiscogsSearch(dcfg discogsConfig, query discogsSearchQuery) tea.Cmd {
 	return func() tea.Msg {
-		results, err := searchDiscogs(token, query)
+		results, err := searchDiscogs(dcfg, query)
 		return discogsSearchResultsMsg{results: results, err: err}
 	}
 }
 
-func addDiscogsRecord(store db.Store, releaseID int, username, token string) tea.Cmd {
+func addDiscogsRecord(store db.Store, releaseID int, username string, dcfg discogsConfig) tea.Cmd {
 	return func() tea.Msg {
-		err := addDiscogsReleaseToStore(store, releaseID, username, token)
+		err := addDiscogsReleaseToStore(store, releaseID, username, dcfg)
 		return discogsRecordAddedMsg{err: err}
 	}
 }
@@ -181,10 +181,10 @@ func addManualRecord(store db.Store, r db.Record) tea.Cmd {
 	}
 }
 
-func runSync(store db.Store, username, token string) tea.Cmd {
+func runSync(store db.Store, username string, dcfg discogsConfig) tea.Cmd {
 	return func() tea.Msg {
 		var lastProgress syncProgress
-		err := executeSync(store, username, token, func(p syncProgress) {
+		err := executeSync(store, username, dcfg, func(p syncProgress) {
 			lastProgress = p
 		})
 		return syncDoneMsg{err: err, progress: lastProgress}
@@ -458,7 +458,7 @@ func (m Model) handleListKey(key string) (tea.Model, tea.Cmd) {
 		m.syncTotal = 0
 		m.syncErrors = nil
 		m.deleteConfirm = false
-		return m, runSync(m.store, m.discogsUsername, m.discogsToken)
+		return m, runSync(m.store, m.discogsUsername, m.discogsCfg)
 	}
 	return m, nil
 }
@@ -526,7 +526,7 @@ func (m Model) handleAddDiscogsKey(key string) (tea.Model, tea.Cmd) {
 			m.discogsSaving = true
 			m.discogsErr = ""
 			releaseID := m.discogsResults[m.discogsResultCursor].ID
-			return m, addDiscogsRecord(m.store, releaseID, m.discogsUsername, m.discogsToken)
+			return m, addDiscogsRecord(m.store, releaseID, m.discogsUsername, m.discogsCfg)
 		}
 	}
 
@@ -572,7 +572,7 @@ func (m Model) handleAddDiscogsKey(key string) (tea.Model, tea.Cmd) {
 		m.discogsResultCursor = 0
 		m.discogsResultsFocus = false
 		m.discogsSearching = true
-		return m, runDiscogsSearch(m.discogsToken, query)
+		return m, runDiscogsSearch(m.discogsCfg, query)
 	default:
 		if m.discogsSearching || m.discogsSaving {
 			return m, nil

@@ -256,3 +256,51 @@ func TestLoadDiscogsUsernameFromFile(t *testing.T) {
 		t.Errorf("Load().DiscogsUsername = %q, want %q", cfg.DiscogsUsername, "fileuser")
 	}
 }
+
+func TestLoadDiscogsUserAgentEnvVar(t *testing.T) {
+	t.Setenv("DISCOGS_USER_AGENT", "MyApp/2.0")
+	t.Setenv("DATABASE_URL", "postgres://x/y")
+
+	cfg := Load()
+	if cfg.DiscogsUserAgent != "MyApp/2.0" {
+		t.Errorf("Load().DiscogsUserAgent = %q, want %q", cfg.DiscogsUserAgent, "MyApp/2.0")
+	}
+}
+
+func TestLoadDiscogsUserAgentFromFile(t *testing.T) {
+	t.Setenv("DISCOGS_USER_AGENT", "")
+	t.Setenv("DATABASE_URL", "")
+
+	tmp := t.TempDir()
+	xdgDir := filepath.Join(tmp, ".config", ConfigDir)
+	if err := os.MkdirAll(xdgDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, filepath.Join(xdgDir, ConfigFile), "database_url = \"postgres://x/y\"\ndiscogs_user_agent = \"FileAgent/1.0\"\n")
+
+	t.Setenv("HOME", tmp)
+
+	cfg := Load()
+	if cfg.DiscogsUserAgent != "FileAgent/1.0" {
+		t.Errorf("Load().DiscogsUserAgent = %q, want %q", cfg.DiscogsUserAgent, "FileAgent/1.0")
+	}
+}
+
+func TestLoadDiscogsUserAgentEnvOverridesFile(t *testing.T) {
+	t.Setenv("DISCOGS_USER_AGENT", "EnvAgent/3.0")
+	t.Setenv("DATABASE_URL", "postgres://x/y")
+
+	tmp := t.TempDir()
+	xdgDir := filepath.Join(tmp, ".config", ConfigDir)
+	if err := os.MkdirAll(xdgDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, filepath.Join(xdgDir, ConfigFile), "discogs_user_agent = \"FileAgent/1.0\"\n")
+
+	t.Setenv("HOME", tmp)
+
+	cfg := Load()
+	if cfg.DiscogsUserAgent != "EnvAgent/3.0" {
+		t.Errorf("Load().DiscogsUserAgent = %q, want %q", cfg.DiscogsUserAgent, "EnvAgent/3.0")
+	}
+}

@@ -21,9 +21,10 @@ environment variable.
 Create `~/.config/myrecords/config.toml`:
 
 ```toml
-database_url = "postgresql://user:password@host:5432/my_record_collection"
-discogs_username = "your_discogs_username"
-discogs_token = "your_discogs_token"
+database_url        = "postgresql://user:password@host:5432/my_record_collection"
+discogs_username    = "your_discogs_username"
+discogs_token       = "your_discogs_token"
+discogs_user_agent  = "MyApp/1.0 +https://github.com/you/app"
 ```
 
 ### Environment variable override
@@ -34,12 +35,13 @@ discogs_token = "your_discogs_token"
 export DATABASE_URL=postgresql://user:password@host:5432/my_record_collection
 export DISCOGS_USERNAME=your_discogs_username
 export DISCOGS_TOKEN=your_discogs_token
+export DISCOGS_USER_AGENT="MyApp/1.0 +https://github.com/you/app"
 ```
 
 ### Lookup order
 
-1. `DATABASE_URL` / `DISCOGS_USERNAME` / `DISCOGS_TOKEN` environment variables (if set, config file is skipped for that key)
-2. `~/.config/myrecords/config.toml` — keys `database_url`, `discogs_username`, `discogs_token`
+1. `DATABASE_URL` / `DISCOGS_USERNAME` / `DISCOGS_TOKEN` / `DISCOGS_USER_AGENT` environment variables (if set, config file is skipped for that key)
+2. `~/.config/myrecords/config.toml` — keys `database_url`, `discogs_username`, `discogs_token`, `discogs_user_agent`
 
 If neither is found the program exits with an error pointing to the
 config file path.

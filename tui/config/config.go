@@ -13,9 +13,10 @@ const (
 )
 
 type Config struct {
-	DatabaseURL     string
-	DiscogsUsername string
-	DiscogsToken    string
+	DatabaseURL        string
+	DiscogsUsername    string
+	DiscogsToken       string
+	DiscogsUserAgent   string
 }
 
 func configPath() string {
@@ -67,6 +68,12 @@ func Load() Config {
 		cfg.DiscogsToken = v
 	} else {
 		cfg.DiscogsToken = readKey(configPath(), "discogs_token")
+	}
+
+	if v := os.Getenv("DISCOGS_USER_AGENT"); v != "" {
+		cfg.DiscogsUserAgent = v
+	} else {
+		cfg.DiscogsUserAgent = readKey(configPath(), "discogs_user_agent")
 	}
 
 	return cfg

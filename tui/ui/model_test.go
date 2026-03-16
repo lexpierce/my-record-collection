@@ -85,7 +85,7 @@ func testRecords() []db.Record {
 
 func newTestModel(records []db.Record) Model {
 	store := &mockStore{records: records}
-	m := NewModel(store, "", "")
+	m := NewModel(store, "", "", "")
 	m.width = 120
 	m.height = 40
 	m.loading = false
@@ -96,7 +96,7 @@ func newTestModel(records []db.Record) Model {
 
 func TestNewModel(t *testing.T) {
 	store := &mockStore{}
-	m := NewModel(store, "", "")
+	m := NewModel(store, "", "", "")
 	if !m.loading {
 		t.Error("new model should be loading")
 	}
@@ -107,7 +107,7 @@ func TestNewModel(t *testing.T) {
 
 func TestModelInit(t *testing.T) {
 	store := &mockStore{records: testRecords()}
-	m := NewModel(store, "", "")
+	m := NewModel(store, "", "", "")
 	cmd := m.Init()
 	if cmd == nil {
 		t.Error("Init should return a command")

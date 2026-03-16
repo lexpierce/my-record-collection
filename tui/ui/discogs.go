@@ -110,6 +110,11 @@ type discogsRelease struct {
 	} `json:"identifiers"`
 }
 
+type discogsConfig struct {
+	token     string
+	userAgent string
+}
+
 type discogsHTTPError struct {
 	status int
 	err    error
@@ -122,7 +127,7 @@ func (e discogsHTTPError) Error() string {
 	return fmt.Sprintf("discogs request failed with status %d", e.status)
 }
 
-func searchDiscogs(token string, query discogsSearchQuery) ([]discogsSearchResult, error) {
+func searchDiscogs(dcfg discogsConfig, query discogsSearchQuery) ([]discogsSearchResult, error) {
 	baseURL := os.Getenv("DISCOGS_BASE_URL")
 	if strings.TrimSpace(baseURL) == "" {
 		baseURL = "https://api.discogs.com"
@@ -152,7 +157,7 @@ func searchDiscogs(token string, query discogsSearchQuery) ([]discogsSearchResul
 	}
 
 	var searchResp discogsSearchResponse
-	if err := discogsGetJSON(token, baseURL, "/database/search?"+params.Encode(), &searchResp); err != nil {
+	if err := discogsGetJSON(dcfg, baseURL, "/database/search?"+params.Encode(), &searchResp); err != nil {
 		return nil, err
 	}
 
@@ -166,7 +171,7 @@ func searchDiscogs(token string, query discogsSearchQuery) ([]discogsSearchResul
 			CatNo: strings.TrimSpace(item.CatNo),
 		}
 
-		release, err := fetchDiscogsRelease(token, item.ID)
+		release, err := fetchDiscogsRelease(dcfg, item.ID)
 		if err == nil {
 			result.RecordSize = extractRecordSize(release)
 			result.VinylColor = extractVinylColor(release)
@@ -179,8 +184,8 @@ func searchDiscogs(token string, query discogsSearchQuery) ([]discogsSearchResul
 	return results, nil
 }
 
-func addDiscogsReleaseToStore(store db.Store, releaseID int, username, token string) error {
-	release, err := fetchDiscogsRelease(token, releaseID)
+func addDiscogsReleaseToStore(store db.Store, releaseID int, username string, dcfg discogsConfig) error {
+	release, err := fetchDiscogsRelease(dcfg, releaseID)
 	if err != nil {
 		return err
 	}
@@ -206,7 +211,7 @@ func addDiscogsReleaseToStore(store db.Store, releaseID int, username, token str
 	}
 
 	if username != "" {
-		err = addToDiscogsCollection(token, username, releaseID)
+		err = addToDiscogsCollection(dcfg, username, releaseID)
 		if err == nil {
 			rec.IsSyncedWithDiscogs = true
 		} else {
@@ -222,24 +227,24 @@ func addDiscogsReleaseToStore(store db.Store, releaseID int, username, token str
 	return nil
 }
 
-func fetchDiscogsRelease(token string, releaseID int) (discogsRelease, error) {
+func fetchDiscogsRelease(dcfg discogsConfig, releaseID int) (discogsRelease, error) {
 	baseURL := os.Getenv("DISCOGS_BASE_URL")
 	if strings.TrimSpace(baseURL) == "" {
 		baseURL = "https://api.discogs.com"
 	}
 	var release discogsRelease
-	err := discogsGetJSON(token, baseURL, "/releases/"+strconv.Itoa(releaseID), &release)
+	err := discogsGetJSON(dcfg, baseURL, "/releases/"+strconv.Itoa(releaseID), &release)
 	return release, err
 }
 
-func addToDiscogsCollection(token, username string, releaseID int) error {
+func addToDiscogsCollection(dcfg discogsConfig, username string, releaseID int) error {
 	baseURL := os.Getenv("DISCOGS_BASE_URL")
 	if strings.TrimSpace(baseURL) == "" {
 		baseURL = "https://api.discogs.com"
 	}
 
 	endpoint := "/users/" + url.PathEscape(username) + "/collection/folders/1/releases/" + strconv.Itoa(releaseID)
-	_, err := discogsRequest(token, http.MethodPost, baseURL, endpoint)
+	_, err := discogsRequest(dcfg, http.MethodPost, baseURL, endpoint)
 	return err
 }
 
@@ -289,7 +294,7 @@ type syncProgress struct {
 	TotalDiscogsItems int
 }
 
-func getUserCollection(token, username string, page int) (discogsCollectionResponse, error) {
+func getUserCollection(dcfg discogsConfig, username string, page int) (discogsCollectionResponse, error) {
 	baseURL := os.Getenv("DISCOGS_BASE_URL")
 	if strings.TrimSpace(baseURL) == "" {
 		baseURL = "https://api.discogs.com"
@@ -301,7 +306,7 @@ func getUserCollection(token, username string, page int) (discogsCollectionRespo
 	)
 
 	var response discogsCollectionResponse
-	if err := discogsGetJSON(token, baseURL, endpoint, &response); err != nil {
+	if err := discogsGetJSON(dcfg, baseURL, endpoint, &response); err != nil {
 		return discogsCollectionResponse{}, err
 	}
 	return response, nil
@@ -358,11 +363,11 @@ func collectionReleaseToRecord(info discogsCollectionBasicInfo) db.Record {
 	}
 }
 
-func executeSync(store db.Store, username, token string, onProgress func(syncProgress)) error {
+func executeSync(store db.Store, username string, dcfg discogsConfig, onProgress func(syncProgress)) error {
 	if username == "" {
 		return fmt.Errorf("discogs_username is required for sync")
 	}
-	if token == "" {
+	if dcfg.token == "" {
 		return fmt.Errorf("discogs_token is required for sync")
 	}
 
@@ -380,7 +385,7 @@ func executeSync(store db.Store, username, token string, onProgress func(syncPro
 	totalPages := 1
 
 	for page <= totalPages {
-		response, err := getUserCollection(token, username, page)
+		response, err := getUserCollection(dcfg, username, page)
 		if err != nil {
 			return fmt.Errorf("fetch discogs collection page %d: %w", page, err)
 		}
@@ -455,7 +460,7 @@ func executeSync(store db.Store, username, token string, onProgress func(syncPro
 			continue
 		}
 
-		pushErr := addToDiscogsCollection(token, username, releaseID)
+		pushErr := addToDiscogsCollection(dcfg, username, releaseID)
 		if pushErr == nil {
 			if markErr := store.MarkSyncedWithDiscogs(ctx, []string{discogsID}); markErr != nil {
 				progress.Errors = append(progress.Errors, fmt.Sprintf("mark synced %s: %s", discogsID, markErr.Error()))
@@ -481,8 +486,8 @@ func executeSync(store db.Store, username, token string, onProgress func(syncPro
 	return nil
 }
 
-func discogsGetJSON(token, baseURL, endpoint string, destination any) error {
-	body, err := discogsRequest(token, http.MethodGet, baseURL, endpoint)
+func discogsGetJSON(dcfg discogsConfig, baseURL, endpoint string, destination any) error {
+	body, err := discogsRequest(dcfg, http.MethodGet, baseURL, endpoint)
 	if err != nil {
 		return err
 	}
@@ -492,20 +497,20 @@ func discogsGetJSON(token, baseURL, endpoint string, destination any) error {
 	return nil
 }
 
-func discogsRequest(token, method, baseURL, endpoint string) ([]byte, error) {
+func discogsRequest(dcfg discogsConfig, method, baseURL, endpoint string) ([]byte, error) {
 	client := &http.Client{Timeout: 15 * time.Second}
 	request, err := http.NewRequest(method, strings.TrimRight(baseURL, "/")+endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("build discogs request: %w", err)
 	}
 
-	userAgent := strings.TrimSpace(os.Getenv("DISCOGS_USER_AGENT"))
+	userAgent := strings.TrimSpace(dcfg.userAgent)
 	if userAgent == "" {
 		userAgent = "MyRecordCollectionTUI/1.0"
 	}
 	request.Header.Set("User-Agent", userAgent)
 
-	if t := strings.TrimSpace(token); t != "" {
+	if t := strings.TrimSpace(dcfg.token); t != "" {
 		request.Header.Set("Authorization", "Discogs token="+t)
 	}
 
