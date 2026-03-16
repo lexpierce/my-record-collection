@@ -50,22 +50,22 @@ func (y *discogsYear) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	var number int
-	if err := json.Unmarshal(data, &number); err == nil {
-		*y = discogsYear(number)
+	var n int
+	if err := json.Unmarshal(data, &n); err == nil {
+		*y = discogsYear(n)
 		return nil
 	}
 
-	var asString string
-	if err := json.Unmarshal(data, &asString); err == nil {
-		asString = strings.TrimSpace(asString)
-		if asString == "" {
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		s = strings.TrimSpace(s)
+		if s == "" {
 			*y = 0
 			return nil
 		}
-		parsed, err := strconv.Atoi(asString)
+		parsed, err := strconv.Atoi(s)
 		if err != nil {
-			return fmt.Errorf("invalid year value %q", asString)
+			return fmt.Errorf("invalid year value %q", s)
 		}
 		*y = discogsYear(parsed)
 		return nil
@@ -342,14 +342,14 @@ func collectionReleaseToRecord(info discogsCollectionBasicInfo) db.Record {
 		}{Name: f.Name, Descriptions: f.Descriptions, Text: f.Text})
 	}
 
-	discogsIDStr := strconv.Itoa(info.ID)
+	discogsID := strconv.Itoa(info.ID)
 	return db.Record{
 		ArtistName:          firstArtist(release),
 		AlbumTitle:          release.Title,
 		YearReleased:        yearPointer(int(release.Year)),
 		LabelName:           firstLabel(release),
 		CatalogNumber:       firstCatalogNumber(release),
-		DiscogsID:           stringPointer(discogsIDStr),
+		DiscogsID:           stringPointer(discogsID),
 		DiscogsURI:          nonEmptyPointer(release.URI),
 		ThumbnailURL:        nonEmptyPointer(release.Thumb),
 		CoverImageURL:       nonEmptyPointer(release.CoverImage),
@@ -486,12 +486,12 @@ func executeSync(store db.Store, username string, dcfg discogsConfig, onProgress
 	return nil
 }
 
-func discogsGetJSON(dcfg discogsConfig, baseURL, endpoint string, destination any) error {
+func discogsGetJSON(dcfg discogsConfig, baseURL, endpoint string, dst any) error {
 	body, err := discogsRequest(dcfg, http.MethodGet, baseURL, endpoint)
 	if err != nil {
 		return err
 	}
-	if err := json.Unmarshal(body, destination); err != nil {
+	if err := json.Unmarshal(body, dst); err != nil {
 		return fmt.Errorf("decode discogs response: %w", err)
 	}
 	return nil
