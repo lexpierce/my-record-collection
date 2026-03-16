@@ -8,7 +8,7 @@ Connects to the same PostgreSQL database as the web app.
 
 ## Requirements
 
-- Go 1.24+
+- Go 1.26+
 - PostgreSQL with the `records` table (same schema as the web app)
 
 ## Configuration
@@ -62,6 +62,7 @@ Scrollable table of all records showing artist, album, year, label, and genres.
 | `G` / `End`  | Jump to bottom    |
 | `Enter`      | Open detail view  |
 | `a`          | Add via Discogs search |
+| `M`          | Add manually (no Discogs) |
 | `d`          | Delete selected record (press twice to confirm) |
 | `/`          | Search            |
 | `r`          | Reload from DB    |
@@ -83,9 +84,14 @@ filter. `Esc` cancels and restores the full list.
 
 ### Add Record
 
-Press `a` in list view to open Discogs add.
+Two paths to add a record — both write to the same `records` table.
 
-#### Discogs add
+#### Discogs add (`a`)
+
+Search Discogs and select a release. Fetches full metadata (genres, styles,
+vinyl color, size, cover art, catalog number, UPC) and inserts it into the
+database. If `DISCOGS_USERNAME` is set, the release is also added to your
+Discogs collection and `is_synced_with_discogs` is set to `true`.
 
 Search supports three methods: artist+album, catalog number, and UPC.
 
@@ -96,6 +102,30 @@ Search supports three methods: artist+album, catalog number, and UPC.
 | `↓` / `j` / `Tab` | Next field/result |
 | `Backspace` | Delete character |
 | `Enter` | Search (in fields) or add selected result |
+| `Esc` | Cancel and return to list |
+
+#### Manual add (`M`)
+
+Add a record without Discogs. Only artist and album are required; all other
+fields are optional.
+
+| Field      | Required | Notes |
+|------------|----------|-------|
+| Artist     | ✓        | |
+| Album      | ✓        | |
+| Year       |          | 4-digit integer |
+| Label      |          | |
+| Catalog #  |          | |
+| Genres     |          | Comma-separated (e.g. `Rock, Jazz`) |
+| Size       |          | e.g. `12"`, `7"` |
+| Color      |          | e.g. `Blue Marble` |
+
+| Key | Action |
+|-----|--------|
+| `↑` / `k` / `Shift+Tab` | Previous field |
+| `↓` / `j` / `Tab` | Next field |
+| `Backspace` | Delete character |
+| `Enter` | Save record |
 | `Esc` | Cancel and return to list |
 
 ## Album Art

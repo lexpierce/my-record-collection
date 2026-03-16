@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -18,6 +19,7 @@ const (
 	listView view = iota
 	detailView
 	addDiscogsView
+	addManualView
 )
 
 const maxSearchRunes = 200
@@ -56,6 +58,19 @@ type Model struct {
 	discogsErr           string
 	discogsSearching     bool
 	discogsSaving        bool
+	successMsg           string
+
+	manualArtist         string
+	manualAlbum          string
+	manualYear           string
+	manualLabel          string
+	manualCatalog        string
+	manualGenres         string
+	manualSize           string
+	manualColor          string
+	manualCursor         int
+	manualSaving         bool
+	manualErr            string
 }
 
 func NewModel(store db.Store) Model {
@@ -89,6 +104,10 @@ type discogsSearchResultsMsg struct {
 }
 
 type discogsRecordAddedMsg struct {
+	err error
+}
+
+type manualRecordAddedMsg struct {
 	err error
 }
 
@@ -134,6 +153,13 @@ func addDiscogsRecord(store db.Store, releaseID int) tea.Cmd {
 	}
 }
 
+func addManualRecord(store db.Store, r db.Record) tea.Cmd {
+	return func() tea.Msg {
+		err := store.Create(context.Background(), r)
+		return manualRecordAddedMsg{err: err}
+	}
+}
+
 func (m Model) Init() tea.Cmd {
 	return loadRecords(m.store)
 }
@@ -160,6 +186,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.deleting = false
 		m.deleteErr = ""
 		return m, nil
+
+	case tea.KeyPressMsg:
+		if m.successMsg != "" {
+			m.successMsg = ""
+		}
+		return m.handleKey(msg)
 
 	case imageLoadedMsg:
 		m.imgCache.set(msg.url, cachedImage{render: msg.render, transmit: msg.transmit})
@@ -203,14 +235,27 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		m.discogsErr = ""
+		m.successMsg = "Record added successfully."
 		m.resetDiscogsAddState()
 		m.view = listView
 		m.loading = true
 		return m, loadRecords(m.store)
 
-	case tea.KeyPressMsg:
-		return m.handleKey(msg)
+	case manualRecordAddedMsg:
+		m.manualSaving = false
+		if msg.err != nil {
+			m.manualErr = msg.err.Error()
+			return m, nil
+		}
+		m.manualErr = ""
+		m.successMsg = "Record added successfully."
+		m.resetManualAddState()
+		m.view = listView
+		m.loading = true
+		return m, loadRecords(m.store)
+
 	}
+
 
 	return m, nil
 }
@@ -229,6 +274,8 @@ func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		return m.handleDetailKey(key)
 	case addDiscogsView:
 		return m.handleAddDiscogsKey(key)
+	case addManualView:
+		return m.handleAddManualKey(key)
 	}
 
 	return m, nil
@@ -317,6 +364,9 @@ func (m Model) handleListKey(key string) (tea.Model, tea.Cmd) {
 	case "a":
 		m.view = addDiscogsView
 		m.resetDiscogsAddState()
+	case "M":
+		m.view = addManualView
+		m.resetManualAddState()
 	case "d", "y":
 		if len(m.filtered) == 0 || m.deleting {
 			return m, nil
@@ -566,6 +616,8 @@ func (m Model) View() tea.View {
 		s = m.renderDetail()
 	case addDiscogsView:
 		s = m.renderAddDiscogs()
+	case addManualView:
+		s = m.renderAddManual()
 	}
 
 	return tea.NewView(s)
@@ -634,6 +686,9 @@ func (m Model) renderList() string {
 		b.WriteString(statusBarStyle.Render(scrollInfo) + "\n")
 	}
 
+	if m.successMsg != "" {
+		b.WriteString(successStyle.Render("  "+m.successMsg) + "\n")
+	}
 	if m.deleteErr != "" {
 		b.WriteString(errorStyle.Render("  "+m.deleteErr) + "\n")
 	}
@@ -837,7 +892,7 @@ func (m Model) renderHelp() string {
 	if m.searching {
 		return helpStyle.Render("  enter confirm  esc cancel")
 	}
-	return helpStyle.Render("  ↑/k up  ↓/j down  enter detail  a add discogs  d delete  / search  r reload  q quit")
+	return helpStyle.Render("  ↑/k up  ↓/j down  enter detail  a add discogs  M add manual  d delete  / search  r reload  q quit")
 }
 
 func (m Model) columnWidths() [5]int {
@@ -877,4 +932,200 @@ func inputKeyRune(key string) (rune, bool) {
 		return 0, false
 	}
 	return r, true
+}
+
+// manualFields returns ordered label+pointer pairs for the manual add form.
+var manualFieldLabels = []string{
+	"Artist *",
+	"Album  *",
+	"Year",
+	"Label",
+	"Catalog #",
+	"Genres",
+	"Size",
+	"Color",
+}
+
+const manualFieldCount = 8
+
+func (m *Model) activeManualField() *string {
+	switch m.manualCursor {
+	case 0:
+		return &m.manualArtist
+	case 1:
+		return &m.manualAlbum
+	case 2:
+		return &m.manualYear
+	case 3:
+		return &m.manualLabel
+	case 4:
+		return &m.manualCatalog
+	case 5:
+		return &m.manualGenres
+	case 6:
+		return &m.manualSize
+	default:
+		return &m.manualColor
+	}
+}
+
+func (m *Model) resetManualAddState() {
+	m.manualArtist = ""
+	m.manualAlbum = ""
+	m.manualYear = ""
+	m.manualLabel = ""
+	m.manualCatalog = ""
+	m.manualGenres = ""
+	m.manualSize = ""
+	m.manualColor = ""
+	m.manualCursor = 0
+	m.manualSaving = false
+	m.manualErr = ""
+}
+
+func (m Model) handleAddManualKey(key string) (tea.Model, tea.Cmd) {
+	switch key {
+	case "ctrl+c":
+		return m, tea.Quit
+	case "esc":
+		m.view = listView
+		m.manualErr = ""
+		m.manualSaving = false
+		return m, nil
+	case "up", "k":
+		if m.manualCursor > 0 {
+			m.manualCursor--
+		}
+		return m, nil
+	case "down", "j", "tab":
+		if m.manualCursor < manualFieldCount-1 {
+			m.manualCursor++
+		}
+		return m, nil
+	case "shift+tab":
+		if m.manualCursor > 0 {
+			m.manualCursor--
+		}
+		return m, nil
+	case "backspace":
+		if m.manualSaving {
+			return m, nil
+		}
+		field := m.activeManualField()
+		runes := []rune(*field)
+		if len(runes) > 0 {
+			*field = string(runes[:len(runes)-1])
+		}
+		return m, nil
+	case "enter":
+		if m.manualSaving {
+			return m, nil
+		}
+		artist := strings.TrimSpace(m.manualArtist)
+		album := strings.TrimSpace(m.manualAlbum)
+		if artist == "" || album == "" {
+			m.manualErr = "artist and album are required"
+			return m, nil
+		}
+		rec := db.Record{
+			ArtistName: artist,
+			AlbumTitle: album,
+			DataSource: "manual",
+		}
+		if y := strings.TrimSpace(m.manualYear); y != "" {
+			parsed, err := strconv.Atoi(y)
+			if err != nil || parsed < 1 || parsed > 9999 {
+				m.manualErr = "year must be a valid 4-digit number"
+				return m, nil
+			}
+			rec.YearReleased = &parsed
+		}
+		if v := strings.TrimSpace(m.manualLabel); v != "" {
+			rec.LabelName = &v
+		}
+		if v := strings.TrimSpace(m.manualCatalog); v != "" {
+			rec.CatalogNumber = &v
+		}
+		if v := strings.TrimSpace(m.manualGenres); v != "" {
+			parts := strings.Split(v, ",")
+			var genres []string
+			for _, p := range parts {
+				if g := strings.TrimSpace(p); g != "" {
+					genres = append(genres, g)
+				}
+			}
+			rec.Genres = genres
+		}
+		if v := strings.TrimSpace(m.manualSize); v != "" {
+			rec.RecordSize = &v
+		}
+		if v := strings.TrimSpace(m.manualColor); v != "" {
+			rec.VinylColor = &v
+		}
+		m.manualErr = ""
+		m.manualSaving = true
+		return m, addManualRecord(m.store, rec)
+	default:
+		if m.manualSaving {
+			return m, nil
+		}
+		r, ok := inputKeyRune(key)
+		if !ok {
+			return m, nil
+		}
+		field := m.activeManualField()
+		if utf8.RuneCountInString(*field) < maxSearchRunes {
+			*field += string(r)
+		}
+		return m, nil
+	}
+}
+
+func (m Model) renderAddManual() string {
+	var b strings.Builder
+	title := titleStyle.Render("♫ Add Record")
+	status := statusBarStyle.Render("manual entry")
+	b.WriteString(lipgloss.JoinHorizontal(lipgloss.Center, title, "  ", status))
+	b.WriteString("\n\n")
+
+	fields := []string{
+		m.manualArtist,
+		m.manualAlbum,
+		m.manualYear,
+		m.manualLabel,
+		m.manualCatalog,
+		m.manualGenres,
+		m.manualSize,
+		m.manualColor,
+	}
+
+	for i, label := range manualFieldLabels {
+		val := fields[i]
+		active := !m.manualSaving && i == m.manualCursor
+		if active {
+			val += "█"
+		}
+		line := fmt.Sprintf("  %-12s %s", label+":", val)
+		if active {
+			b.WriteString(selectedRowStyle.Render("→ "+strings.TrimPrefix(line, "  ")))
+		} else {
+			b.WriteString(normalRowStyle.Render(line))
+		}
+		b.WriteString("\n")
+	}
+
+	if m.manualSaving {
+		b.WriteString("\n")
+		b.WriteString(statusBarStyle.Render("Saving..."))
+		b.WriteString("\n")
+	}
+	if m.manualErr != "" {
+		b.WriteString("\n")
+		b.WriteString(errorStyle.Render("  "+m.manualErr))
+		b.WriteString("\n")
+	}
+
+	b.WriteString("\n")
+	b.WriteString(helpStyle.Render("  * required  enter save  tab/↑↓ navigate  esc cancel  ctrl+c quit"))
+	return b.String()
 }

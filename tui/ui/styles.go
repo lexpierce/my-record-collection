@@ -73,4 +73,8 @@ var (
 	errorStyle = lipgloss.NewStyle().
 			Foreground(red).
 			Bold(true)
+
+	successStyle = lipgloss.NewStyle().
+			Foreground(green).
+			Bold(true)
 )
