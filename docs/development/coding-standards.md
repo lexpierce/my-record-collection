@@ -272,6 +272,7 @@ type cachedImage struct {
 
 - `a` — Discogs search add.
 - `M` — manual add form (no Discogs).
+- `s` — sync collection (two-way Discogs sync from list view).
 - Delete is two-step confirm in list view: first `d` arms confirmation, second `d` or `y` executes, `esc`/`n` cancels.
 
 ### Manual add form
@@ -291,6 +292,33 @@ type cachedImage struct {
 - Cleared at the top of the `tea.KeyPressMsg` case in `Update()` — dismissed on next keypress.
 - Rendered via `successStyle` (Catppuccin green, bold) above the delete-error line in `renderList()`.
 - Do not render `successMsg` as a transient tea.Cmd — it stays until the user acts.
+
+### TUI sync pattern
+
+`s` key in list view → `runSync(store)` cmd → `executeSync()` in `tui/ui/discogs.go` → `syncDoneMsg`.
+
+`syncProgress` struct (internal to `tui/ui`):
+
+```go
+type syncProgress struct {
+    Phase             string
+    Pulled            int
+    Pushed            int
+    Skipped           int
+    Errors            []string
+    TotalDiscogsItems int
+}
+```
+
+State fields on `Model`: `syncing bool`, `syncPhase string`, `syncPulled`, `syncPushed`, `syncSkipped`, `syncTotal int`, `syncErrors []string`.
+
+Rules:
+
+- `syncing = true` on `s` keypress; `false` on `syncDoneMsg`.
+- `syncPhase` / `syncErrors` cleared at the top of the `tea.KeyPressMsg` case when `syncPhase == "done"`.
+- Progress bar rendered in `renderList()` while `syncing == true`; summary rendered when `syncPhase == "done"`.
+- `executeSync()` calls `store.ListDiscogsIDs`, pages `getUserCollection`, calls `store.Create` for new records, `store.MarkSyncedWithDiscogs` in bulk, then `store.ListUnsyncedDiscogsRecords` + `addToDiscogsCollection` for push phase.
+- Requires `DISCOGS_USERNAME` env var; returns error immediately if missing.
 
 ### Discogs JSON typing in TUI
 
@@ -316,6 +344,26 @@ Accepts URL as parameter. Caller owns config. Testable.
 ```go
 func Connect(databaseURL string) (*pgxpool.Pool, error)
 ```
+
+### db.Store interface
+
+Full method set (all in `tui/db/records.go`):
+
+```go
+type Store interface {
+    List(ctx context.Context) ([]Record, error)
+    Search(ctx context.Context, query string) ([]Record, error)
+    Delete(ctx context.Context, id string) error
+    Create(ctx context.Context, r Record) error
+    ListDiscogsIDs(ctx context.Context) (map[string]struct{}, error)
+    MarkSyncedWithDiscogs(ctx context.Context, discogsIDs []string) error
+    ListUnsyncedDiscogsRecords(ctx context.Context) ([]Record, error)
+}
+```
+
+`MarkSyncedWithDiscogs` uses `ANY(ARRAY[$1,$2,...])` — not `IN (...)`. pgx does not support `IN` with a `[]any` variadic slice directly.
+
+Mock all methods in tests. `ListDiscogsIDs` returns `map[string]struct{}` keyed by discogs ID. `MarkSyncedWithDiscogs` and `ListUnsyncedDiscogsRecords` can be no-ops in mocks that don't exercise sync.
 
 ### errcheck patterns
 
@@ -375,7 +423,7 @@ golangci-lint run      # Lint (includes errcheck, staticcheck, govet, gofmt)
 | db | 44% | Record methods 100%; List/Search/Delete/Create need real DB |
 | ui | 98% | Mock store via `db.Store` interface; `httptest` for image fetch |
 
-Use `db.Store` interface (not `*db.RecordStore`) for testability. Mock in tests with struct implementing `List`, `Search`, `Delete`, `Create`.
+Use `db.Store` interface (not `*db.RecordStore`) for testability. Mock in tests with struct implementing `List`, `Search`, `Delete`, `Create`, `ListDiscogsIDs`, `MarkSyncedWithDiscogs`, `ListUnsyncedDiscogsRecords`.
 
 ### Test isolation
 

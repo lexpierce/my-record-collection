@@ -14,16 +14,18 @@ Failed enrichment per-result: original result returned without format fields.
 
 ## Sync
 
+### WebUI
+
 `POST /api/records/sync` → SSE stream.
 
-### Pull (Discogs → local)
+#### Pull (Discogs → local)
 
 1. Build set of existing `discogsId` values
 2. Page through `GET /users/{username}/collection/folders/0/releases`
 3. Skip existing, insert new
 4. Mark all matched records `isSyncedWithDiscogs = true`
 
-### Push (local → Discogs)
+#### Push (local → Discogs)
 
 1. Find records with `discogsId` + `isSyncedWithDiscogs = false`
 2. Call `addToCollection()` for each
@@ -31,10 +33,26 @@ Failed enrichment per-result: original result returned without format fields.
 
 Idempotent. Never deletes. Requires `DISCOGS_USERNAME` + `DISCOGS_TOKEN`.
 
+### TUI
+
+`s` key in list view → `executeSync(store, onProgress)` in `tui/ui/discogs.go`.
+
+Same two-phase pull + push logic. Uses `db.Store` methods directly (no HTTP):
+
+| Phase | Store method |
+|-------|-------------|
+| Pull — existing IDs | `store.ListDiscogsIDs()` |
+| Pull — insert new | `store.Create()` |
+| Pull — mark synced | `store.MarkSyncedWithDiscogs()` |
+| Push — candidates | `store.ListUnsyncedDiscogsRecords()` |
+| Push — add to Discogs | `addToDiscogsCollection()` (direct API) |
+
+Progress displayed live in `renderList()`. Summary shown after completion; cleared on next keypress.
+
 ## Edge cases
 
 - Duplicate `discogs_id` insert → counted as `skipped`
-- 429 → auto-retry (3 attempts, `Retry-After`)
+- 429 → auto-retry (3 attempts, `Retry-After`) — WebUI only; TUI propagates error
 - `isSyncedWithDiscogs` is display-only; sync uses live Discogs contents as truth
 - Missing `DISCOGS_USERNAME`: sync throws; fetch skips collection-add silently
 
@@ -43,9 +61,11 @@ Idempotent. Never deletes. Requires `DISCOGS_USERNAME` + `DISCOGS_TOKEN`.
 | File | Purpose |
 |------|---------|
 | `lib/discogs/client.ts` | API calls, rate limiter, format extractors |
-| `lib/discogs/sync.ts` | `executeSync()` — pull + push |
+| `lib/discogs/sync.ts` | `executeSync()` — pull + push (WebUI) |
 | `app/api/records/search/route.ts` | Search endpoint |
 | `app/api/records/fetch-from-discogs/route.ts` | Fetch + save |
 | `app/api/records/update-from-discogs/route.ts` | Refresh existing |
 | `app/api/records/sync/route.ts` | SSE sync |
 | `app/api/records/sync/status/route.ts` | Env var check |
+| `tui/ui/discogs.go` | TUI Discogs API calls + `executeSync()` |
+| `tui/db/records.go` | `db.Store` sync methods |
