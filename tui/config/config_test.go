@@ -190,6 +190,54 @@ func TestLoadDiscogsUsernameEnvVar(t *testing.T) {
 	}
 }
 
+func TestLoadDiscogsTokenEnvVar(t *testing.T) {
+	t.Setenv("DISCOGS_TOKEN", "mytoken123")
+	t.Setenv("DATABASE_URL", "postgres://x/y")
+
+	cfg := Load()
+	if cfg.DiscogsToken != "mytoken123" {
+		t.Errorf("Load().DiscogsToken = %q, want %q", cfg.DiscogsToken, "mytoken123")
+	}
+}
+
+func TestLoadDiscogsTokenFromFile(t *testing.T) {
+	t.Setenv("DISCOGS_TOKEN", "")
+	t.Setenv("DATABASE_URL", "")
+
+	tmp := t.TempDir()
+	xdgDir := filepath.Join(tmp, ".config", ConfigDir)
+	if err := os.MkdirAll(xdgDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, filepath.Join(xdgDir, ConfigFile), "database_url = \"postgres://x/y\"\ndiscogs_token = \"filetoken456\"\n")
+
+	t.Setenv("HOME", tmp)
+
+	cfg := Load()
+	if cfg.DiscogsToken != "filetoken456" {
+		t.Errorf("Load().DiscogsToken = %q, want %q", cfg.DiscogsToken, "filetoken456")
+	}
+}
+
+func TestLoadDiscogsTokenEnvOverridesFile(t *testing.T) {
+	t.Setenv("DISCOGS_TOKEN", "envtoken")
+	t.Setenv("DATABASE_URL", "postgres://x/y")
+
+	tmp := t.TempDir()
+	xdgDir := filepath.Join(tmp, ".config", ConfigDir)
+	if err := os.MkdirAll(xdgDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, filepath.Join(xdgDir, ConfigFile), "discogs_token = \"filetoken\"\n")
+
+	t.Setenv("HOME", tmp)
+
+	cfg := Load()
+	if cfg.DiscogsToken != "envtoken" {
+		t.Errorf("Load().DiscogsToken = %q, want %q", cfg.DiscogsToken, "envtoken")
+	}
+}
+
 func TestLoadDiscogsUsernameFromFile(t *testing.T) {
 	t.Setenv("DISCOGS_USERNAME", "")
 	t.Setenv("DATABASE_URL", "")

@@ -122,7 +122,7 @@ func (e discogsHTTPError) Error() string {
 	return fmt.Sprintf("discogs request failed with status %d", e.status)
 }
 
-func searchDiscogs(query discogsSearchQuery) ([]discogsSearchResult, error) {
+func searchDiscogs(token string, query discogsSearchQuery) ([]discogsSearchResult, error) {
 	baseURL := os.Getenv("DISCOGS_BASE_URL")
 	if strings.TrimSpace(baseURL) == "" {
 		baseURL = "https://api.discogs.com"
@@ -152,7 +152,7 @@ func searchDiscogs(query discogsSearchQuery) ([]discogsSearchResult, error) {
 	}
 
 	var searchResp discogsSearchResponse
-	if err := discogsGetJSON(baseURL, "/database/search?"+params.Encode(), &searchResp); err != nil {
+	if err := discogsGetJSON(token, baseURL, "/database/search?"+params.Encode(), &searchResp); err != nil {
 		return nil, err
 	}
 
@@ -166,7 +166,7 @@ func searchDiscogs(query discogsSearchQuery) ([]discogsSearchResult, error) {
 			CatNo: strings.TrimSpace(item.CatNo),
 		}
 
-		release, err := fetchDiscogsRelease(item.ID)
+		release, err := fetchDiscogsRelease(token, item.ID)
 		if err == nil {
 			result.RecordSize = extractRecordSize(release)
 			result.VinylColor = extractVinylColor(release)
@@ -179,8 +179,8 @@ func searchDiscogs(query discogsSearchQuery) ([]discogsSearchResult, error) {
 	return results, nil
 }
 
-func addDiscogsReleaseToStore(store db.Store, releaseID int, username string) error {
-	release, err := fetchDiscogsRelease(releaseID)
+func addDiscogsReleaseToStore(store db.Store, releaseID int, username, token string) error {
+	release, err := fetchDiscogsRelease(token, releaseID)
 	if err != nil {
 		return err
 	}
@@ -206,7 +206,7 @@ func addDiscogsReleaseToStore(store db.Store, releaseID int, username string) er
 	}
 
 	if username != "" {
-		err = addToDiscogsCollection(username, releaseID)
+		err = addToDiscogsCollection(token, username, releaseID)
 		if err == nil {
 			rec.IsSyncedWithDiscogs = true
 		} else {
@@ -222,24 +222,24 @@ func addDiscogsReleaseToStore(store db.Store, releaseID int, username string) er
 	return nil
 }
 
-func fetchDiscogsRelease(releaseID int) (discogsRelease, error) {
+func fetchDiscogsRelease(token string, releaseID int) (discogsRelease, error) {
 	baseURL := os.Getenv("DISCOGS_BASE_URL")
 	if strings.TrimSpace(baseURL) == "" {
 		baseURL = "https://api.discogs.com"
 	}
 	var release discogsRelease
-	err := discogsGetJSON(baseURL, "/releases/"+strconv.Itoa(releaseID), &release)
+	err := discogsGetJSON(token, baseURL, "/releases/"+strconv.Itoa(releaseID), &release)
 	return release, err
 }
 
-func addToDiscogsCollection(username string, releaseID int) error {
+func addToDiscogsCollection(token, username string, releaseID int) error {
 	baseURL := os.Getenv("DISCOGS_BASE_URL")
 	if strings.TrimSpace(baseURL) == "" {
 		baseURL = "https://api.discogs.com"
 	}
 
 	endpoint := "/users/" + url.PathEscape(username) + "/collection/folders/1/releases/" + strconv.Itoa(releaseID)
-	_, err := discogsRequest(http.MethodPost, baseURL, endpoint)
+	_, err := discogsRequest(token, http.MethodPost, baseURL, endpoint)
 	return err
 }
 
@@ -289,7 +289,7 @@ type syncProgress struct {
 	TotalDiscogsItems int
 }
 
-func getUserCollection(username string, page int) (discogsCollectionResponse, error) {
+func getUserCollection(token, username string, page int) (discogsCollectionResponse, error) {
 	baseURL := os.Getenv("DISCOGS_BASE_URL")
 	if strings.TrimSpace(baseURL) == "" {
 		baseURL = "https://api.discogs.com"
@@ -301,7 +301,7 @@ func getUserCollection(username string, page int) (discogsCollectionResponse, er
 	)
 
 	var response discogsCollectionResponse
-	if err := discogsGetJSON(baseURL, endpoint, &response); err != nil {
+	if err := discogsGetJSON(token, baseURL, endpoint, &response); err != nil {
 		return discogsCollectionResponse{}, err
 	}
 	return response, nil
@@ -358,9 +358,12 @@ func collectionReleaseToRecord(info discogsCollectionBasicInfo) db.Record {
 	}
 }
 
-func executeSync(store db.Store, username string, onProgress func(syncProgress)) error {
+func executeSync(store db.Store, username, token string, onProgress func(syncProgress)) error {
 	if username == "" {
-		return fmt.Errorf("DISCOGS_USERNAME is required for sync")
+		return fmt.Errorf("discogs_username is required for sync")
+	}
+	if token == "" {
+		return fmt.Errorf("discogs_token is required for sync")
 	}
 
 	ctx := context.Background()
@@ -377,7 +380,7 @@ func executeSync(store db.Store, username string, onProgress func(syncProgress))
 	totalPages := 1
 
 	for page <= totalPages {
-		response, err := getUserCollection(username, page)
+		response, err := getUserCollection(token, username, page)
 		if err != nil {
 			return fmt.Errorf("fetch discogs collection page %d: %w", page, err)
 		}
@@ -452,7 +455,7 @@ func executeSync(store db.Store, username string, onProgress func(syncProgress))
 			continue
 		}
 
-		pushErr := addToDiscogsCollection(username, releaseID)
+		pushErr := addToDiscogsCollection(token, username, releaseID)
 		if pushErr == nil {
 			if markErr := store.MarkSyncedWithDiscogs(ctx, []string{discogsID}); markErr != nil {
 				progress.Errors = append(progress.Errors, fmt.Sprintf("mark synced %s: %s", discogsID, markErr.Error()))
@@ -460,7 +463,7 @@ func executeSync(store db.Store, username string, onProgress func(syncProgress))
 				progress.Pushed++
 			}
 		} else {
-			if statusErr, ok := errors.AsType[discogsHTTPError](pushErr); ok && statusErr.status == http.StatusConflict {
+			if statusErr, ok := errors.AsType[discogsHTTPError](pushErr); ok && statusErr.status == http.StatusConflict { //nolint
 				if markErr := store.MarkSyncedWithDiscogs(ctx, []string{discogsID}); markErr != nil {
 					progress.Errors = append(progress.Errors, fmt.Sprintf("mark synced %s: %s", discogsID, markErr.Error()))
 				} else {
@@ -478,8 +481,8 @@ func executeSync(store db.Store, username string, onProgress func(syncProgress))
 	return nil
 }
 
-func discogsGetJSON(baseURL, endpoint string, destination any) error {
-	body, err := discogsRequest(http.MethodGet, baseURL, endpoint)
+func discogsGetJSON(token, baseURL, endpoint string, destination any) error {
+	body, err := discogsRequest(token, http.MethodGet, baseURL, endpoint)
 	if err != nil {
 		return err
 	}
@@ -489,7 +492,7 @@ func discogsGetJSON(baseURL, endpoint string, destination any) error {
 	return nil
 }
 
-func discogsRequest(method, baseURL, endpoint string) ([]byte, error) {
+func discogsRequest(token, method, baseURL, endpoint string) ([]byte, error) {
 	client := &http.Client{Timeout: 15 * time.Second}
 	request, err := http.NewRequest(method, strings.TrimRight(baseURL, "/")+endpoint, nil)
 	if err != nil {
@@ -502,9 +505,8 @@ func discogsRequest(method, baseURL, endpoint string) ([]byte, error) {
 	}
 	request.Header.Set("User-Agent", userAgent)
 
-	token := strings.TrimSpace(os.Getenv("DISCOGS_TOKEN"))
-	if token != "" {
-		request.Header.Set("Authorization", "Discogs token="+token)
+	if t := strings.TrimSpace(token); t != "" {
+		request.Header.Set("Authorization", "Discogs token="+t)
 	}
 
 	response, err := client.Do(request)

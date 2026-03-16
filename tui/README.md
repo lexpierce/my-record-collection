@@ -22,6 +22,8 @@ Create `~/.config/myrecords/config.toml`:
 
 ```toml
 database_url = "postgresql://user:password@host:5432/my_record_collection"
+discogs_username = "your_discogs_username"
+discogs_token = "your_discogs_token"
 ```
 
 ### Environment variable override
@@ -30,12 +32,14 @@ database_url = "postgresql://user:password@host:5432/my_record_collection"
 
 ```bash
 export DATABASE_URL=postgresql://user:password@host:5432/my_record_collection
+export DISCOGS_USERNAME=your_discogs_username
+export DISCOGS_TOKEN=your_discogs_token
 ```
 
 ### Lookup order
 
-1. `DATABASE_URL` environment variable (if set, config file is skipped)
-2. `~/.config/myrecords/config.toml` — key `database_url`
+1. `DATABASE_URL` / `DISCOGS_USERNAME` / `DISCOGS_TOKEN` environment variables (if set, config file is skipped for that key)
+2. `~/.config/myrecords/config.toml` — keys `database_url`, `discogs_username`, `discogs_token`
 
 If neither is found the program exits with an error pointing to the
 config file path.
