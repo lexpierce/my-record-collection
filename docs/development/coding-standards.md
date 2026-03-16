@@ -270,8 +270,27 @@ type cachedImage struct {
 
 ### TUI add/delete key rules
 
-- Keep `a` mapped to Discogs add flow only (no manual add mode).
-- Keep delete as two-step confirm in list view: first `d` arms confirmation, second `d` or `y` executes delete, `esc`/`n` cancels.
+- `a` — Discogs search add.
+- `M` — manual add form (no Discogs).
+- Delete is two-step confirm in list view: first `d` arms confirmation, second `d` or `y` executes, `esc`/`n` cancels.
+
+### Manual add form
+
+8 fields in cursor order: Artist \*, Album \*, Year, Label, Catalog #, Genres, Size, Color.
+
+- Artist and Album are required; all others optional.
+- Year: validated as integer 1–9999 before `store.Create()`; reject with inline error if not parseable.
+- Genres: comma-separated free text; split on `,`, trim each part, skip blanks, store as `[]string`.
+- `DataSource` is always `"manual"`.
+- Pattern: `activeManualField() *string` switch on `manualCursor` → single backspace/type handler covers all fields.
+- `manualFieldCount = 8` constant guards cursor bounds.
+
+### Success feedback pattern
+
+- `successMsg string` field on Model; set after any successful add (Discogs or manual).
+- Cleared at the top of the `tea.KeyPressMsg` case in `Update()` — dismissed on next keypress.
+- Rendered via `successStyle` (Catppuccin green, bold) above the delete-error line in `renderList()`.
+- Do not render `successMsg` as a transient tea.Cmd — it stays until the user acts.
 
 ### Discogs JSON typing in TUI
 

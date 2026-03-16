@@ -39,7 +39,7 @@ docs/
 └── ui-ux.md                    # Color tokens, layout rules, interactions
 
 tui/
-├── README.md                   # TUI setup, config, keybindings, image protocols
+├── README.md                   # TUI setup, config, keybindings, add flows, image protocols
 ├── main.go
 ├── config/config.go            # Config file + env var reader
 ├── db/
