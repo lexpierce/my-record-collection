@@ -2,24 +2,31 @@
 
 ## Color tokens
 
-Source: `styles/_variables.scss`
+Source: `styles/_variables.scss`. Colorscheme: Catppuccin Latte.
 
-| Token | Value | Role |
-|-------|-------|------|
-| `--warm-bg-primary` | `#1A1F1A` | Page background |
-| `--warm-bg-secondary` | `#1E2419` | Card back, elevated surfaces |
-| `--warm-bg-tertiary` | `#252C23` | Borders, subtle separators |
-| `--warm-accent-primary` | `#8BA87A` | Primary buttons, active |
-| `--warm-accent-secondary` | `#7A9469` | Button hover |
-| `--warm-accent-tertiary` | `#A0B88E` | Highlights |
-| `--warm-accent-muted` | `#6B8560` | Muted accents |
-| `--warm-text-primary` | `#E8E0D0` | Body text |
-| `--warm-text-secondary` | `#B8B0A0` | Labels, metadata |
-| `--warm-text-muted` | `#888070` | Placeholder, disabled |
-| `--warm-border` | `#2E3A2C` | Input borders, dividers |
-| `--font-inter` | CSS var | Inter via `next/font/google` |
+Semantic tokens map to Catppuccin Latte palette constants (`--ctp-*`). Never hardcode hex in module files — always use semantic tokens.
 
-Warm olive/sage on near-black. No pure whites, no blues/reds.
+| Token | Catppuccin var | Hex | Role |
+|-------|---------------|-----|------|
+| `--warm-bg-primary` | `--ctp-base` | `#eff1f5` | Page background |
+| `--warm-bg-secondary` | `--ctp-mantle` | `#e6e9ef` | Card back, elevated surfaces |
+| `--warm-bg-tertiary` | `--ctp-crust` | `#dce0e8` | Borders, subtle separators |
+| `--warm-accent-orange` | `--ctp-peach` | `#fe640b` | Secondary buttons |
+| `--warm-accent-copper` | `--ctp-sapphire` | `#209fb5` | Hover states, links |
+| `--warm-accent-bronze` | `--ctp-blue` | `#1e66f5` | Primary buttons, active, dividers |
+| `--warm-accent-gold` | `--ctp-yellow` | `#df8e1d` | Highlights |
+| `--warm-text-primary` | `--ctp-text` | `#4c4f69` | Body text |
+| `--warm-text-secondary` | `--ctp-subtext1` | `#5c5f77` | Labels, metadata |
+| `--warm-text-tertiary` | `--ctp-subtext0` | `#6c6f85` | Placeholder, disabled |
+| `--font-sans` | — | — | `"Input Sans"`, system-ui fallback |
+| `--font-mono` | — | — | `"Input Mono"`, ui-monospace fallback |
+
+## Font loading
+
+Input Sans and Input Mono are declared via `@font-face` in `styles/globals.scss`, pointing to `public/fonts/`.
+Download free for private use at <https://input.djr.com/download/>.
+System-ui / ui-monospace serve as fallbacks until font files are placed.
+Inter (`next/font/google`) is no longer used.
 
 ## Layout
 
@@ -30,12 +37,17 @@ Warm olive/sage on near-black. No pure whites, no blues/reds.
 
 ## Typography
 
-| Element | Size |
-|---------|------|
-| Card title | `0.75rem` bold |
-| Card artist | `0.75rem` |
-| Metadata | `0.625rem` |
-| Body | `0.875rem` |
+| Element | Size | Font |
+|---------|------|------|
+| Page header title | `2rem` bold | Input Sans |
+| Body / buttons / inputs | `1rem` | Input Sans |
+| Card title (front + back) | `0.875rem` bold | Input Sans |
+| Card artist (front) | `0.875rem` | Input Sans |
+| Dense metadata (back of card) | `0.875rem` | Input Sans |
+| Cat#, Year, Discogs ID values | `0.875rem` | Input Mono |
+| AlphaNav buttons | `0.875rem` | Input Sans |
+| Page info / pagination | `0.9375rem` | Input Sans |
+| Filter badge | `10px` | Input Sans |
 
 ## Interactions
 
@@ -46,7 +58,7 @@ Warm olive/sage on near-black. No pure whites, no blues/reds.
 | Hover card | `translateY(-2px)` |
 | Sync button | Shows "Syncing..." + progress bar, shelf re-fetches on done |
 | "+ Add an album" | Slides open search section |
-| Search result "+ Add" | `POST fetch-from-discogs`, toast (3s), shelf re-fetches |
+| Search result "+ Add" | `POST fetch-from-discogs`, shelf re-fetches |
 
 ## No full-page reloads
 
@@ -54,10 +66,11 @@ All mutations use callback pattern (`onRecordMutated` / `onRecordAdded` → `ref
 
 ## Responsive
 
-Initial page size: 50 desktop (>640px), 25 mobile. Grid auto-fills. Header wraps via flexbox.
+Grid auto-fills 180px columns. Header wraps via flexbox.
 
 ## Styling architecture
 
-- `styles/globals.scss`: reset, variables, flip-card CSS, album-art size utilities
+- `styles/_variables.scss`: all CSS custom property tokens (Catppuccin Latte palette + semantic tokens + font vars)
+- `styles/globals.scss`: `@font-face` declarations, reset, flip-card CSS, album-art size utilities
 - `*.module.scss`: scoped per component
 - No Tailwind

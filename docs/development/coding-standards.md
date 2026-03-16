@@ -114,7 +114,12 @@ Sass CSS Modules exclusively. No Tailwind classes anywhere.
 
 ### CSS custom properties
 
-All colors in `styles/_variables.scss`. Reference via `var(--token)`. Never hardcode hex in modules.
+All colors in `styles/_variables.scss`. Colorscheme: Catppuccin Latte. Two layers:
+
+1. Raw palette: `--ctp-<name>` (e.g. `--ctp-blue`, `--ctp-text`).
+2. Semantic tokens: `--warm-*` mapped to `var(--ctp-*)` — always reference semantic tokens in modules.
+
+Never hardcode hex in modules. Never use `--ctp-*` directly in modules.
 
 ### Global vs module classes
 
@@ -151,12 +156,14 @@ No `height: 100%` + `justify-content: space-between`. Let content determine size
 
 ### Font sizes
 
-| Element | Size |
-|---------|------|
-| Card title (front + back) | `0.75rem` bold |
-| Card artist | `0.75rem` |
-| Dense metadata (back) | `0.625rem` (10px) |
-| Buttons (back) | `0.625rem` |
+See [UI/UX reference](../ui-ux.md#typography) for the full table.
+
+Rules:
+
+- `var(--font-sans)` (`"Input Sans"`, system-ui fallback) is the default everywhere.
+- `var(--font-mono)` (`"Input Mono"`, ui-monospace fallback) for identifier-like values: Cat#, Year, Discogs ID.
+- Font files in `public/fonts/`; free download at <https://input.djr.com/download/>.
+- No `px` values except the filter badge (`10px`).
 
 ## Pagination algorithm
 
@@ -176,6 +183,15 @@ Logic needed by both components and server code lives in `lib/<domain>/`.
 Never duplicate in component files.
 
 ## Go TUI
+
+### Go version
+
+`go 1.26.1`. Apply Go 1.26 language features where they improve clarity:
+
+| Pattern | Go 1.26 form |
+|---------|-------------|
+| `var e ErrType; if errors.As(err, &e) && e.Field == x` | `if e, ok := errors.AsType[ErrType](err); ok && e.Field == x` |
+| `v := expr; return &v` | `return new(expr)` |
 
 ### Bubble Tea v2 API
 
@@ -313,7 +329,7 @@ Run before committing:
 bun run lint          # ESLint
 bun run lint:md       # Markdown lint
 bun run type-check    # TypeScript
-bun run test          # Vitest (195 tests, >90% coverage)
+bun run test          # Vitest (196 tests, >90% coverage)
 bun run build         # Production build
 ```
 

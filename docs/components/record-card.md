@@ -13,7 +13,7 @@ interface RecordCardProps {
 }
 ```
 
-`onRecordMutated`: called after update/delete. Parent bumps `mutationKey` to re-fetch.
+`onRecordMutated`: called after update/delete. Parent bumps `refreshKey` to re-fetch.
 
 ## State
 
@@ -28,28 +28,48 @@ interface RecordCardProps {
 
 ## Front face
 
-Album art, title (`0.75rem` bold), artist (`0.75rem`). All truncated with ellipsis.
+Album art, title (`0.875rem` bold), artist (`0.875rem`). All truncated with ellipsis.
+Title and artist are tightly spaced: `margin-top: 0.0625rem` on `.albumArtist`.
 
 ## Back face
 
-216px thumbnail, title, artist, all metadata fields (`0.625rem`), Update + Delete buttons.
+216px thumbnail, title, artist, all metadata fields (`0.875rem`), Update + Delete buttons.
+
+Monospace fields (rendered with `styles.metaValueMono`, font `var(--font-mono)`):
+
+- Cat# (`catalogNumber`)
+- Year (`yearReleased`)
+- Discogs ID (`discogsId`)
+
+All other value spans use `styles.metaValue` (Input Sans).
 
 ## CSS classes
 
 Global (in `styles/globals.scss`): `flip-card`, `flipped`, `flip-card-inner`, `flip-card-front`, `flip-card-back`, `album-art-size`, `album-art-size-lg`.
 
-Module: `styles.cardFrontContent`, `styles.cardBack`, `styles.metaRow`, `styles.actions`, etc.
+Module: `styles.cardFrontContent`, `styles.cardBack`, `styles.metaRow`, `styles.metaLabel`, `styles.metaValue`, `styles.metaValueMono`, `styles.actions`, etc.
+
+## Delete flow
+
+Two-step inline confirmation — no `window.confirm()`.
+
+1. First `d` press: sets `confirmDeleteVisible = true`, shows "Are you sure? Yes / No" inline.
+2. "Yes" button: calls `DELETE /api/records/[recordId]`, then `onRecordMutated()`.
+3. "No" button: clears confirmation.
+
+Errors shown inline via `actionError` state (no `window.alert()`).
+
+## API calls
+
+- `POST /api/records/update-from-discogs` (Update button)
+- `DELETE /api/records/[recordId]` (Delete button)
 
 ## Accessibility
 
 `role="button"`, `tabIndex={0}`, `aria-expanded={isFlipped}`, `onKeyDown` (Enter/Space).
 
-## API calls
-
-- `POST /api/records/update-from-discogs` (Update button)
-- `DELETE /api/records/[recordId]` (Delete button, with `window.confirm`)
-
 ## Related
 
 - [Flip card animation](../features/flip-card-animation.md)
 - [RecordShelf](./record-shelf.md)
+- [UI/UX reference](../ui-ux.md)
