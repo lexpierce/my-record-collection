@@ -179,3 +179,32 @@ func TestLoadFallbackXDGConfig(t *testing.T) {
 		t.Errorf("Load().DatabaseURL = %q, want %q", cfg.DatabaseURL, "postgres://xdg/db")
 	}
 }
+
+func TestLoadDiscogsUsernameEnvVar(t *testing.T) {
+	t.Setenv("DISCOGS_USERNAME", "testuser")
+	t.Setenv("DATABASE_URL", "postgres://x/y")
+
+	cfg := Load()
+	if cfg.DiscogsUsername != "testuser" {
+		t.Errorf("Load().DiscogsUsername = %q, want %q", cfg.DiscogsUsername, "testuser")
+	}
+}
+
+func TestLoadDiscogsUsernameFromFile(t *testing.T) {
+	t.Setenv("DISCOGS_USERNAME", "")
+	t.Setenv("DATABASE_URL", "")
+
+	tmp := t.TempDir()
+	xdgDir := filepath.Join(tmp, ".config", ConfigDir)
+	if err := os.MkdirAll(xdgDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, filepath.Join(xdgDir, ConfigFile), "database_url = \"postgres://x/y\"\ndiscogs_username = \"fileuser\"\n")
+
+	t.Setenv("HOME", tmp)
+
+	cfg := Load()
+	if cfg.DiscogsUsername != "fileuser" {
+		t.Errorf("Load().DiscogsUsername = %q, want %q", cfg.DiscogsUsername, "fileuser")
+	}
+}

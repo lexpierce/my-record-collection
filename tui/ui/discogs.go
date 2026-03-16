@@ -179,7 +179,7 @@ func searchDiscogs(query discogsSearchQuery) ([]discogsSearchResult, error) {
 	return results, nil
 }
 
-func addDiscogsReleaseToStore(store db.Store, releaseID int) error {
+func addDiscogsReleaseToStore(store db.Store, releaseID int, username string) error {
 	release, err := fetchDiscogsRelease(releaseID)
 	if err != nil {
 		return err
@@ -205,7 +205,6 @@ func addDiscogsReleaseToStore(store db.Store, releaseID int) error {
 		IsSyncedWithDiscogs: false,
 	}
 
-	username := strings.TrimSpace(os.Getenv("DISCOGS_USERNAME"))
 	if username != "" {
 		err = addToDiscogsCollection(username, releaseID)
 		if err == nil {
@@ -359,8 +358,7 @@ func collectionReleaseToRecord(info discogsCollectionBasicInfo) db.Record {
 	}
 }
 
-func executeSync(store db.Store, onProgress func(syncProgress)) error {
-	username := strings.TrimSpace(os.Getenv("DISCOGS_USERNAME"))
+func executeSync(store db.Store, username string, onProgress func(syncProgress)) error {
 	if username == "" {
 		return fmt.Errorf("DISCOGS_USERNAME is required for sync")
 	}

@@ -21,7 +21,7 @@ func main() {
 	defer pool.Close()
 
 	store := db.NewRecordStore(pool)
-	m := ui.NewModel(store)
+	m := ui.NewModel(store, cfg.DiscogsUsername)
 
 	p := tea.NewProgram(m)
 	if _, err := p.Run(); err != nil {

@@ -71,13 +71,10 @@ var (
 			Foreground(overlay0)
 
 	helpKeyStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(base).
-			Background(surface1).
-			Padding(0, 1)
+			Foreground(overlay0)
 
 	helpDescStyle = lipgloss.NewStyle().
-			Foreground(subtext0)
+			Foreground(surface1)
 
 	helpSepStyle = lipgloss.NewStyle().
 			Foreground(surface1)

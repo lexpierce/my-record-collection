@@ -28,6 +28,7 @@ var sqlInjectionPattern = regexp.MustCompile(`(?i)(--|/\*|\*/|;|\b(select|union|
 
 type Model struct {
 	store                db.Store
+	discogsUsername      string
 	records              []db.Record
 	filtered             []db.Record
 	cursor               int
@@ -81,9 +82,10 @@ type Model struct {
 	manualErr            string
 }
 
-func NewModel(store db.Store) Model {
+func NewModel(store db.Store, discogsUsername string) Model {
 	return Model{
 		store:               store,
+		discogsUsername:     discogsUsername,
 		loading:             true,
 		imgCache:            newImageCache(),
 		imgProto:            detectImageProto(),
@@ -162,9 +164,9 @@ func runDiscogsSearch(query discogsSearchQuery) tea.Cmd {
 	}
 }
 
-func addDiscogsRecord(store db.Store, releaseID int) tea.Cmd {
+func addDiscogsRecord(store db.Store, releaseID int, username string) tea.Cmd {
 	return func() tea.Msg {
-		err := addDiscogsReleaseToStore(store, releaseID)
+		err := addDiscogsReleaseToStore(store, releaseID, username)
 		return discogsRecordAddedMsg{err: err}
 	}
 }
@@ -176,10 +178,10 @@ func addManualRecord(store db.Store, r db.Record) tea.Cmd {
 	}
 }
 
-func runSync(store db.Store) tea.Cmd {
+func runSync(store db.Store, username string) tea.Cmd {
 	return func() tea.Msg {
 		var lastProgress syncProgress
-		err := executeSync(store, func(p syncProgress) {
+		err := executeSync(store, username, func(p syncProgress) {
 			lastProgress = p
 		})
 		_ = lastProgress
@@ -449,7 +451,7 @@ func (m Model) handleListKey(key string) (tea.Model, tea.Cmd) {
 		m.syncTotal = 0
 		m.syncErrors = nil
 		m.deleteConfirm = false
-		return m, runSync(m.store)
+		return m, runSync(m.store, m.discogsUsername)
 	}
 	return m, nil
 }
@@ -517,7 +519,7 @@ func (m Model) handleAddDiscogsKey(key string) (tea.Model, tea.Cmd) {
 			m.discogsSaving = true
 			m.discogsErr = ""
 			releaseID := m.discogsResults[m.discogsResultCursor].ID
-			return m, addDiscogsRecord(m.store, releaseID)
+			return m, addDiscogsRecord(m.store, releaseID, m.discogsUsername)
 		}
 	}
 
