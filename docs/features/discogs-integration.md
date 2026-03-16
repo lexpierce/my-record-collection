@@ -31,13 +31,17 @@ Failed enrichment per-result: original result returned without format fields.
 2. Call `addToCollection()` for each
 3. Emit `{ phase: "done" }`
 
-Idempotent. Never deletes. Requires `DISCOGS_USERNAME` + `DISCOGS_TOKEN`.
+Idempotent. Never deletes. Requires `DISCOGS_USERNAME` + `DISCOGS_TOKEN` (both config file keys or env var overrides).
 
 ### TUI
 
-`s` key in list view → `executeSync(store, onProgress)` in `tui/ui/discogs.go`.
+`s` key in list view → `executeSync(store, username, dcfg, onProgress)` in `tui/ui/discogs.go`.
 
-Same two-phase pull + push logic. Uses `db.Store` methods directly (no HTTP):
+Same two-phase pull + push logic. Uses `db.Store` methods directly (no HTTP).
+
+Credentials passed as `discogsConfig{token, userAgent}`. `executeSync` returns error immediately if `username` or `dcfg.token` is empty.
+
+`runSync` returns `syncDoneMsg{err, progress}` — progress counts and per-record errors are propagated to model state.
 
 | Phase | Store method |
 |-------|-------------|

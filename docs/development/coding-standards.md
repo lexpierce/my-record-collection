@@ -17,7 +17,11 @@ const update = async () => { ... }
 
 ### Verifying before deleting
 
-Before removing any import, field, variable, or function: `grep -rn "<name>" app/ lib/ components/`. Static analysis misses cross-file usages.
+Before removing any import, field, variable, or function: `rg -n "<name>" app/ lib/ components/`. Static analysis misses cross-file usages.
+
+### Tool preferences
+
+Use `rg` (ripgrep) instead of `grep`. Use `fd` instead of `find`.
 
 ### Interface field hygiene
 
@@ -266,7 +270,16 @@ type cachedImage struct {
 
 ### Config
 
-`~/.config/myrecords/config.toml` with `database_url` key. `DATABASE_URL` env var overrides. Simple line parser (no TOML library).
+`~/.config/myrecords/config.toml`. Simple line parser (no TOML library). Env var overrides file for each key.
+
+| Config key | Env var override | Required for |
+|---|---|---|
+| `database_url` | `DATABASE_URL` | always |
+| `discogs_username` | `DISCOGS_USERNAME` | sync, collection add |
+| `discogs_token` | `DISCOGS_TOKEN` | sync, all Discogs API calls |
+| `discogs_user_agent` | `DISCOGS_USER_AGENT` | optional; defaults to `MyRecordCollectionTUI/1.0` |
+
+Discogs credentials are grouped into `discogsConfig{token, userAgent}` and threaded through all Discogs call sites. Never read env vars inside `discogsRequest` — config is injected at `NewModel`.
 
 ### TUI add/delete key rules
 
@@ -318,7 +331,8 @@ Rules:
 - `syncPhase` / `syncErrors` cleared at the top of the `tea.KeyPressMsg` case when `syncPhase == "done"`.
 - Progress bar rendered in `renderList()` while `syncing == true`; summary rendered when `syncPhase == "done"`.
 - `executeSync()` calls `store.ListDiscogsIDs`, pages `getUserCollection`, calls `store.Create` for new records, `store.MarkSyncedWithDiscogs` in bulk, then `store.ListUnsyncedDiscogsRecords` + `addToDiscogsCollection` for push phase.
-- Requires `DISCOGS_USERNAME` env var; returns error immediately if missing.
+- Requires both `discogs_username` and `discogs_token` (config or env); `executeSync` returns error immediately if either is missing.
+- `syncDoneMsg` carries the final `syncProgress` struct. `runSync` must not discard it. The `syncDoneMsg` handler applies `Pulled`, `Pushed`, `Skipped`, `TotalDiscogsItems`, and `Errors` to model state so counts and per-record push errors are visible after sync.
 
 ### Discogs JSON typing in TUI
 
