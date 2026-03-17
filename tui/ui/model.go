@@ -424,7 +424,7 @@ func (m Model) handleListKey(key string) (tea.Model, tea.Cmd) {
 	case "a":
 		m.view = addDiscogsView
 		m.resetDiscogsAddState()
-	case "M":
+	case "m":
 		m.view = addManualView
 		m.resetManualAddState()
 	case "d", "y":
@@ -986,7 +986,7 @@ func helpKey(key string) string {
 }
 
 func helpSep() string {
-	return helpSepStyle.Render(" │ ")
+	return helpSepStyle.Render(" · ")
 }
 
 func helpItem(key, desc string) string {
@@ -1005,7 +1005,7 @@ func (m Model) renderHelp() string {
 		helpItem("↑↓", "scroll"),
 		helpItem("enter", "detail"),
 		helpItem("a", "add discogs"),
-		helpItem("M", "add manual"),
+		helpItem("m", "add manual"),
 		helpItem("d", "delete"),
 		helpItem("/", "search"),
 		helpItem("s", "sync"),
