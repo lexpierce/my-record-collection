@@ -319,7 +319,7 @@ Discogs credentials are grouped into `discogsConfig{token, userAgent}` and threa
 ### TUI add/delete key rules
 
 - `a` — Discogs search add.
-- `M` — manual add form (no Discogs).
+- `m` — manual add form (no Discogs).
 - `s` — sync collection (two-way Discogs sync from list view).
 - Delete is two-step confirm in list view: first `d` arms confirmation, second `d` or `y` executes, `esc`/`n` cancels.
 
