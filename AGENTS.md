@@ -11,10 +11,8 @@ Be extremely concise. Sacrifice grammar for the sake of concision.
 Create the following to-do list immediately.
 
 - Analyze user request.
-- Run `fd .md\$ docs/ | sort` to see available docs.
+- Run `find docs/ -name "*.md" | sort` to see available docs.
 - Read docs that may help to solve current task.
-- Read tsconfig.app.json or tsconfig.json to understand what path shortcuts exists.
-- Read packages.json to understand commands.
 - Analyze examples from the docs.
 - Revise execution plan and present it to the user with todo items.
 - Once the user accepts, create revised todo items.
