@@ -504,8 +504,10 @@ bun run lint
 Rules:
 
 - Commit `bun.lock` with every `bun update`
+- `bun.lock` is a **text file** (Bun 1.1+). The old binary lockfile was `bun.lockb`. Dockerfiles and CI must copy `bun.lock*` (not `bun.lockb*`).
 - Keep Bun pinned to an exact version in `package.json` (`engines.bun`, `packageManager`)
-- Use `bun install --frozen-lockfile` in CI/deploy builds
+- Use `bun install --frozen-lockfile --production` in deploy builds; use `--frozen-lockfile` (no `--production`) in test/CI builds that need devDependencies
+- Bun loads `.env` natively at runtime. Do **not** add `dotenv` to scripts run by Bun (`drizzle.config.ts`, server code). `dotenv` is only needed for tooling that runs under Node.
 
 ## Commit messages
 

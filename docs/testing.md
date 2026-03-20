@@ -2,7 +2,17 @@
 
 ## Web app
 
-Vitest + React Testing Library. 195 tests, >90% coverage.
+Vitest + React Testing Library. 196 tests, >90% coverage.
+
+## Why Vitest, not `bun test`
+
+`bun test` is incompatible with this suite. Do not migrate.
+
+| Blocker | Detail |
+|---------|--------|
+| `vi.hoisted()` | Not implemented in `bun test` — API/lib mocks rely on it |
+| `vi.mock()` factories | Bun's module mocker uses a different API |
+| jsdom environment | `bun test` has no jsdom; component tests require a DOM |
 
 ## Commands
 

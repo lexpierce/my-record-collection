@@ -12,7 +12,7 @@ Platform: Render. Config: `render.yaml` (Blueprint).
 ## Build pipeline
 
 1. Install Bun (`BUN_VERSION=1.3.11`)
-2. `bun install --frozen-lockfile && bun run build`
+2. `bun install --frozen-lockfile --production && bun run build`
 3. Pre-deploy: `bun run db:migrate`
 4. Start: `bun run start`
 
