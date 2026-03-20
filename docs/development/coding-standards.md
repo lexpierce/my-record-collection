@@ -496,14 +496,14 @@ When refreshing dependencies:
 
 ```bash
 bun update
-bun run test
-bun run type-check
-bun run lint
+bun run test && bun run type-check && bun run lint
 ```
+
+`bun update` rewrites version ranges in `package.json` in-place and updates `bun.lock`. No manual editing of `package.json` is needed after running it.
 
 Rules:
 
-- Commit `bun.lock` with every `bun update`
+- Commit both `package.json` and `bun.lock` with every `bun update`
 - `bun.lock` is a **text file** (Bun 1.1+). The old binary lockfile was `bun.lockb`. Dockerfiles and CI must copy `bun.lock*` (not `bun.lockb*`).
 - Keep Bun pinned to an exact version in `package.json` (`engines.bun`, `packageManager`)
 - Use `bun install --frozen-lockfile --production` in deploy builds; use `--frozen-lockfile` (no `--production`) in test/CI builds that need devDependencies
