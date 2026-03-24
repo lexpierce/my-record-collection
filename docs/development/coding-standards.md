@@ -55,6 +55,8 @@ Explain *why*, not *what*.
 
 ## TypeScript
 
+See [TypeScript configuration](./typescript.md) for tsconfig, TS6 migration notes, and the ES2025 runtime availability table.
+
 ### Strict mode
 
 Always fully typed. No `any`.
