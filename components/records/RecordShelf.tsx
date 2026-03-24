@@ -117,13 +117,10 @@ export default function RecordShelf({ refreshKey = 0 }: RecordShelfProps) {
   const effectiveSize = (r: Record) =>
     r.recordSize || (r.isShapedVinyl ? "Unknown" : '12"');
 
-  const uniqueSizes = useMemo(() => {
-    const sizes = new Set<string>();
-    for (const r of records) {
-      sizes.add(effectiveSize(r));
-    }
-    return [...sizes].sort();
-  }, [records]);
+  const uniqueSizes = useMemo(
+    () => [...new Set(records.values().map(effectiveSize))].sort(),
+    [records],
+  );
 
   const filteredRecords = useMemo(() => {
     let result = records;

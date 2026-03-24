@@ -92,12 +92,7 @@ export function computeBuckets(
   if (records.length === 0) return [];
 
   // ── Pass 0: group by first character ──────────────────────────────────────
-  const byFirst = new Map<string, { recordId: string; artistName: string }[]>();
-  for (const record of records) {
-    const ch = firstChar(record.artistName);
-    if (!byFirst.has(ch)) byFirst.set(ch, []);
-    byFirst.get(ch)!.push(record);
-  }
+  const byFirst = Map.groupBy(records, (record) => firstChar(record.artistName));
 
   // Letters in order A–Z then "#"
   const letters = [...byFirst.keys()].sort((a, b) => {
@@ -125,9 +120,7 @@ export function computeBuckets(
     // Split by second character
     const bySecond = new Map<string, string[]>();
     for (const record of group) {
-      const ch2 = secondChar(record.artistName);
-      if (!bySecond.has(ch2)) bySecond.set(ch2, []);
-      bySecond.get(ch2)!.push(record.recordId);
+      bySecond.getOrInsertComputed(secondChar(record.artistName), () => []).push(record.recordId);
     }
 
     const chars = [...bySecond.keys()].sort();
