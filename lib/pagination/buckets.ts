@@ -118,10 +118,10 @@ export function computeBuckets(
     }
 
     // Split by second character
-    const bySecond = new Map<string, string[]>();
-    for (const record of group) {
-      bySecond.getOrInsertComputed(secondChar(record.artistName), () => []).push(record.recordId);
-    }
+    const bySecond = new Map(
+      [...Map.groupBy(group, (r) => secondChar(r.artistName)).entries()]
+        .map(([ch2, recs]) => [ch2, recs.map((r) => r.recordId)]),
+    );
 
     const chars = [...bySecond.keys()].sort();
     let subIds: string[] = [];
