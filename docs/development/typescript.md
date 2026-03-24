@@ -23,7 +23,7 @@ Key decisions:
 
 | Option | Value | Reason |
 |--------|-------|--------|
-| `target` | `ES2025` | Node.js 24 supports ES2025 natively; Next.js handles browser transpilation |
+| `target` | `ES2025` | Bun 1.3.11 runtime supports ES2025 natively; Next.js handles browser transpilation |
 | `lib` | `["dom", "esnext"]` | `dom.iterable` and `dom.asynciterable` are bundled into `dom` since TS6 |
 | `noUncheckedSideEffectImports` | `true` | TS6 default; verifies side-effect imports (CSS, setup files) resolve |
 | `strict` | `true` | TS6 default; always set explicitly so intent is clear |
@@ -47,50 +47,29 @@ These were previously off or different. The project's `tsconfig.json` sets them 
 - `--module amd` / `umd` / `systemjs` / `none` → removed entirely
 - `target: es5` → deprecated; will warn
 
-## ES2025 API availability — Node.js 24
+## ES2025 API availability
 
-`lib: esnext` makes the TypeScript compiler accept ES2025 APIs. Not all are
-implemented in Node.js 24 at runtime. Always verify runtime support before using.
+`lib: esnext` makes the TypeScript compiler accept ES2025 APIs. The production
+runtime is **Bun**; the test runtime is **Node.js** (vitest workers). These differ.
 
-| API | In TS lib | Node.js 24 | Safe to use |
-|-----|-----------|------------|-------------|
-| `Map.groupBy` | ✓ | ✓ (v21+) | **Yes** |
-| `Object.groupBy` | ✓ | ✓ (v21+) | **Yes** |
-| `Iterator.map / .filter / .toArray` | ✓ | ✓ (v22+) | **Yes** |
-| `Promise.try` | ✓ | ✓ (v22+) | **Yes** |
-| `RegExp.escape` | ✓ | ✓ (v24+) | **Yes** |
-| `Map.prototype.getOrInsert` | ✓ | ✗ | **No** |
-| `Map.prototype.getOrInsertComputed` | ✓ | ✗ | **No** |
-| `WeakMap.prototype.getOrInsert` | ✓ | ✗ | **No** |
+| API | TS lib | Bun 1.3.11 | Node.js 24 | Notes |
+|-----|--------|------------|------------|-------|
+| `Map.groupBy` | ✓ | ✓ | ✓ (v21+) | Safe everywhere |
+| `Object.groupBy` | ✓ | ✓ | ✓ (v21+) | Safe everywhere |
+| `Iterator.map / .filter / .toArray` | ✓ | ✓ | ✓ (v22+) | Safe everywhere |
+| `Promise.try` | ✓ | ✓ | ✓ (v22+) | Safe everywhere |
+| `RegExp.escape` | ✓ | ✓ | ✓ (v24+) | Safe everywhere |
+| `Map.prototype.getOrInsert` | ✓ | ✓ | ✗ | Polyfilled in `vitest.setup.ts` |
+| `Map.prototype.getOrInsertComputed` | ✓ | ✓ | ✗ | Polyfilled in `vitest.setup.ts` |
+| `WeakMap.prototype.getOrInsert` | ✓ | ✓ | ✗ | Polyfill if needed |
 
-`Map.getOrInsert` / `Map.getOrInsertComputed` are in the TC39 ES2025 spec and
-in TypeScript's lib but have not landed in Node.js as of v24.14.0.
-The type-checker will accept them; the runtime will throw `TypeError: ... is not a function`.
+`Map.getOrInsert` and `Map.getOrInsertComputed` are available natively in Bun
+but not yet in Node.js 24. `vitest.setup.ts` polyfills them so tests match
+runtime behaviour. Do not replace them with workarounds in production code.
 
-### Preferred replacements
-
-Instead of `Map.getOrInsertComputed`:
+### Iterator helpers (safe everywhere)
 
 ```typescript
-// Use Map.groupBy when building from an iterable in one pass
-const byLetter = Map.groupBy(records, (r) => r.name[0]);
-
-// Use manual has/set/get when mutating an existing Map incrementally
-if (!m.has(key)) m.set(key, []);
-m.get(key)!.push(value);
-```
-
-Instead of `Map.getOrInsert`:
-
-```typescript
-const existing = m.get(key) ?? defaultValue;
-if (!m.has(key)) m.set(key, defaultValue);
-```
-
-### Iterator helpers (safe)
-
-```typescript
-// All safe in Node.js 22+ / Node.js 24
 const sizes = [...new Set(records.values().map((r) => r.recordSize))];
 const evens = numbers.values().filter((n) => n % 2 === 0).toArray();
 ```
