@@ -28,7 +28,13 @@ Lines: 90%, Statements: 90%, Functions: 90%, Branches: 80%.
 
 ## Config
 
-`vitest.config.ts`, `vitest.setup.ts` (imports `@testing-library/jest-dom`). `@/*` alias mirrors `tsconfig.json`.
+`vitest.config.ts`, `vitest.setup.ts` (imports `@testing-library/jest-dom`; polyfills Bun-native APIs absent from Node.js). `@/*` alias mirrors `tsconfig.json`.
+
+### Vitest runtime vs Bun runtime
+
+Vitest workers run under **Node.js**, not Bun, even when launched via `bun run test`. The production app runs on **Bun**. These runtimes differ in ES2025 API coverage.
+
+Rule: if an API is native in Bun but absent in Node.js, use it in production code and add a polyfill to `vitest.setup.ts`. See [TypeScript configuration](./development/typescript.md#es2025-api-availability) for the full table.
 
 ## Test structure
 

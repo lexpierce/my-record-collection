@@ -116,6 +116,7 @@ tui/                        # Separate Go module
 ## Related
 
 - [Coding standards](./coding-standards.md)
+- [TypeScript configuration](./typescript.md)
 - [Database schema](./database-schema.md)
 - [API design patterns](./api-design-patterns.md)
 - [Testing](../testing.md)
