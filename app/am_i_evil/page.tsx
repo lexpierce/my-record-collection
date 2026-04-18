@@ -2,9 +2,8 @@ export default function HealthCheck() {
   return (
     <div
       style={{
-        backgroundColor: "green",
-        height: "100vh",
         display: "flex",
+        height: "100vh",
         alignItems: "center",
         justifyContent: "center",
         color: "white",
