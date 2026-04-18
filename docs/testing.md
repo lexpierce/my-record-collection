@@ -2,7 +2,7 @@
 
 ## Web app
 
-Vitest + React Testing Library. 196 tests, >90% coverage.
+Vitest + React Testing Library. 194 tests, >90% coverage.
 
 ## Why Vitest, not `bun test`
 
@@ -101,6 +101,7 @@ Mock to plain `<img>`. Destructure out non-HTML props.
 
 ## Rules
 
+- Test files that contain JSX must use `.tsx` extension, not `.ts` — Vitest/esbuild will fail to parse JSX in `.ts` files
 - Fresh client per test (`beforeEach`)
 - `vi.hoisted()` for mock variables in `vi.mock()` factories
 - `getByRole("button", { name })` not `getByTitle`

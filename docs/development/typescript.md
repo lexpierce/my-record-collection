@@ -1,6 +1,6 @@
 # TypeScript configuration
 
-TypeScript 6.0.2. Target: ES2025. Module: ESNext. ModuleResolution: bundler.
+TypeScript 6.0.3. Target: ES2025. Module: ESNext. ModuleResolution: bundler.
 
 ## tsconfig.json
 
@@ -23,7 +23,7 @@ Key decisions:
 
 | Option | Value | Reason |
 |--------|-------|--------|
-| `target` | `ES2025` | Bun 1.3.11 runtime supports ES2025 natively; Next.js handles browser transpilation |
+| `target` | `ES2025` | Bun 1.3.12 runtime supports ES2025 natively; Next.js handles browser transpilation |
 | `lib` | `["dom", "esnext"]` | `dom.iterable` and `dom.asynciterable` are bundled into `dom` since TS6 |
 | `noUncheckedSideEffectImports` | `true` | TS6 default; verifies side-effect imports (CSS, setup files) resolve |
 | `strict` | `true` | TS6 default; always set explicitly so intent is clear |
@@ -46,6 +46,17 @@ These were previously off or different. The project's `tsconfig.json` sets them 
 - `--outFile` → not applicable (Next.js owns bundling)
 - `--module amd` / `umd` / `systemjs` / `none` → removed entirely
 - `target: es5` → deprecated; will warn
+
+## ES2025 and esbuild
+
+esbuild (used by Vite/Vitest and `drizzle-kit` internally) does not recognize `ES2025` as a target — highest it supports is `ES2024`. It emits `Unrecognized target environment "ES2025"` as a **warning** only; it does not fail. Do not change `tsconfig.json` `target` to suppress this.
+
+Contexts where this warning appears:
+
+| Tool | When | Impact |
+|------|------|--------|
+| Vitest | `bun run test` locally | None — tests pass |
+| drizzle-kit | `bun run db:migrate` (Render pre-deploy) | None — migrations apply |
 
 ## ES2025 API availability
 

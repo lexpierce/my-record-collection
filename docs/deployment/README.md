@@ -11,7 +11,7 @@ Platform: Render. Config: `render.yaml` (Blueprint).
 
 ## Build pipeline
 
-1. Install Bun (`BUN_VERSION=1.3.11`)
+1. Install Bun (`BUN_VERSION=1.3.12`)
 2. `bun install --frozen-lockfile --production && bun run build`
 3. Pre-deploy: `bun run db:migrate`
 4. Start: `bun run start`
@@ -29,7 +29,7 @@ Skips rebuild on changes to `docs/**`, `*.md`, and `tui/**`.
 | `DISCOGS_TOKEN` | Manual (secret) | Yes |
 | `DISCOGS_USERNAME` | `Lexpierce` | Yes (for sync) |
 | `DISCOGS_USER_AGENT` | `MyRecordCollection/1.0` | No (has default) |
-| `BUN_VERSION` | `1.3.11` | Yes |
+| `BUN_VERSION` | `1.3.12` | Yes |
 
 > **TUI**: also uses `DATABASE_URL`. TUI reads from
 > `~/.config/myrecords/config.toml` (`database_url` key) with `DATABASE_URL`
@@ -37,7 +37,11 @@ Skips rebuild on changes to `docs/**`, `*.md`, and `tui/**`.
 
 ## Health check
 
-`/api/am_i_evil` — configured in `render.yaml`.
+`/am_i_evil` — static Next.js page, configured in `render.yaml`. See [health-check.md](../api/endpoints/health-check.md).
+
+## Pre-deploy warning
+
+`drizzle-kit migrate` emits `Unrecognized target environment "ES2025"` during the pre-deploy phase. This is cosmetic. `drizzle-kit` uses esbuild internally to parse `drizzle.config.ts`; esbuild reads `tsconfig.json` and does not recognize `ES2025` as a target (highest supported: `ES2024`). Migrations apply successfully. No action required.
 
 ## Troubleshooting
 
