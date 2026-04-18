@@ -8,9 +8,9 @@ import HealthCheck from "@/app/am_i_evil/page";
 import HealthCheckLayout from "@/app/am_i_evil/layout";
 
 describe("/am_i_evil health check page", () => {
-  it("renders yes_i_am text", () => {
+  it("renders YES I AM text", () => {
     render(<HealthCheck />);
-    expect(screen.getByText("yes_i_am")).toBeDefined();
+    expect(screen.getByText("YES I AM")).toBeDefined();
   });
 
   it("sets green background on body via layout style tag", () => {

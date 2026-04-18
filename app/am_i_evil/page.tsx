@@ -7,11 +7,13 @@ export default function HealthCheck() {
         alignItems: "center",
         justifyContent: "center",
         color: "white",
-        fontFamily: "monospace",
-        fontSize: "2rem",
+        fontFamily: "sans-serif",
+        fontSize: "10vw",
+        fontWeight: "bold",
+        letterSpacing: "0.05em",
       }}
     >
-      yes_i_am
+      YES I AM
     </div>
   );
 }

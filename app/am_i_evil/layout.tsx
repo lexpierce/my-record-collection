@@ -5,7 +5,7 @@ export default function HealthCheckLayout({
 }) {
   return (
     <>
-      <style>{`body { background-color: green; }`}</style>
+      <style>{`body { background-color: green !important; }`}</style>
       {children}
     </>
   );
