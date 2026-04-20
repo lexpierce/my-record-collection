@@ -23,6 +23,8 @@ None.
 - [x] Updated TUI docs/tests for Discogs-only add and delete behavior
 - [x] Fixed TUI Discogs decode failure when `results[].year` is a JSON string by adding mixed-type year unmarshalling
 - [x] Added Discogs decoder regression tests for numeric and string year payloads in `tui/ui/discogs_test.go`
+- [x] Bumped Bun runtime pin to `1.3.13` across `package.json`, `render.yaml`, and deployment/development docs
+- [x] Upgraded to ESLint 10 and updated lint command to scoped code paths to avoid dotfile crash (`scopeManager.addGlobals`)
 
 ## Completed (previous sessions)
 

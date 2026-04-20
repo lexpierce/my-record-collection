@@ -33,7 +33,7 @@
 bun run dev           # Dev server (Turbopack)
 bun run build         # Production build
 bun run start         # Start production server
-bun run lint          # ESLint (eslint .)
+bun run lint          # ESLint (scoped code paths)
 bun run lint:md       # markdownlint-cli2
 bun run type-check    # tsc --noEmit
 bun run test          # Vitest
@@ -94,7 +94,7 @@ tui/                        # Separate Go module
 |----------|------|
 | Border radius | `0` everywhere (sharp edges) |
 | Package manager | bun, never npm |
-| Linter | `eslint .` (not `next lint`) |
+| Linter | `bun run lint` (not `next lint`) |
 | Styling | Sass CSS Modules only, no Tailwind |
 | Color tokens | CSS custom properties in `styles/_variables.scss` |
 | Card size | 180px wide (250px flipped), content-driven height, 144px album art |

@@ -503,6 +503,11 @@ bun run test && bun run type-check && bun run lint
 
 `bun update` rewrites version ranges in `package.json` in-place and updates `bun.lock`. No manual editing of `package.json` is needed after running it.
 
+ESLint 10 note:
+
+- Keep lint script scoped to code paths/files (`app components lib __tests__ ...`), not `eslint .`
+- `eslint .` can crash on non-code dotfiles with current Next preset stack (`scopeManager.addGlobals`)
+
 Rules:
 
 - Commit both `package.json` and `bun.lock` with every `bun update`
