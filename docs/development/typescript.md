@@ -23,7 +23,7 @@ Key decisions:
 
 | Option | Value | Reason |
 |--------|-------|--------|
-| `target` | `ES2025` | Bun 1.3.12 runtime supports ES2025 natively; Next.js handles browser transpilation |
+| `target` | `ES2025` | Bun 1.3.13 runtime supports ES2025 natively; Next.js handles browser transpilation |
 | `lib` | `["dom", "esnext"]` | `dom.iterable` and `dom.asynciterable` are bundled into `dom` since TS6 |
 | `noUncheckedSideEffectImports` | `true` | TS6 default; verifies side-effect imports (CSS, setup files) resolve |
 | `strict` | `true` | TS6 default; always set explicitly so intent is clear |
@@ -63,7 +63,7 @@ Contexts where this warning appears:
 `lib: esnext` makes the TypeScript compiler accept ES2025 APIs. The production
 runtime is **Bun**; the test runtime is **Node.js** (vitest workers). These differ.
 
-| API | TS lib | Bun 1.3.11 | Node.js 24 | Notes |
+| API | TS lib | Bun 1.3.13 | Node.js 24 | Notes |
 |-----|--------|------------|------------|-------|
 | `Map.groupBy` | ✓ | ✓ | ✓ (v21+) | Safe everywhere |
 | `Object.groupBy` | ✓ | ✓ | ✓ (v21+) | Safe everywhere |

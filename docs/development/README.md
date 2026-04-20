@@ -7,7 +7,7 @@
 | Layer | Technology | Notes |
 |-------|-----------|-------|
 | Framework | Next.js 16 (App Router) | `app/` directory |
-| Runtime | Bun 1.3.12 | Not npm |
+| Runtime | Bun 1.3.13 | Not npm |
 | Language | TypeScript (strict) | `tsconfig.json` |
 | Database | PostgreSQL 18 + Drizzle ORM | `lib/db/schema.ts` |
 | Styling | Sass CSS Modules | `.module.scss` per component + `styles/globals.scss` |
