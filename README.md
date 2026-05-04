@@ -8,7 +8,7 @@ A modern web application for managing your vinyl record collection, powered by t
 - **Discogs Integration**: Automatically fetch detailed information from Discogs
 - **Vinyl Metadata**: Track record size (7", 10", 12"), vinyl color, and shaped/picture discs
 - **Search Preview**: View size, color, and vinyl type before adding to collection
-- **Beautiful UI**: Warm-toned interface with Inter font
+- **Beautiful UI**: Warm-toned interface with browser sans-serif font
 - **Record Shelf**: Display your collection with 1" album art thumbnails
 - **Interactive Flip Cards**:
   - Click to flip and view complete record details
@@ -21,10 +21,10 @@ A modern web application for managing your vinyl record collection, powered by t
 
 ## Tech Stack
 
-- **Framework**: Next.js 16 (App Router)
+- **Framework**: Astro SSR
 - **Runtime**: Bun (latest)
 - **Database**: PostgreSQL 18 with Drizzle ORM
-- **Styling**: Sass CSS Modules with custom warm color palette
+- **Styling**: Sass with custom warm color palette
 - **API**: Discogs API with rate limiting
 - **Deployment**: Render (Docker-based)
 
@@ -82,9 +82,9 @@ bun run dev
 
 ## Scripts
 
-- `bun run dev`: Start development server with Turbopack
-- `bun run build`: Build for production
-- `bun run start`: Start production server
+- `bun run dev`: Start Astro development server
+- `bun run build`: Build Astro SSR app for production
+- `bun run start`: Start production Astro Node server
 - `bun run lint`: Run ESLint
 - `bun run type-check`: Run TypeScript type checking
 - `bun run test`: Run tests (Vitest)
@@ -97,7 +97,7 @@ bun run dev
 
 ### Health Check
 
-- `GET /api/am_i_evil` - Health check endpoint
+- `GET /am_i_evil` - Health check endpoint
 
 ### Records Management
 
@@ -121,7 +121,7 @@ See [API Documentation](./docs/api/README.md) for detailed endpoint information.
 Comprehensive documentation is available in the `docs/` directory:
 
 - **[API Documentation](./docs/api/README.md)** - REST API endpoints and usage
-- **[Component Documentation](./docs/components/README.md)** - React component reference
+- **[Component Documentation](./docs/components/README.md)** - Astro-rendered markup plus vanilla browser script reference
 - **[Feature Documentation](./docs/features/README.md)** - Application features and workflows
 - **[Development Guidelines](./docs/development/README.md)** - Coding standards and patterns
 - **[Deployment Guide](./docs/deployment/README.md)** - Deployment instructions
@@ -136,7 +136,7 @@ The application will be deployed with:
 
 - **Service**: Starter plan with Bun runtime
 - **Database**: PostgreSQL 18 (Basic 256MB, 5GB disk)
-- **Health Check**: `/api/am_i_evil`
+- **Health Check**: `/am_i_evil`
 - **Auto Deploy**: Enabled on push to main branch
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) or [Deployment Documentation](./docs/deployment/README.md) for detailed instructions.

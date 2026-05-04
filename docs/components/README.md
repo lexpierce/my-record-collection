@@ -1,14 +1,19 @@
 # Component reference
 
-| Component | File | Type | Purpose |
-|-----------|------|------|---------|
-| RecordCard | `components/records/RecordCard.tsx` | client | Flip card: album art front, details back |
-| RecordShelf | `components/records/RecordShelf.tsx` | client | Grid with sort/filter/pagination |
-| AlphaNav | `components/records/AlphaNav.tsx` | client | Letter-bucket nav bar |
-| SearchBar | `components/records/SearchBar.tsx` | client | Discogs search + add to collection |
+The web UI is rendered by Astro markup in `src/pages/index.astro` and controlled by vanilla TypeScript in `src/scripts/record-app.ts`.
 
-All use Sass CSS Modules (`.module.scss`). All `"use client"`.
+## Units
 
-- [RecordCard](./record-card.md)
-- [RecordShelf](./record-shelf.md)
-- [SearchBar](./search-bar.md)
+| UI unit | Markup/styles | Behavior |
+|---------|---------------|----------|
+| Home shell | `src/pages/index.astro`, `src/styles/record-app.scss` | `src/scripts/record-app.ts` |
+| Search panel | `src/pages/index.astro`, `src/styles/record-app.scss` | `setSearchMethod()`, `handleSearchSubmit()`, `addSearchResult()` |
+| Record shelf | Runtime HTML from `renderShelf()` | sorting, filtering, alpha nav, pagination in `record-app.ts` |
+| Record card | Runtime HTML from `renderRecordCard()` | flip/update/delete in `record-app.ts` |
+| Pure helpers | — | `src/scripts/record-helpers.ts` |
+
+## Related
+
+- [Record card](./record-card.md)
+- [Record shelf](./record-shelf.md)
+- [Search bar](./search-bar.md)

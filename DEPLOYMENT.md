@@ -17,7 +17,7 @@ This will deploy:
 - **Web Service**: my-record-collection (Bun runtime, Starter plan)
 - **Database**: Postgres 18 (5GB disk, Basic 256MB plan)
 
-## Next Steps to Complete Deployment
+## Astro Steps to Complete Deployment
 
 ### 1. Wait for Database Provisioning
 
@@ -50,7 +50,7 @@ You need a Discogs Personal Access Token to fetch record information.
 
 1. Go to: <https://dashboard.render.com/web/srv-d680i40gjchc73b98590/settings>
 2. Scroll to "Health Check"
-3. Set **Health Check Path** to: `/api/am_i_evil`
+3. Set **Health Check Path** to: `/am_i_evil`
 4. Click "Save Changes"
 
 ### 5. Trigger Redeploy
@@ -66,15 +66,15 @@ The build will:
 - Install Bun runtime
 - Install dependencies
 - Apply database migrations (`bun run db:migrate`)
-- Build the Next.js application
+- Build the Astro application
 - Start the production server
 
 ### 6. Verify Deployment
 
 Once deployed, test your application:
 
-1. **Health Check**: <https://my-record-collection.onrender.com/api/am_i_evil>
-   - Should return: `{"status":"yes_i_am","message":"Application is running",...}`
+1. **Health Check**: <https://my-record-collection.onrender.com/am_i_evil>
+   - Should return a green page with `YES I AM`
 
 2. **Home Page**: <https://my-record-collection.onrender.com>
    - Should show the record collection interface

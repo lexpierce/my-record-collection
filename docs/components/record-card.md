@@ -1,75 +1,37 @@
-# RecordCard
+# Record card
 
-Source: `components/records/RecordCard.tsx` + `RecordCard.module.scss`
-
-Client component. 3D flip card.
-
-## Props
-
-```ts
-interface RecordCardProps {
-  record: Record;
-  onRecordMutated: () => void;
-}
-```
-
-`onRecordMutated`: called after update/delete. Parent bumps `refreshKey` to re-fetch.
+Runtime card markup is produced by `renderRecordCard()` in `src/scripts/record-app.ts` and styled by `src/styles/record-app.scss` plus flip-card globals in `src/styles/globals.scss`.
 
 ## State
 
-`isFlipped: boolean` — single toggle.
+| State | Location | Purpose |
+|-------|----------|---------|
+| `flipped` class | DOM class on `[data-record-card]` | Drives 3D flip transform |
+| `aria-expanded` | DOM attr on card root | Accessibility state |
+| `[data-confirm-delete]` | Hidden/shown DOM block | Inline delete confirmation |
+| `[data-action-error]` | Hidden/shown DOM block | Inline action failures |
 
 ## Dimensions
 
-- Width: 180px (250px flipped, negative margins center it)
-- Height: content-driven (no min-height)
-- Front art: 144px (`.album-art-size` global class)
-- Back art: 216px (`.album-art-size-lg` global class)
-
-## Front face
-
-Album art, title (`0.875rem` bold), artist (`0.875rem`). All truncated with ellipsis.
-Title and artist are tightly spaced: `margin-top: 0.0625rem` on `.albumArtist`.
-
-## Back face
-
-216px thumbnail, title, artist, all metadata fields (`0.875rem`), Update + Delete buttons.
-
-Monospace fields (rendered with `styles.metaValueMono`, font `var(--font-mono)`):
-
-- Cat# (`catalogNumber`)
-- Year (`yearReleased`)
-- Discogs ID (`discogsId`)
-
-All other value spans use `styles.metaValue` (Input Sans).
-
-## CSS classes
-
-Global (in `styles/globals.scss`): `flip-card`, `flipped`, `flip-card-inner`, `flip-card-front`, `flip-card-back`, `album-art-size`, `album-art-size-lg`.
-
-Module: `styles.cardFrontContent`, `styles.cardBack`, `styles.metaRow`, `styles.metaLabel`, `styles.metaValue`, `styles.metaValueMono`, `styles.actions`, etc.
-
-## Delete flow
-
-Two-step inline confirmation — no `window.confirm()`.
-
-1. First `d` press: sets `confirmDeleteVisible = true`, shows "Are you sure? Yes / No" inline.
-2. "Yes" button: calls `DELETE /api/records/[recordId]`, then `onRecordMutated()`.
-3. "No" button: clears confirmation.
-
-Errors shown inline via `actionError` state (no `window.alert()`).
+| Element | Size |
+|---------|------|
+| Card front | 180px wide |
+| Flipped card | 250px wide |
+| Front art | 144px |
+| Back art | 216px |
 
 ## API calls
 
-- `POST /api/records/update-from-discogs` (Update button)
-- `DELETE /api/records/[recordId]` (Delete button)
+| Action | Endpoint |
+|--------|----------|
+| Update | `POST /api/records/update-from-discogs` |
+| Delete | `DELETE /api/records/[recordId]` |
 
 ## Accessibility
 
-`role="button"`, `tabIndex={0}`, `aria-expanded={isFlipped}`, `onKeyDown` (Enter/Space).
+Card roots use `role="button"`, `tabindex="0"`, `aria-expanded`, and Enter/Space keyboard handlers.
 
 ## Related
 
+- [Record shelf](./record-shelf.md)
 - [Flip card animation](../features/flip-card-animation.md)
-- [RecordShelf](./record-shelf.md)
-- [UI/UX reference](../ui-ux.md)

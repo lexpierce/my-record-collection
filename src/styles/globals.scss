@@ -1,0 +1,87 @@
+@use "../../styles/variables";
+@use "../../styles/reset";
+@use "../../styles/animations";
+
+body {
+  margin: 0;
+  background-color: var(--warm-bg-secondary);
+  color: var(--warm-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select {
+  font-family: inherit;
+}
+
+.album-art-size {
+  width: 144px;
+  height: 144px;
+}
+
+.album-art-size-lg {
+  width: 216px;
+  height: 216px;
+}
+
+.flip-card {
+  perspective: 1500px;
+  width: 180px;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.4s ease, width 0.4s ease, margin 0.4s ease;
+  cursor: pointer;
+
+  &:hover:not(.flipped) {
+    transform: translateY(-2px);
+  }
+
+  &.flipped {
+    z-index: 1000;
+    width: 250px;
+    filter:
+      drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25))
+      drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+  }
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+
+  .flip-card.flipped & {
+    transform: rotateY(180deg);
+  }
+}
+
+.flip-card-front,
+.flip-card-back {
+  width: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  background-color: var(--warm-bg-primary);
+}
+
+.flip-card-front {
+  position: relative;
+  transform: rotateY(0deg);
+  border: 1px solid var(--warm-bg-tertiary);
+  border-radius: 0;
+  box-shadow: 0 1px 3px rgba(76, 79, 105, 0.08);
+}
+
+.flip-card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: rotateY(180deg);
+  background-color: var(--warm-bg-secondary);
+  border: 2px solid var(--ctp-lavender);
+  border-radius: 0;
+}

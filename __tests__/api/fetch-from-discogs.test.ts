@@ -1,13 +1,4 @@
-/**
- * Tests for POST /api/records/fetch-from-discogs
- */
-
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { NextRequest } from "next/server";
-
-// ---------------------------------------------------------------------------
-// Hoisted mocks
-// ---------------------------------------------------------------------------
 
 const {
   mockGetRelease,
@@ -51,24 +42,16 @@ vi.mock("drizzle-orm", () => ({
   eq: vi.fn((col, val) => ({ col, val })),
 }));
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 function drizzleChain(resolveValue: unknown) {
   const chain: Record<string, unknown> = {};
-  for (const m of ["values", "returning", "set", "where"]) {
-    chain[m] = vi.fn().mockReturnValue(chain);
+  for (const method of ["values", "returning", "set", "where"]) {
+    chain[method] = vi.fn().mockReturnValue(chain);
   }
-  chain.then = (resolve: (v: unknown) => void) => resolve(resolveValue);
+  chain.then = (resolve: (value: unknown) => void) => resolve(resolveValue);
   return chain;
 }
 
-import { POST } from "@/app/api/records/fetch-from-discogs/route";
-
-// ---------------------------------------------------------------------------
-// Test data
-// ---------------------------------------------------------------------------
+import { POST } from "@/src/pages/api/records/fetch-from-discogs";
 
 const mockRelease = {
   id: 123,
@@ -92,7 +75,7 @@ const savedRecord = {
 };
 
 function makeRequest(body: unknown) {
-  return new NextRequest("http://localhost/api/records/fetch-from-discogs", {
+  return new Request("http://localhost/api/records/fetch-from-discogs", {
     method: "POST",
     body: JSON.stringify(body),
     headers: { "Content-Type": "application/json" },
@@ -111,56 +94,52 @@ beforeEach(() => {
   mockAddToCollection.mockResolvedValue(undefined);
 });
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
 describe("POST /api/records/fetch-from-discogs", () => {
   it("returns 400 when releaseId is missing", async () => {
-    const response = await POST(makeRequest({}));
+    const response = await POST({ request: makeRequest({}) });
     expect(response.status).toBe(400);
   });
 
   it("returns 201 with saved record on success", async () => {
-    const response = await POST(makeRequest({ releaseId: 123 }));
+    const response = await POST({ request: makeRequest({ releaseId: 123 }) });
     expect(response.status).toBe(201);
     const body = await response.json();
     expect(body.record).toBeDefined();
   });
 
   it("calls getRelease with the correct release ID", async () => {
-    await POST(makeRequest({ releaseId: 456 }));
+    await POST({ request: makeRequest({ releaseId: 456 }) });
     expect(mockGetRelease).toHaveBeenCalledWith(456);
   });
 
   it("attempts addToCollection when DISCOGS_USERNAME is set", async () => {
-    await POST(makeRequest({ releaseId: 123 }));
+    await POST({ request: makeRequest({ releaseId: 123 }) });
     expect(mockAddToCollection).toHaveBeenCalledWith("testuser", 123);
   });
 
   it("does not attempt addToCollection when DISCOGS_USERNAME is unset", async () => {
     delete process.env.DISCOGS_USERNAME;
-    await POST(makeRequest({ releaseId: 123 }));
+    await POST({ request: makeRequest({ releaseId: 123 }) });
     expect(mockAddToCollection).not.toHaveBeenCalled();
   });
 
-  it("handles 409 from addToCollection gracefully (marks as synced)", async () => {
+  it("handles 409 from addToCollection gracefully", async () => {
     mockAddToCollection.mockRejectedValueOnce(
-      Object.assign(new Error("conflict"), { status: 409 })
+      Object.assign(new Error("conflict"), { status: 409 }),
     );
-    const response = await POST(makeRequest({ releaseId: 123 }));
+    const response = await POST({ request: makeRequest({ releaseId: 123 }) });
     expect(response.status).toBe(201);
   });
 
   it("logs warning but succeeds if addToCollection fails with non-409", async () => {
     mockAddToCollection.mockRejectedValueOnce(new Error("rate limited"));
-    const response = await POST(makeRequest({ releaseId: 123 }));
+    const response = await POST({ request: makeRequest({ releaseId: 123 }) });
     expect(response.status).toBe(201);
   });
 
   it("returns 500 when getRelease throws", async () => {
     mockGetRelease.mockRejectedValueOnce(new Error("API down"));
-    const response = await POST(makeRequest({ releaseId: 123 }));
+    const response = await POST({ request: makeRequest({ releaseId: 123 }) });
     expect(response.status).toBe(500);
   });
 });

@@ -8,7 +8,7 @@ No authentication. All endpoints public.
 
 | Method | Path | Purpose | Docs |
 |--------|------|---------|------|
-| GET | `/api/am_i_evil` | Health check | [health-check.md](./endpoints/health-check.md) |
+| GET | `/am_i_evil` | Health check | [health-check.md](./endpoints/health-check.md) |
 | GET | `/api/records` | List records | [records-crud.md](./endpoints/records-crud.md) |
 | POST | `/api/records` | Create record manually | [records-crud.md](./endpoints/records-crud.md) |
 | GET | `/api/records/[id]` | Get single record | [records-crud.md](./endpoints/records-crud.md) |

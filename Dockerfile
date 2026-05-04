@@ -1,66 +1,40 @@
-# Dockerfile for Next.js application using Bun runtime
-# Multi-stage build for optimal image size
+# Dockerfile for Astro SSR application using Bun runtime
 
-# Stage 1: Dependencies
-FROM oven/bun:1.3.11 AS dependencies
+FROM oven/bun:1.3.13 AS dependencies
 
 WORKDIR /app
 
-# Copy package files
 COPY package.json bun.lock* ./
+RUN bun install --frozen-lockfile
 
-# Install dependencies
-RUN bun install --frozen-lockfile --production=false
-
-# Stage 2: Builder
-FROM oven/bun:1.3.11 AS builder
+FROM oven/bun:1.3.13 AS builder
 
 WORKDIR /app
 
-# Copy dependencies from previous stage
 COPY --from=dependencies /app/node_modules ./node_modules
-
-# Copy application source code
 COPY . .
 
-# Set environment variables for build
-ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
-
-# Build the Next.js application
 RUN bun run build
 
-# Stage 3: Runner
-FROM oven/bun:1.3.11-slim AS runner
+FROM oven/bun:1.3.13-slim AS runner
 
 WORKDIR /app
 
-# Set environment variables
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+ENV HOST=0.0.0.0
+ENV PORT=3000
 
-# Create a non-root user for security
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 astro && \
+    adduser --system --uid 1001 astro
 
-# Copy necessary files from builder stage
-COPY --from=builder /app/next.config.ts ./
+COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
 
-# Copy built application
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+USER astro
 
-# Switch to non-root user
-USER nextjs
-
-# Expose port
 EXPOSE 3000
 
-# Set port environment variable
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
-# Start the application using Bun
 CMD ["bun", "run", "start"]

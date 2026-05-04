@@ -55,7 +55,7 @@ vi.mock("@/lib/discogs/client", () => ({
   }),
 }));
 
-import { executeSync, type SyncProgress } from "@/lib/discogs/sync";
+import { executeSync } from "@/lib/discogs/sync";
 
 // ---------------------------------------------------------------------------
 // Helpers

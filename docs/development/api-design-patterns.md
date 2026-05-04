@@ -43,7 +43,7 @@ Dynamic segments are `Promise`, must be awaited:
 
 ```ts
 export async function GET(
-  request: NextRequest,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const recordId = (await params).id;
@@ -74,7 +74,7 @@ try {
   // ...
 } catch (error) {
   console.error("Context:", error);
-  return NextResponse.json({
+  return jsonResponse({
     error: "Failed to <action>",
     message: error instanceof Error ? error.message : "Unknown error",
   }, { status: 500 });
@@ -83,7 +83,7 @@ try {
 
 ## SSE (sync route)
 
-`ReadableStream` + `TextEncoder`, return `Response` (not `NextResponse`).
+`ReadableStream` + `TextEncoder`, return standard `Response`.
 Set `export const dynamic = "force-dynamic"`.
 
 ```ts

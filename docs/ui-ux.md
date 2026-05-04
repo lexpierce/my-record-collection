@@ -18,15 +18,12 @@ Semantic tokens map to Catppuccin Latte palette constants (`--ctp-*`). Never har
 | `--warm-text-primary` | `--ctp-text` | `#4c4f69` | Body text |
 | `--warm-text-secondary` | `--ctp-subtext1` | `#5c5f77` | Labels, metadata |
 | `--warm-text-tertiary` | `--ctp-subtext0` | `#6c6f85` | Placeholder, disabled |
-| `--font-sans` | — | — | `"Input Sans"`, system-ui fallback |
-| `--font-mono` | — | — | `"Input Mono"`, ui-monospace fallback |
+| `--font-sans` | — | — | Browser `sans-serif` |
+| `--font-mono` | — | — | Browser `ui-monospace`, `monospace` fallback |
 
 ## Font loading
 
-Input Sans and Input Mono are declared via `@font-face` in `styles/globals.scss`, pointing to `public/fonts/`.
-Download free for private use at <https://input.djr.com/download/>.
-System-ui / ui-monospace serve as fallbacks until font files are placed.
-Inter (`next/font/google`) is no longer used.
+No custom web fonts are loaded. The app uses browser/system fonts through `--font-sans` and `--font-mono`.
 
 ## Layout
 
@@ -39,15 +36,15 @@ Inter (`next/font/google`) is no longer used.
 
 | Element | Size | Font |
 |---------|------|------|
-| Page header title | `2rem` bold | Input Sans |
-| Body / buttons / inputs | `1rem` | Input Sans |
-| Card title (front + back) | `0.875rem` bold | Input Sans |
-| Card artist (front) | `0.875rem` | Input Sans |
-| Dense metadata (back of card) | `0.875rem` | Input Sans |
-| Cat#, Year, Discogs ID values | `0.875rem` | Input Mono |
-| AlphaNav buttons | `0.875rem` | Input Sans |
-| Page info / pagination | `0.9375rem` | Input Sans |
-| Filter badge | `10px` | Input Sans |
+| Page header title | `2rem` bold | Browser sans-serif |
+| Body / buttons / inputs | `1rem` | Browser sans-serif |
+| Card title (front + back) | `0.875rem` bold | Browser sans-serif |
+| Card artist (front) | `0.875rem` | Browser sans-serif |
+| Dense metadata (back of card) | `0.875rem` | Browser sans-serif |
+| Cat#, Year, Discogs ID values | `0.875rem` | Browser monospace |
+| AlphaNav buttons | `0.875rem` | Browser sans-serif |
+| Page info / pagination | `0.9375rem` | Browser sans-serif |
+| Filter badge | `10px` | Browser sans-serif |
 
 ## Interactions
 
@@ -62,7 +59,7 @@ Inter (`next/font/google`) is no longer used.
 
 ## No full-page reloads
 
-All mutations use callback pattern (`onRecordMutated` / `onRecordAdded` → `refreshKey` bump).
+All mutations refresh app state through browser scripts and API calls.
 
 ## Responsive
 
@@ -70,7 +67,7 @@ Grid auto-fills 180px columns. Header wraps via flexbox.
 
 ## Styling architecture
 
-- `styles/_variables.scss`: all CSS custom property tokens (Catppuccin Latte palette + semantic tokens + font vars)
-- `styles/globals.scss`: `@font-face` declarations, reset, flip-card CSS, album-art size utilities
-- `*.module.scss`: scoped per component
+- `styles/_variables.scss`: CSS custom property tokens
+- `src/styles/globals.scss`: reset, flip-card CSS, album-art size utilities
+- `src/styles/record-app.scss`: app UI styles
 - No Tailwind

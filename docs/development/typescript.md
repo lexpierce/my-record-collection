@@ -1,6 +1,6 @@
 # TypeScript configuration
 
-TypeScript 6.0.3. Target: ES2025. Module: ESNext. ModuleResolution: bundler.
+TypeScript 6.0.3. Target: ES2024. Module: ESNext. ModuleResolution: bundler.
 
 ## tsconfig.json
 
@@ -23,7 +23,7 @@ Key decisions:
 
 | Option | Value | Reason |
 |--------|-------|--------|
-| `target` | `ES2025` | Bun 1.3.13 runtime supports ES2025 natively; Next.js handles browser transpilation |
+| `target` | `ES2024` | Avoids esbuild warnings while remaining compatible with Bun 1.3.13 |
 | `lib` | `["dom", "esnext"]` | `dom.iterable` and `dom.asynciterable` are bundled into `dom` since TS6 |
 | `noUncheckedSideEffectImports` | `true` | TS6 default; verifies side-effect imports (CSS, setup files) resolve |
 | `strict` | `true` | TS6 default; always set explicitly so intent is clear |
@@ -43,7 +43,7 @@ These were previously off or different. The project's `tsconfig.json` sets them 
 
 - `--moduleResolution node` / `classic` → use `bundler` or `node16`
 - `--baseUrl` → use `paths` only
-- `--outFile` → not applicable (Next.js owns bundling)
+- `--outFile` → not applicable (Astro/Vite owns bundling)
 - `--module amd` / `umd` / `systemjs` / `none` → removed entirely
 - `target: es5` → deprecated; will warn
 

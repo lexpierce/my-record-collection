@@ -1,0 +1,26 @@
+---
+import "../styles/globals.scss";
+import "../styles/record-app.scss";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "My Record Collection",
+  description = "Online record collection powered by Discogs API",
+} = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

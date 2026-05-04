@@ -46,8 +46,8 @@
   --warm-text-tertiary:  var(--ctp-subtext0);
 
   // ─── Typography ───────────────────────────────────────────────────────────
-  --font-sans:  "Input Sans", system-ui, sans-serif;
-  --font-mono:  "Input Mono", ui-monospace, monospace;
+  --font-sans:  sans-serif;
+  --font-mono:  ui-monospace, monospace;
 
   // ─── Border ───────────────────────────────────────────────────────────────
   --border-default: var(--warm-bg-tertiary);

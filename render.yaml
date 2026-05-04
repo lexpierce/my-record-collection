@@ -10,7 +10,7 @@ projects:
     environments:
       - name: Prod
         services:
-          # Web service for the Next.js application
+          # Web service for the Astro SSR application
           - type: web
             name: my-record-collection
             runtime: node
@@ -40,7 +40,7 @@ projects:
                 - "*.md"
                 - tui/**
             # Bun is available by default on Render when BUN_VERSION is set
-            buildCommand: bun install --frozen-lockfile --production && bun run build
+            buildCommand: bun install --frozen-lockfile && bun run build
             startCommand: bun run start
             # Run database migrations before each deployment
             preDeployCommand: bun run db:migrate

@@ -12,7 +12,7 @@ Platform: Render. Config: `render.yaml` (Blueprint).
 ## Build pipeline
 
 1. Install Bun (`BUN_VERSION=1.3.13`)
-2. `bun install --frozen-lockfile --production && bun run build`
+2. `bun install --frozen-lockfile && bun run build`
 3. Pre-deploy: `bun run db:migrate`
 4. Start: `bun run start`
 
@@ -37,7 +37,7 @@ Skips rebuild on changes to `docs/**`, `*.md`, and `tui/**`.
 
 ## Health check
 
-`/am_i_evil` — static Next.js page, configured in `render.yaml`. See [health-check.md](../api/endpoints/health-check.md).
+`/am_i_evil` — static Astro page, configured in `render.yaml`. See [health-check.md](../api/endpoints/health-check.md).
 
 ## Pre-deploy warning
 
