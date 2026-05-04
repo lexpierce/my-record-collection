@@ -76,7 +76,7 @@ Import all `drizzle-orm` operators at file top. Never use dynamic `import()`.
 | Rule | Requirement |
 |------|-------------|
 | Location | Browser code lives in `src/scripts/` |
-| Helpers | Pure logic lives in `src/scripts/record-helpers.ts` and has Vitest tests |
+| Helpers | Pure logic and shared UI constants live in `src/scripts/record-helpers.ts` and have Vitest tests |
 | DOM wiring | `src/scripts/record-app.ts` owns event listeners and rendering |
 | Reloads | Do not use `window.location.reload()` |
 | State | Keep state explicit and derive filtered/sorted/paged views from records |
@@ -93,8 +93,9 @@ Import all `drizzle-orm` operators at file top. Never use dynamic `import()`.
 | Border radius | `0` everywhere except spinner circles |
 | Buttons | Never `flex: 1`; use padding and `white-space: nowrap` |
 | Grid | `grid-template-columns: repeat(auto-fill, 270px)` |
+| Card sizing | Update CSS, render image dimensions, JS flip constants, tests, and docs together |
 | Overflow | No `overflow-x: clip` on grid ancestors |
-| Fonts | `var(--font-sans)` default; `var(--font-mono)` for IDs, catalog numbers, years |
+| Fonts | Browser/system fonts only; no `@font-face` or missing `public/fonts/*` references |
 
 ## Shared utility modules
 

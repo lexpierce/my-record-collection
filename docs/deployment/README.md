@@ -30,6 +30,7 @@ Skips rebuild on changes to `docs/**`, `*.md`, and `tui/**`.
 | `DISCOGS_USERNAME` | `Lexpierce` | Yes (for sync) |
 | `DISCOGS_USER_AGENT` | `MyRecordCollection/1.0` | No (has default) |
 | `BUN_VERSION` | `1.3.13` | Yes |
+| `HOST` | Set by `bun run start` to `0.0.0.0` | Yes |
 
 > **TUI**: also uses `DATABASE_URL`. TUI reads from
 > `~/.config/myrecords/config.toml` (`database_url` key) with `DATABASE_URL`
@@ -49,7 +50,7 @@ Skips rebuild on changes to `docs/**`, `*.md`, and `tui/**`.
 |---------|-------|
 | Build fails | `bun run type-check`, review build logs |
 | Pre-deploy fails | Events tab logs, check `drizzle.__drizzle_migrations` |
-| App won't start | Use internal DB URL, verify env vars |
+| App won't start | Use internal DB URL, verify env vars, confirm server binds `0.0.0.0` |
 | DB connection fails | Same region, DB status "Available" |
 | Discogs API fails | Verify `DISCOGS_TOKEN`, check rate limits |
 

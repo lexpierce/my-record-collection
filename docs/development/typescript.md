@@ -1,36 +1,36 @@
 # TypeScript configuration
 
-TypeScript 6.0.3. Target: ES2024. Module: ESNext. ModuleResolution: bundler.
+TypeScript 6.0.3. `tsconfig.json` extends `astro/tsconfigs/strict`.
 
 ## tsconfig.json
 
 ```json
 {
+  "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
-    "target": "ES2025",
+    "target": "ES2024",
     "lib": ["dom", "esnext"],
     "strict": true,
     "noUncheckedSideEffectImports": true,
     "module": "esnext",
     "moduleResolution": "bundler",
     "isolatedModules": true,
-    "jsx": "react-jsx"
+    "paths": { "@/*": ["./*"] }
   }
 }
 ```
 
-Key decisions:
+## Key decisions
 
-| Option | Value | Reason |
-|--------|-------|--------|
-| `target` | `ES2024` | Avoids esbuild warnings while remaining compatible with Bun 1.3.13 |
-| `lib` | `["dom", "esnext"]` | `dom.iterable` and `dom.asynciterable` are bundled into `dom` since TS6 |
-| `noUncheckedSideEffectImports` | `true` | TS6 default; verifies side-effect imports (CSS, setup files) resolve |
-| `strict` | `true` | TS6 default; always set explicitly so intent is clear |
+| Option | Value | Rule |
+|--------|-------|------|
+| `target` | `ES2024` | Keep at ES2024; esbuild/Vite/Astro recognize it without warnings |
+| `lib` | `["dom", "esnext"]` | Allows browser APIs and current JS library types |
+| `moduleResolution` | `bundler` | Required for Astro/Vite-style imports |
+| `noUncheckedSideEffectImports` | `true` | Verifies side-effect imports resolve |
+| `strict` | `true` | Required for all TypeScript code |
 
 ## TS6 defaults that changed from TS5
-
-These were previously off or different. The project's `tsconfig.json` sets them explicitly so they don't silently change again:
 
 | Option | TS5 default | TS6 default |
 |--------|-------------|-------------|
@@ -41,49 +41,30 @@ These were previously off or different. The project's `tsconfig.json` sets them 
 
 ## Deprecated in TS6 — do not use
 
-- `--moduleResolution node` / `classic` → use `bundler` or `node16`
-- `--baseUrl` → use `paths` only
-- `--outFile` → not applicable (Astro/Vite owns bundling)
-- `--module amd` / `umd` / `systemjs` / `none` → removed entirely
-- `target: es5` → deprecated; will warn
+- `--moduleResolution node` / `classic` → use `bundler` or `node16`.
+- `--baseUrl` → use `paths` only.
+- `--outFile` → not applicable; Astro/Vite owns bundling.
+- `--module amd` / `umd` / `systemjs` / `none` → removed entirely.
+- `target: es5` → deprecated; will warn.
 
 ## ES2025 and esbuild
 
-esbuild (used by Vite/Vitest and `drizzle-kit` internally) does not recognize `ES2025` as a target — highest it supports is `ES2024`. It emits `Unrecognized target environment "ES2025"` as a **warning** only; it does not fail. Do not change `tsconfig.json` `target` to suppress this.
-
-Contexts where this warning appears:
-
-| Tool | When | Impact |
-|------|------|--------|
-| Vitest | `bun run test` locally | None — tests pass |
-| drizzle-kit | `bun run db:migrate` (Render pre-deploy) | None — migrations apply |
+esbuild, Vite, Vitest, Astro, and `drizzle-kit` do not recognize `ES2025` as a target. Use `ES2024` in `tsconfig.json`; keep `lib: ["dom", "esnext"]` when newer API types are needed.
 
 ## ES2025 API availability
 
-`lib: esnext` makes the TypeScript compiler accept ES2025 APIs. The production
-runtime is **Bun**; the test runtime is **Node.js** (vitest workers). These differ.
+`lib: esnext` makes the TypeScript compiler accept ES2025 APIs. Production runtime is Bun; test runtime is Node.js through Vitest workers.
 
 | API | TS lib | Bun 1.3.13 | Node.js 24 | Notes |
 |-----|--------|------------|------------|-------|
-| `Map.groupBy` | ✓ | ✓ | ✓ (v21+) | Safe everywhere |
-| `Object.groupBy` | ✓ | ✓ | ✓ (v21+) | Safe everywhere |
-| `Iterator.map / .filter / .toArray` | ✓ | ✓ | ✓ (v22+) | Safe everywhere |
-| `Promise.try` | ✓ | ✓ | ✓ (v22+) | Safe everywhere |
-| `RegExp.escape` | ✓ | ✓ | ✓ (v24+) | Safe everywhere |
-| `Map.prototype.getOrInsert` | ✓ | ✓ | ✗ | Polyfilled in `vitest.setup.ts` |
-| `Map.prototype.getOrInsertComputed` | ✓ | ✓ | ✗ | Polyfilled in `vitest.setup.ts` |
-| `WeakMap.prototype.getOrInsert` | ✓ | ✓ | ✗ | Polyfill if needed |
-
-`Map.getOrInsert` and `Map.getOrInsertComputed` are available natively in Bun
-but not yet in Node.js 24. `vitest.setup.ts` polyfills them so tests match
-runtime behaviour. Do not replace them with workarounds in production code.
-
-### Iterator helpers (safe everywhere)
-
-```typescript
-const sizes = [...new Set(records.values().map((r) => r.recordSize))];
-const evens = numbers.values().filter((n) => n % 2 === 0).toArray();
-```
+| `Map.groupBy` | Yes | Yes | Yes | Safe everywhere |
+| `Object.groupBy` | Yes | Yes | Yes | Safe everywhere |
+| `Iterator.map / .filter / .toArray` | Yes | Yes | Yes | Safe everywhere |
+| `Promise.try` | Yes | Yes | Yes | Safe everywhere |
+| `RegExp.escape` | Yes | Yes | Yes | Safe everywhere |
+| `Map.prototype.getOrInsert` | Yes | Yes | No | Polyfilled in `vitest.setup.ts` |
+| `Map.prototype.getOrInsertComputed` | Yes | Yes | No | Polyfilled in `vitest.setup.ts` |
+| `WeakMap.prototype.getOrInsert` | Yes | Yes | No | Polyfill before test use |
 
 ## Related
 
