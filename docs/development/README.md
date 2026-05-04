@@ -34,7 +34,7 @@
 ```bash
 bun run dev           # Astro dev server
 bun run build         # Astro production build
-bun run start         # Start Astro Node server from dist/server/entry.mjs
+bun run start         # Start Astro Node server on 0.0.0.0 from dist/server/entry.mjs
 bun run lint          # ESLint scoped to TS files
 bun run lint:md       # markdownlint-cli2
 bun run type-check    # astro check + tsc --noEmit
