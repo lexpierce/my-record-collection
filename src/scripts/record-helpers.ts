@@ -111,6 +111,16 @@ export function uniqueEffectiveSizes(records: BrowserRecord[]): string[] {
   return [...new Set(records.map(effectiveSize))].sort();
 }
 
+export function cardActionVisibility(confirmDeleteVisible: boolean): {
+  confirmDeleteHidden: boolean;
+  actionErrorHidden: boolean;
+} {
+  return {
+    confirmDeleteHidden: !confirmDeleteVisible,
+    actionErrorHidden: true,
+  };
+}
+
 export function parseSseChunk(buffer: string): { events: unknown[]; remainder: string } {
   const chunks = buffer.split("\n\n");
   const remainder = chunks.pop() || "";

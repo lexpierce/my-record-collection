@@ -9,6 +9,7 @@ import {
   FLIPPED_CARD_EXTRA_WIDTH,
   FRONT_ART_SIZE,
   BACK_ART_SIZE,
+  cardActionVisibility,
   type BrowserRecord,
   type SortBy,
 } from "./record-helpers";
@@ -298,12 +299,12 @@ function renderRecordCard(record: BrowserRecord): string {
             <div class="actions">
               <button type="button" class="btnUpdate" data-update-record>Update</button>
               <button type="button" class="btnDelete" data-delete-request>Delete</button>
-              <div class="confirmDelete" data-confirm-delete hidden>
+              <div class="confirmDelete" data-confirm-delete hidden="hidden">
                 <span class="confirmDeleteText">Are you sure?</span>
                 <button type="button" class="btnConfirmYes" data-delete-confirm>Yes</button>
                 <button type="button" class="btnConfirmNo" data-delete-cancel>No</button>
               </div>
-              <div class="actionError" data-action-error hidden></div>
+              <div class="actionError" data-action-error hidden="hidden"></div>
             </div>
           </div>
         </div>
@@ -404,12 +405,14 @@ function wireCardEvents(card: HTMLElement): void {
   });
 
   card.querySelector<HTMLButtonElement>("[data-update-record]")?.addEventListener("click", () => updateRecord(record, card));
+  applyCardActionVisibility(card, false);
+
   card.querySelector<HTMLButtonElement>("[data-delete-request]")?.addEventListener("click", () => {
-    show(card.querySelector<HTMLElement>("[data-confirm-delete]")!, true);
+    applyCardActionVisibility(card, true);
     clearCardError(card);
   });
   card.querySelector<HTMLButtonElement>("[data-delete-cancel]")?.addEventListener("click", () => {
-    show(card.querySelector<HTMLElement>("[data-confirm-delete]")!, false);
+    applyCardActionVisibility(card, false);
   });
   card.querySelector<HTMLButtonElement>("[data-delete-confirm]")?.addEventListener("click", () => deleteRecord(record, card));
 }
@@ -439,6 +442,14 @@ function adjustCardMargins(card: HTMLElement, isFlipped: boolean): void {
   }
   card.style.marginLeft = `${marginLeft}px`;
   card.style.marginRight = `${marginRight}px`;
+}
+
+function applyCardActionVisibility(card: HTMLElement, confirmDeleteVisible: boolean): void {
+  const visibility = cardActionVisibility(confirmDeleteVisible);
+  const confirmDeleteElement = card.querySelector<HTMLElement>("[data-confirm-delete]");
+  const actionErrorElement = card.querySelector<HTMLElement>("[data-action-error]");
+  if (confirmDeleteElement) confirmDeleteElement.hidden = visibility.confirmDeleteHidden;
+  if (actionErrorElement && visibility.actionErrorHidden) actionErrorElement.hidden = true;
 }
 
 function clearCardError(card: HTMLElement): void {
@@ -475,7 +486,7 @@ async function updateRecord(record: BrowserRecord, card: HTMLElement): Promise<v
 }
 
 async function deleteRecord(record: BrowserRecord, card: HTMLElement): Promise<void> {
-  show(card.querySelector<HTMLElement>("[data-confirm-delete]")!, false);
+  applyCardActionVisibility(card, false);
   try {
     await fetchJson(`/api/records/${encodeURIComponent(record.recordId)}`, { method: "DELETE" });
     await loadRecords();

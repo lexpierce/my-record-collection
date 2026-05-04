@@ -8,6 +8,7 @@ import {
   parseSseChunk,
   paginateRecords,
   sortRecords,
+  cardActionVisibility,
   CARD_SCALE,
   CARD_WIDTH,
   FLIPPED_CARD_WIDTH,
@@ -109,5 +110,16 @@ describe("record helpers", () => {
     expect(FRONT_ART_SIZE).toBe(216);
     expect(BACK_ART_SIZE).toBe(324);
     expect(FLIPPED_CARD_EXTRA_WIDTH).toBe(105);
+  });
+
+  it("hides delete confirmation until delete is requested", () => {
+    expect(cardActionVisibility(false)).toEqual({
+      confirmDeleteHidden: true,
+      actionErrorHidden: true,
+    });
+    expect(cardActionVisibility(true)).toEqual({
+      confirmDeleteHidden: false,
+      actionErrorHidden: true,
+    });
   });
 });
