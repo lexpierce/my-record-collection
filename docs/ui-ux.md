@@ -28,7 +28,7 @@ No custom web fonts are loaded. The app uses browser/system fonts through `--fon
 ## Layout
 
 - Header/search/sync: `max-width: 80rem`, centered
-- Record grid: full viewport width, `grid-template-columns: repeat(auto-fill, 180px)`, no breakpoints
+- Record grid: full viewport width, `grid-template-columns: repeat(auto-fill, 270px)`, no breakpoints
 - No `border-radius` anywhere
 - No `overflow-x: clip` on grid ancestors
 
@@ -38,10 +38,10 @@ No custom web fonts are loaded. The app uses browser/system fonts through `--fon
 |---------|------|------|
 | Page header title | `2rem` bold | Browser sans-serif |
 | Body / buttons / inputs | `1rem` | Browser sans-serif |
-| Card title (front + back) | `0.875rem` bold | Browser sans-serif |
-| Card artist (front) | `0.875rem` | Browser sans-serif |
-| Dense metadata (back of card) | `0.875rem` | Browser sans-serif |
-| Cat#, Year, Discogs ID values | `0.875rem` | Browser monospace |
+| Card title (front + back) | `1.3125rem` bold | Browser sans-serif |
+| Card artist (front) | `1.3125rem` | Browser sans-serif |
+| Dense metadata (back of card) | `1.3125rem` | Browser sans-serif |
+| Cat#, Year, Discogs ID values | `1.3125rem` | Browser monospace |
 | AlphaNav buttons | `0.875rem` | Browser sans-serif |
 | Page info / pagination | `0.9375rem` | Browser sans-serif |
 | Filter badge | `10px` | Browser sans-serif |
@@ -63,7 +63,7 @@ All mutations refresh app state through browser scripts and API calls.
 
 ## Responsive
 
-Grid auto-fills 180px columns. Header wraps via flexbox.
+Grid auto-fills 270px columns. Header wraps via flexbox.
 
 ## Styling architecture
 

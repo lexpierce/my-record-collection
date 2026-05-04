@@ -92,9 +92,9 @@ lib/
 | Package manager | Bun, never npm |
 | Styling | Sass only, no Tailwind |
 | Color tokens | Semantic CSS custom properties from `styles/_variables.scss` |
-| Card size | 180px wide, 250px flipped, content-driven height |
+| Card size | 270px wide, 375px flipped, content-driven height |
 | Page layout | `max-width: 80rem` header/search, full-width grid |
-| Grid | `grid-template-columns: repeat(auto-fill, 180px)` |
+| Grid | `grid-template-columns: repeat(auto-fill, 270px)` |
 | Overflow | No `overflow-x: clip` on grid ancestors |
 
 ## Related

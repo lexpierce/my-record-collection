@@ -1,5 +1,12 @@
 import { artistSortKey as normalizeArtistSortKey } from "@/lib/pagination/buckets";
 
+export const CARD_SCALE = 1.5;
+export const CARD_WIDTH = 270;
+export const FLIPPED_CARD_WIDTH = 375;
+export const FRONT_ART_SIZE = 216;
+export const BACK_ART_SIZE = 324;
+export const FLIPPED_CARD_EXTRA_WIDTH = FLIPPED_CARD_WIDTH - CARD_WIDTH;
+
 export type SortBy = "artist" | "title" | "year";
 
 export interface BrowserRecord {

@@ -6,6 +6,9 @@ import {
   parseSseChunk,
   sortRecords,
   uniqueEffectiveSizes,
+  FLIPPED_CARD_EXTRA_WIDTH,
+  FRONT_ART_SIZE,
+  BACK_ART_SIZE,
   type BrowserRecord,
   type SortBy,
 } from "./record-helpers";
@@ -265,14 +268,14 @@ function renderRecordCard(record: BrowserRecord): string {
       <div class="flip-card-inner">
         <div class="flip-card-front">
           <div class="cardFrontContent">
-            <div class="album-art-size albumArtWrapper">${renderImage(record, "", 144, 144)}</div>
+            <div class="album-art-size albumArtWrapper">${renderImage(record, "", FRONT_ART_SIZE, FRONT_ART_SIZE)}</div>
             <h3 class="albumTitle">${escapeHtml(record.albumTitle)}</h3>
             <p class="albumArtist">${escapeHtml(record.artistName)}</p>
           </div>
         </div>
         <div class="flip-card-back">
           <div class="cardBack">
-            <div class="album-art-size-lg albumArtWrapperLg">${renderImage(record, "", 216, 216)}</div>
+            <div class="album-art-size-lg albumArtWrapperLg">${renderImage(record, "", BACK_ART_SIZE, BACK_ART_SIZE)}</div>
             <div>
               <h3 class="metaTitle">${escapeHtml(record.albumTitle)}</h3>
               <p class="metaArtist">${escapeHtml(record.artistName)}</p>
@@ -419,8 +422,7 @@ function adjustCardMargins(card: HTMLElement, isFlipped: boolean): void {
   }
 
   const rect = card.getBoundingClientRect();
-  const extra = 70;
-  const half = extra / 2;
+  const half = FLIPPED_CARD_EXTRA_WIDTH / 2;
   let marginLeft = -half;
   let marginRight = -half;
   const spaceRight = window.innerWidth - rect.right;

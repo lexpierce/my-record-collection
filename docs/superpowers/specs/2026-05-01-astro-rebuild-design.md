@@ -74,7 +74,7 @@ Rebuild the web app as an Astro SSR application using `@astrojs/node`, Bun, Driz
 | Color tokens | Keep Catppuccin Latte semantic tokens from `styles/_variables.scss` |
 | CSS architecture | Use Sass/CSS files imported by Astro; no Tailwind |
 | Border radius | `0` everywhere |
-| Grid | `repeat(auto-fill, 180px)` and no ancestor `overflow-x: clip` |
+| Grid | `repeat(auto-fill, 270px)` and no ancestor `overflow-x: clip` |
 | Fonts | Keep `var(--font-sans)` and `var(--font-mono)` usage |
 | Images | Use standard `<img>` with existing dimensions and alt text |
 

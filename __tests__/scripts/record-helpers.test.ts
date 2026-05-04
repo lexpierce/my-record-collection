@@ -8,6 +8,12 @@ import {
   parseSseChunk,
   paginateRecords,
   sortRecords,
+  CARD_SCALE,
+  CARD_WIDTH,
+  FLIPPED_CARD_WIDTH,
+  FRONT_ART_SIZE,
+  BACK_ART_SIZE,
+  FLIPPED_CARD_EXTRA_WIDTH,
   type BrowserRecord,
 } from "@/src/scripts/record-helpers";
 
@@ -94,5 +100,14 @@ describe("record helpers", () => {
     const parsed = parseSseChunk('data: {"phase":"pull"}\n\ndata: {"phase":"done"}\n\npartial');
     expect(parsed.events).toEqual([{ phase: "pull" }, { phase: "done" }]);
     expect(parsed.remainder).toBe("partial");
+  });
+
+  it("defines card dimensions scaled 50 percent from the original size", () => {
+    expect(CARD_SCALE).toBe(1.5);
+    expect(CARD_WIDTH).toBe(270);
+    expect(FLIPPED_CARD_WIDTH).toBe(375);
+    expect(FRONT_ART_SIZE).toBe(216);
+    expect(BACK_ART_SIZE).toBe(324);
+    expect(FLIPPED_CARD_EXTRA_WIDTH).toBe(105);
   });
 });

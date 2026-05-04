@@ -92,7 +92,7 @@ Import all `drizzle-orm` operators at file top. Never use dynamic `import()`.
 | Raw palette | Do not use `--ctp-*` directly outside token/root contexts unless documenting token mappings |
 | Border radius | `0` everywhere except spinner circles |
 | Buttons | Never `flex: 1`; use padding and `white-space: nowrap` |
-| Grid | `grid-template-columns: repeat(auto-fill, 180px)` |
+| Grid | `grid-template-columns: repeat(auto-fill, 270px)` |
 | Overflow | No `overflow-x: clip` on grid ancestors |
 | Fonts | `var(--font-sans)` default; `var(--font-mono)` for IDs, catalog numbers, years |
 
