@@ -744,6 +744,11 @@
   border: 1px solid var(--warm-accent-bronze);
 }
 
+.confirmDelete[hidden],
+.actionError[hidden] {
+  display: none;
+}
+
 .confirmDelete {
   display: flex;
   align-items: center;
