@@ -382,26 +382,42 @@ function wireShelfEvents(): void {
   document.querySelectorAll<HTMLElement>("[data-record-card]").forEach(wireCardEvents);
 }
 
+function isFlipBlockedTarget(target: EventTarget | null): boolean {
+  return target instanceof Element && Boolean(target.closest("[data-update-record], [data-delete-request]"));
+}
+
+function setCardFlipped(card: HTMLElement, isFlipped: boolean): void {
+  card.classList.toggle("flipped", isFlipped);
+  card.setAttribute("aria-expanded", String(isFlipped));
+  adjustCardMargins(card, isFlipped);
+  if (!isFlipped) applyCardActionVisibility(card, false);
+}
+
+function flipCardsBack(exceptCard?: HTMLElement): void {
+  document.querySelectorAll<HTMLElement>("[data-record-card].flipped").forEach((card) => {
+    if (card !== exceptCard) setCardFlipped(card, false);
+  });
+}
+
 function wireCardEvents(card: HTMLElement): void {
   const record = state.records.find((item) => item.recordId === card.dataset.recordId);
   if (!record) return;
 
   const flip = () => {
-    const isFlipped = card.classList.toggle("flipped");
-    card.setAttribute("aria-expanded", String(isFlipped));
-    adjustCardMargins(card, isFlipped);
+    const isFlipped = !card.classList.contains("flipped");
+    flipCardsBack(card);
+    setCardFlipped(card, isFlipped);
   };
 
-  card.addEventListener("click", flip);
+  card.addEventListener("click", (event) => {
+    if (isFlipBlockedTarget(event.target)) return;
+    flip();
+  });
   card.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       flip();
     }
-  });
-
-  card.querySelectorAll<HTMLElement>("button, a, [data-stop-card-click]").forEach((element) => {
-    element.addEventListener("click", (event) => event.stopPropagation());
   });
 
   card.querySelector<HTMLButtonElement>("[data-update-record]")?.addEventListener("click", () => updateRecord(record, card));
@@ -679,6 +695,11 @@ async function handleSync(): Promise<void> {
 }
 
 function wireStaticEvents(): void {
+  document.addEventListener("click", (event) => {
+    if (event.target instanceof Element && event.target.closest("[data-record-card]")) return;
+    flipCardsBack();
+  });
+
   query<HTMLButtonElement>("[data-toggle-search]").addEventListener("click", () => {
     const section = query<HTMLElement>("[data-search-section]");
     const button = query<HTMLButtonElement>("[data-toggle-search]");
