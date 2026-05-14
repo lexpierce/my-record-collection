@@ -42,6 +42,7 @@ Fetches remote Discogs artwork and uses `Bun.Image` to resize to WebP.
 | Runtime rule | Value |
 |--------------|-------|
 | `Bun.Image` input | `Blob` from `sourceResponse.blob()`; do not pass `Response` |
+| Local dev/build | Must run through `bun --bun`; Node-style Astro dev lacks `globalThis.Bun.Image` |
 | Resize | `.resize(size, size, { fit: "inside", withoutEnlargement: true })` |
 | Output | `.webp({ quality: 82 }).blob()` |
 | Upstream fetch header | `User-Agent` from `DISCOGS_USER_AGENT`, fallback `MyRecordCollection/1.0` |

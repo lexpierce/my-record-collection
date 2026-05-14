@@ -47,6 +47,14 @@ bun run db:migrate    # Apply pending migrations
 bun run db:studio     # Drizzle Studio GUI
 ```
 
+### Local environment
+
+| Requirement | Rule |
+|-------------|------|
+| Runtime | Keep `bun run dev` and `bun run build` forced through `bun --bun` because `/api/records/image` uses `Bun.Image` |
+| Secrets | Put local secrets in `.env.dev`; `.env.dev` is ignored by Git |
+| Render Postgres | Add `?sslmode=require` to external Render PostgreSQL URLs used locally |
+
 ### TUI
 
 ```bash

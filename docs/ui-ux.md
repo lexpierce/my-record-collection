@@ -35,6 +35,8 @@ Orkney is self-hosted from `public/fonts/` and loaded through `styles/_fonts.scs
 
 ## Typography
 
+Optically center control text by ignoring descenders: use `line-height: 1` and larger top padding than bottom padding on buttons and selects.
+
 | Element | Size | Font |
 |---------|------|------|
 | Page header title | `2rem` bold | Orkney |
