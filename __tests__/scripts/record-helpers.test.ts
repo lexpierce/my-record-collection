@@ -103,13 +103,13 @@ describe("record helpers", () => {
     expect(parsed.remainder).toBe("partial");
   });
 
-  it("defines card dimensions scaled 50 percent from the original size", () => {
+  it("defines card dimensions while preserving art sizes", () => {
     expect(CARD_SCALE).toBe(1.5);
-    expect(CARD_WIDTH).toBe(270);
-    expect(FLIPPED_CARD_WIDTH).toBe(375);
+    expect(CARD_WIDTH).toBe(237);
+    expect(FLIPPED_CARD_WIDTH).toBe(347);
     expect(FRONT_ART_SIZE).toBe(216);
     expect(BACK_ART_SIZE).toBe(324);
-    expect(FLIPPED_CARD_EXTRA_WIDTH).toBe(105);
+    expect(FLIPPED_CARD_EXTRA_WIDTH).toBe(110);
   });
 
   it("hides delete confirmation until delete is requested", () => {

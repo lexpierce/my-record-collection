@@ -5,7 +5,7 @@ CSS 3D flip card. Source: `src/styles/globals.scss`, `src/styles/record-app.scss
 ## CSS structure
 
 ```text
-.flip-card              → perspective: 1500px, width: 270px, z-index: 1
+.flip-card              → perspective: 1500px, width: 237px, z-index: 1
   .flip-card-inner      → transform-style: preserve-3d, transition: transform 0.6s
     .flip-card-front    → position: relative, backface-visibility: hidden
     .flip-card-back     → position: absolute, transform: rotateY(180deg), backface-visibility: hidden
@@ -14,7 +14,7 @@ CSS 3D flip card. Source: `src/styles/globals.scss`, `src/styles/record-app.scss
 ## Flipped state (`.flip-card.flipped`)
 
 - `.flip-card-inner`: `transform: rotateY(180deg)`
-- `.flip-card`: `z-index: 1000`, `width: 375px`
+- `.flip-card`: `z-index: 1000`, `width: 347px`
 - `filter: drop-shadow(...)` on `.flip-card` outer container
 - JS sets asymmetric margins from `FLIPPED_CARD_EXTRA_WIDTH` to keep the expanded card in the viewport
 
@@ -30,7 +30,7 @@ CSS 3D flip card. Source: `src/styles/globals.scss`, `src/styles/record-app.scss
 
 ## Width expansion
 
-270px → 375px on flip. JS in `src/scripts/record-app.ts` adjusts margins at viewport edges via `getBoundingClientRect()`.
+237px → 347px on flip. JS in `src/scripts/record-app.ts` adjusts margins at viewport edges via `getBoundingClientRect()`.
 
 ## Font sizes
 

@@ -5,8 +5,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
+    "dev": "bun --bun astro dev",
+    "build": "bun --bun astro build",
     "start": "HOST=0.0.0.0 bun ./dist/server/entry.mjs",
     "lint": "eslint src lib __tests__ drizzle.config.ts vitest.config.ts vitest.setup.ts --ext .js,.ts",
     "lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\" \"#dist\" \"#coverage\"",

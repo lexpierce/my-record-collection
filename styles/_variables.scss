@@ -4,17 +4,17 @@
 
 :root {
   // ─── Warm green palette ───────────────────────────────────────────────────
-  --green-sage:      #d8dbc1;
-  --green-card:      #fffaf0;
-  --green-card-back: #eef0d7;
-  --green-border:    #a9ad7e;
-  --green-olive:     #596b2f;
-  --green-moss:      #3d5424;
-  --green-copper:    #b86b2d;
-  --green-gold:      #c0922c;
-  --green-text:      #213018;
-  --green-muted:     #516141;
-  --green-soft:      #73805e;
+  --green-sage:      #c7d8a7;
+  --green-card:      #f2f8df;
+  --green-card-back: #dfeec2;
+  --green-border:    #88a85f;
+  --green-olive:     #496f25;
+  --green-moss:      #284f16;
+  --green-copper:    #6f8d2a;
+  --green-gold:      #94a933;
+  --green-text:      #17350d;
+  --green-muted:     #3f612c;
+  --green-soft:      #5f7f47;
 
   // ─── Semantic tokens ──────────────────────────────────────────────────────
   --warm-bg-primary:   var(--green-card);

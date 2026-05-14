@@ -32,8 +32,8 @@
 ### Web app
 
 ```bash
-bun run dev           # Astro dev server
-bun run build         # Astro production build
+bun run dev           # Astro dev server forced through Bun runtime
+bun run build         # Astro production build forced through Bun runtime
 bun run start         # Start Astro server with Bun on 0.0.0.0 from dist/server/entry.mjs
 bun run lint          # ESLint scoped to TS files
 bun run lint:md       # markdownlint-cli2
@@ -88,13 +88,13 @@ lib/
 
 | Decision | Rule |
 |----------|------|
-| Border radius | `0` everywhere except spinner circles |
+| Border radius | `16px` on record card faces, `50%` on spinner circles, `0` elsewhere |
 | Package manager | Bun, never npm |
 | Styling | Sass only, no Tailwind |
 | Color tokens | Semantic CSS custom properties from `styles/_variables.scss` |
-| Card size | 270px wide, 375px flipped, content-driven height |
+| Card size | 237px wide, 347px flipped, content-driven height |
 | Page layout | `max-width: 80rem` header/search, full-width grid |
-| Grid | `grid-template-columns: repeat(auto-fill, 270px)` with `10px` gaps |
+| Grid | `grid-template-columns: repeat(auto-fill, 237px)` with `5px` gaps |
 | Overflow | No `overflow-x: clip` on grid ancestors |
 
 ## Related

@@ -90,10 +90,10 @@ Import all `drizzle-orm` operators at file top. Never use dynamic `import()`.
 | Tailwind | Forbidden |
 | Tokens | All colors use semantic `--warm-*` custom properties from `styles/_variables.scss` |
 | Raw palette | Do not use raw palette variables directly outside token/root contexts unless documenting token mappings |
-| Border radius | `4px` on record card faces, `50%` on spinner circles, `0` elsewhere |
+| Border radius | `16px` on record card faces, `50%` on spinner circles, `0` elsewhere |
 | Buttons | Never `flex: 1`; use padding and `white-space: nowrap` |
-| Grid | `grid-template-columns: repeat(auto-fill, 270px)` with `10px` gaps |
-| Card sizing | Update CSS, render image dimensions, JS flip constants, tests, and docs together |
+| Grid | `grid-template-columns: repeat(auto-fill, 237px)` with `5px` gaps |
+| Card sizing | Update CSS, JS flip constants, tests, and docs together; do not change render image dimensions unless art size changes |
 | Overflow | No `overflow-x: clip` on grid ancestors |
 | Fonts | Orkney is self-hosted in `public/fonts/` and declared in `styles/_fonts.scss`; no external runtime font CSS |
 

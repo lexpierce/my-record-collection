@@ -8,17 +8,17 @@ Semantic tokens map to warm green palette constants. Never hardcode hex in modul
 
 | Token | Palette var | Hex | Role |
 |-------|-------------|-----|------|
-| `--warm-bg-primary` | `--green-card` | `#fffaf0` | Card fronts and elevated surfaces |
-| `--warm-bg-secondary` | `--green-sage` | `#d8dbc1` | Page background |
-| `--warm-bg-tertiary` | `--green-border` | `#a9ad7e` | Borders, contrast separators |
-| `--warm-bg-card-back` | `--green-card-back` | `#eef0d7` | Card backs |
-| `--warm-accent-orange` | `--green-copper` | `#b86b2d` | Secondary buttons |
-| `--warm-accent-copper` | `--green-olive` | `#596b2f` | Hover states, links |
-| `--warm-accent-bronze` | `--green-moss` | `#3d5424` | Primary buttons, active, dividers |
-| `--warm-accent-gold` | `--green-gold` | `#c0922c` | Highlights |
-| `--warm-text-primary` | `--green-text` | `#213018` | Body text |
-| `--warm-text-secondary` | `--green-muted` | `#516141` | Labels, metadata |
-| `--warm-text-tertiary` | `--green-soft` | `#73805e` | Placeholder, disabled |
+| `--warm-bg-primary` | `--green-card` | `#f2f8df` | Card fronts and elevated surfaces |
+| `--warm-bg-secondary` | `--green-sage` | `#c7d8a7` | Page background |
+| `--warm-bg-tertiary` | `--green-border` | `#88a85f` | Borders, contrast separators |
+| `--warm-bg-card-back` | `--green-card-back` | `#dfeec2` | Card backs |
+| `--warm-accent-orange` | `--green-copper` | `#6f8d2a` | Secondary buttons |
+| `--warm-accent-copper` | `--green-olive` | `#496f25` | Hover states, links |
+| `--warm-accent-bronze` | `--green-moss` | `#284f16` | Primary buttons, active, dividers |
+| `--warm-accent-gold` | `--green-gold` | `#94a933` | Highlights |
+| `--warm-text-primary` | `--green-text` | `#17350d` | Body text |
+| `--warm-text-secondary` | `--green-muted` | `#3f612c` | Labels, metadata |
+| `--warm-text-tertiary` | `--green-soft` | `#5f7f47` | Placeholder, disabled |
 | `--font-sans` | — | — | Orkney, then browser `sans-serif` |
 | `--font-mono` | — | — | Browser `ui-monospace`, `monospace` fallback |
 
@@ -29,8 +29,8 @@ Orkney is self-hosted from `public/fonts/` and loaded through `styles/_fonts.scs
 ## Layout
 
 - Header/search/sync: `max-width: 80rem`, centered
-- Record grid: full viewport width, `grid-template-columns: repeat(auto-fill, 270px)` with `10px` gaps, no breakpoints
-- Card faces use `4px` corner radius
+- Record grid: full viewport width, `grid-template-columns: repeat(auto-fill, 237px)` with `5px` gaps, no breakpoints
+- Card faces use `16px` corner radius
 - No `overflow-x: clip` on grid ancestors
 
 ## Typography
@@ -64,7 +64,7 @@ All mutations refresh app state through browser scripts and API calls.
 
 ## Responsive
 
-Grid auto-fills 270px columns with 10px gaps. Header wraps via flexbox.
+Grid auto-fills 237px columns with 5px gaps. Header wraps via flexbox.
 
 ## Styling architecture
 

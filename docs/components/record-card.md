@@ -15,8 +15,8 @@ Runtime card markup is produced by `renderRecordCard()` in `src/scripts/record-a
 
 | Element | Size |
 |---------|------|
-| Card front | 270px wide |
-| Flipped card | 375px wide |
+| Card front | 237px wide |
+| Flipped card | 347px wide |
 | Front art | 216px rendered through `/api/records/image?size=216` |
 | Back art | 324px rendered through `/api/records/image?size=324` |
 
