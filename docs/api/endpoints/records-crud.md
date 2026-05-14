@@ -32,9 +32,19 @@ Errors: 404, 500
 
 ## GET /api/records/image
 
-Fetches remote artwork and uses `Bun.Image` to resize to WebP.
+Fetches remote Discogs artwork and uses `Bun.Image` to resize to WebP.
 
-Query params: `src` absolute Discogs `http`/`https` image URL, `size` optional pixel size (default 324, max 1200).
+| Param | Rule |
+|-------|------|
+| `src` | Required absolute `http`/`https` URL on `discogs.com` or `*.discogs.com` |
+| `size` | Optional integer pixel size; default `324`, min `1`, max `1200` |
+
+| Runtime rule | Value |
+|--------------|-------|
+| `Bun.Image` input | `Blob` from `sourceResponse.blob()`; do not pass `Response` |
+| Resize | `.resize(size, size, { fit: "inside", withoutEnlargement: true })` |
+| Output | `.webp({ quality: 82 }).blob()` |
+| Upstream fetch header | `User-Agent` from `DISCOGS_USER_AGENT`, fallback `MyRecordCollection/1.0` |
 
 Response: `image/webp` (200)
 

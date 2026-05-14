@@ -22,6 +22,10 @@ bun run test:watch
 bun run test:coverage
 ```
 
+## Dependency prerequisite
+
+Run `bun install` before tests when `node_modules/` is empty or `tsconfig.json` extends fail. Missing dependencies can surface as `TSConfckParseError` for `astro/tsconfigs/strict`.
+
 ## Config
 
 | File | Purpose |
