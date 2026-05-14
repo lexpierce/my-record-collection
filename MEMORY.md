@@ -12,4 +12,3 @@
 - **Lint**: `bun run lint`
 - **Build**: `bun run build`
 - **Update bun packages**: `bun update` (not `bun upgrade`, which upgrades bun itself)
-- **Update superpowers skills**: `git -C ~/.config/agents/superpowers pull`
