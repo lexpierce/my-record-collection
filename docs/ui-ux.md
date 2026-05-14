@@ -18,12 +18,12 @@ Semantic tokens map to Catppuccin Latte palette constants (`--ctp-*`). Never har
 | `--warm-text-primary` | `--ctp-text` | `#4c4f69` | Body text |
 | `--warm-text-secondary` | `--ctp-subtext1` | `#5c5f77` | Labels, metadata |
 | `--warm-text-tertiary` | `--ctp-subtext0` | `#6c6f85` | Placeholder, disabled |
-| `--font-sans` | — | — | Browser `sans-serif` |
+| `--font-sans` | — | — | Orkney, then browser `sans-serif` |
 | `--font-mono` | — | — | Browser `ui-monospace`, `monospace` fallback |
 
 ## Font loading
 
-No custom web fonts are loaded. The app uses browser/system fonts through `--font-sans` and `--font-mono`.
+Orkney is self-hosted from `public/fonts/` and loaded through `styles/_fonts.scss`. The app uses Orkney through `--font-sans` and browser/system monospace through `--font-mono`.
 
 ## Layout
 
@@ -36,15 +36,15 @@ No custom web fonts are loaded. The app uses browser/system fonts through `--fon
 
 | Element | Size | Font |
 |---------|------|------|
-| Page header title | `2rem` bold | Browser sans-serif |
-| Body / buttons / inputs | `1rem` | Browser sans-serif |
-| Card title (front + back) | `1.3125rem` bold | Browser sans-serif |
-| Card artist (front) | `1.3125rem` | Browser sans-serif |
-| Dense metadata (back of card) | `1.3125rem` | Browser sans-serif |
-| Cat#, Year, Discogs ID values | `1.3125rem` | Browser monospace |
-| AlphaNav buttons | `0.875rem` | Browser sans-serif |
-| Page info / pagination | `0.9375rem` | Browser sans-serif |
-| Filter badge | `10px` | Browser sans-serif |
+| Page header title | `2rem` bold | Orkney |
+| Body / buttons / inputs | `1rem` | Orkney |
+| Card title (front + back) | `1rem` bold | Orkney |
+| Card artist (front) | `1rem` | Orkney |
+| Dense metadata (back of card) | `0.9375rem` | Orkney |
+| Cat#, Year, Discogs ID values | `0.9375rem` | Browser monospace |
+| AlphaNav buttons | `0.875rem` | Orkney |
+| Page info / pagination | `0.9375rem` | Orkney |
+| Filter badge | `10px` | Orkney |
 
 ## Interactions
 
@@ -67,6 +67,7 @@ Grid auto-fills 270px columns. Header wraps via flexbox.
 
 ## Styling architecture
 
+- `styles/_fonts.scss`: Orkney `@font-face` declarations
 - `styles/_variables.scss`: CSS custom property tokens
 - `src/styles/globals.scss`: reset, flip-card CSS, album-art size utilities
 - `src/styles/record-app.scss`: app UI styles

@@ -609,11 +609,11 @@
   justify-content: center;
   background-color: var(--warm-accent-bronze);
   color: #fff;
-  font-size: 1.3125rem;
+  font-size: 1rem;
 }
 
 .albumTitle {
-  font-size: 1.3125rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--warm-text-primary);
   white-space: nowrap;
@@ -627,7 +627,7 @@
 }
 
 .albumArtist {
-  font-size: 1.3125rem;
+  font-size: 1rem;
   color: var(--warm-text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -646,14 +646,14 @@
 }
 
 .metaTitle {
-  font-size: 1.3125rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--warm-text-primary);
   margin: 0;
 }
 
 .metaArtist {
-  font-size: 1.3125rem;
+  font-size: 1rem;
   color: var(--warm-text-secondary);
   margin: 0;
 }
@@ -667,7 +667,7 @@
 }
 
 .metaRow {
-  font-size: 1.3125rem;
+  font-size: 0.9375rem;
   line-height: 1.4;
 }
 
@@ -691,7 +691,7 @@
 }
 
 .metaLink {
-  font-size: 1.3125rem;
+  font-size: 0.9375rem;
   text-decoration: underline;
 
   &:hover {
@@ -713,7 +713,7 @@
 .btnConfirmYes,
 .btnConfirmNo {
   padding: 0.375rem 0.75rem;
-  font-size: 1.3125rem;
+  font-size: 0.9375rem;
   border: 0;
   cursor: pointer;
   white-space: nowrap;
@@ -759,7 +759,7 @@
 
 .confirmDeleteText,
 .actionError {
-  font-size: 1.3125rem;
+  font-size: 0.9375rem;
 }
 
 .confirmDeleteText {

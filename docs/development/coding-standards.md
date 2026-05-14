@@ -95,7 +95,7 @@ Import all `drizzle-orm` operators at file top. Never use dynamic `import()`.
 | Grid | `grid-template-columns: repeat(auto-fill, 270px)` |
 | Card sizing | Update CSS, render image dimensions, JS flip constants, tests, and docs together |
 | Overflow | No `overflow-x: clip` on grid ancestors |
-| Fonts | Browser/system fonts only; no `@font-face` or missing `public/fonts/*` references |
+| Fonts | Orkney is self-hosted in `public/fonts/` and declared in `styles/_fonts.scss`; no external runtime font CSS |
 
 ## Shared utility modules
 
