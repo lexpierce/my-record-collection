@@ -69,8 +69,8 @@
 }
 
 .syncWarning {
-  background-color: var(--ctp-base);
-  border-bottom: 1px solid var(--ctp-yellow);
+  background-color: var(--warm-bg-primary);
+  border-bottom: 1px solid var(--warm-accent-gold);
   padding: 0.5rem 2rem;
 }
 
@@ -78,7 +78,7 @@
   max-width: 80rem;
   margin: 0 auto;
   font-size: 1rem;
-  color: var(--ctp-peach);
+  color: var(--warm-accent-orange);
 
   code {
     font-family: var(--font-mono);
@@ -520,8 +520,8 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, 270px);
-  column-gap: 0;
-  row-gap: 0;
+  column-gap: 10px;
+  row-gap: 10px;
 }
 
 .pagination {
@@ -585,7 +585,7 @@
 }
 
 .cardFrontContent {
-  padding: 0.5625rem;
+  padding: 0.28125rem;
   display: flex;
   flex-direction: column;
   align-items: center;

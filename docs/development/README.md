@@ -94,7 +94,7 @@ lib/
 | Color tokens | Semantic CSS custom properties from `styles/_variables.scss` |
 | Card size | 270px wide, 375px flipped, content-driven height |
 | Page layout | `max-width: 80rem` header/search, full-width grid |
-| Grid | `grid-template-columns: repeat(auto-fill, 270px)` |
+| Grid | `grid-template-columns: repeat(auto-fill, 270px)` with `10px` gaps |
 | Overflow | No `overflow-x: clip` on grid ancestors |
 
 ## Related

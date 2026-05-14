@@ -39,5 +39,7 @@ Shown when `sortBy === "artist"`. Uses `computeBuckets(records, pageSize)` from 
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, 270px);
+  column-gap: 10px;
+  row-gap: 10px;
 }
 ```

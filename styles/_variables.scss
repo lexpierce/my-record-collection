@@ -1,49 +1,35 @@
 /// Color tokens and design variables as CSS custom properties.
 /// All components reference these via var(--token-name).
-/// Colorscheme: Catppuccin Latte (https://catppuccin.com/palette)
+/// Colorscheme: warm green.
 
 :root {
-  // ─── Catppuccin Latte palette ─────────────────────────────────────────────
-  --ctp-rosewater: #dc8a78;
-  --ctp-flamingo:  #dd7878;
-  --ctp-pink:      #ea76cb;
-  --ctp-mauve:     #8839ef;
-  --ctp-red:       #d20f39;
-  --ctp-maroon:    #e64553;
-  --ctp-peach:     #fe640b;
-  --ctp-yellow:    #df8e1d;
-  --ctp-green:     #40a02b;
-  --ctp-teal:      #179299;
-  --ctp-sky:       #04a5e5;
-  --ctp-sapphire:  #209fb5;
-  --ctp-blue:      #1e66f5;
-  --ctp-lavender:  #7287fd;
-  --ctp-text:      #4c4f69;
-  --ctp-subtext1:  #5c5f77;
-  --ctp-subtext0:  #6c6f85;
-  --ctp-overlay2:  #7c7f93;
-  --ctp-overlay1:  #8c8fa1;
-  --ctp-overlay0:  #9ca0b0;
-  --ctp-surface2:  #acb0be;
-  --ctp-surface1:  #bcc0cc;
-  --ctp-surface0:  #ccd0da;
-  --ctp-base:      #eff1f5;
-  --ctp-mantle:    #e6e9ef;
-  --ctp-crust:     #dce0e8;
+  // ─── Warm green palette ───────────────────────────────────────────────────
+  --green-sage:      #d8dbc1;
+  --green-card:      #fffaf0;
+  --green-card-back: #eef0d7;
+  --green-border:    #a9ad7e;
+  --green-olive:     #596b2f;
+  --green-moss:      #3d5424;
+  --green-copper:    #b86b2d;
+  --green-gold:      #c0922c;
+  --green-text:      #213018;
+  --green-muted:     #516141;
+  --green-soft:      #73805e;
 
-  // ─── Semantic tokens (mapped to Catppuccin Latte) ─────────────────────────
-  --warm-bg-primary:   var(--ctp-base);
-  --warm-bg-secondary: var(--ctp-mantle);
-  --warm-bg-tertiary:  var(--ctp-crust);
+  // ─── Semantic tokens ──────────────────────────────────────────────────────
+  --warm-bg-primary:   var(--green-card);
+  --warm-bg-secondary: var(--green-sage);
+  --warm-bg-tertiary:  var(--green-border);
+  --warm-bg-card-back: var(--green-card-back);
 
-  --warm-accent-orange: var(--ctp-peach);
-  --warm-accent-copper: var(--ctp-sapphire);
-  --warm-accent-bronze: var(--ctp-blue);
-  --warm-accent-gold:   var(--ctp-yellow);
+  --warm-accent-orange: var(--green-copper);
+  --warm-accent-copper: var(--green-olive);
+  --warm-accent-bronze: var(--green-moss);
+  --warm-accent-gold:   var(--green-gold);
 
-  --warm-text-primary:   var(--ctp-text);
-  --warm-text-secondary: var(--ctp-subtext1);
-  --warm-text-tertiary:  var(--ctp-subtext0);
+  --warm-text-primary:   var(--green-text);
+  --warm-text-secondary: var(--green-muted);
+  --warm-text-tertiary:  var(--green-soft);
 
   // ─── Typography ───────────────────────────────────────────────────────────
   --font-sans:  "Orkney", sans-serif;

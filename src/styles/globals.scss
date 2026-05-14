@@ -73,8 +73,8 @@ select {
   position: relative;
   transform: rotateY(0deg);
   border: 1px solid var(--warm-bg-tertiary);
-  border-radius: 0;
-  box-shadow: 0 1px 3px rgba(76, 79, 105, 0.08);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(33, 48, 24, 0.16);
 }
 
 .flip-card-back {
@@ -82,7 +82,8 @@ select {
   top: 0;
   left: 0;
   transform: rotateY(180deg);
-  background-color: var(--warm-bg-secondary);
-  border: 2px solid var(--ctp-lavender);
-  border-radius: 0;
+  background-color: var(--warm-bg-card-back);
+  border: 2px solid var(--warm-bg-tertiary);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(33, 48, 24, 0.16);
 }
