@@ -14,7 +14,7 @@ Platform: Render. Config: `render.yaml` (Blueprint).
 1. Install Bun (`BUN_VERSION=1.3.14`)
 2. `bun install --frozen-lockfile && bun run build`
 3. Pre-deploy: `bun run db:migrate`
-4. Start: `bun run start` (`HOST=0.0.0.0 node ./dist/server/entry.mjs`)
+4. Start: `bun run start` (`HOST=0.0.0.0 bun ./dist/server/entry.mjs`)
 
 ## Build filter
 

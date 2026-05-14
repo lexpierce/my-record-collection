@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "start": "HOST=0.0.0.0 node ./dist/server/entry.mjs",
+    "start": "HOST=0.0.0.0 bun ./dist/server/entry.mjs",
     "lint": "eslint src lib __tests__ drizzle.config.ts vitest.config.ts vitest.setup.ts --ext .js,.ts",
     "lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\" \"#dist\" \"#coverage\"",
     "type-check": "astro check && tsc --noEmit",

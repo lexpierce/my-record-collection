@@ -7,8 +7,8 @@
 | Layer | Technology | Notes |
 |-------|------------|-------|
 | Framework | Astro SSR | `src/pages/` routes and API endpoints |
-| Adapter | `@astrojs/node` | Standalone Node server output |
-| Runtime | Bun 1.3.14 | Not npm |
+| Adapter | `@astrojs/node` | Standalone server output |
+| Runtime | Bun 1.3.14 | Runs the production server and package scripts |
 | Language | TypeScript strict | `tsconfig.json` extends `astro/tsconfigs/strict` |
 | Database | PostgreSQL 18 + Drizzle ORM | `lib/db/schema.ts` |
 | Styling | Sass | `src/styles/globals.scss`, `src/styles/record-app.scss`, root token partials |
@@ -34,7 +34,7 @@
 ```bash
 bun run dev           # Astro dev server
 bun run build         # Astro production build
-bun run start         # Start Astro Node server on 0.0.0.0 from dist/server/entry.mjs
+bun run start         # Start Astro server with Bun on 0.0.0.0 from dist/server/entry.mjs
 bun run lint          # ESLint scoped to TS files
 bun run lint:md       # markdownlint-cli2
 bun run type-check    # astro check + tsc --noEmit

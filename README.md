@@ -84,7 +84,7 @@ bun run dev
 
 - `bun run dev`: Start Astro development server
 - `bun run build`: Build Astro SSR app for production
-- `bun run start`: Start production Astro Node server
+- `bun run start`: Start production Astro server with Bun
 - `bun run lint`: Run ESLint
 - `bun run type-check`: Run TypeScript type checking
 - `bun run test`: Run tests (Vitest)
@@ -128,7 +128,7 @@ Comprehensive documentation is available in the `docs/` directory:
 
 ## Deployment
 
-This application is deployed on Render using Infrastructure as Code (Blueprint).
+This application is deployed on Render using Infrastructure as Code (Blueprint) and runs the production server with Bun.
 
 **Quick Deploy**: [Deploy to Render](https://dashboard.render.com/blueprint/new?repo=https://github.com/lexpierce/my-record-collection)
 
