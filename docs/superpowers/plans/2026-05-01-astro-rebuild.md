@@ -6,7 +6,7 @@
 
 **Architecture:** Astro owns pages and API endpoints under `src/pages`. Server API logic stays close to current handlers but returns standard `Response` objects instead of Next helpers. Browser interactivity moves to typed vanilla modules under `src/scripts`, with pure helper functions covered by Vitest.
 
-**Tech Stack:** Astro SSR, `@astrojs/node`, Bun 1.3.13, TypeScript strict, Sass, Drizzle ORM, PostgreSQL, Vitest + jsdom.
+**Tech Stack:** Astro SSR, `@astrojs/node`, Bun 1.3.14, TypeScript strict, Sass, Drizzle ORM, PostgreSQL, Vitest + jsdom.
 
 ---
 

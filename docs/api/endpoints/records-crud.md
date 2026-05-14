@@ -30,6 +30,16 @@ Response: `{ "record": {...} }` (200)
 
 Errors: 404, 500
 
+## GET /api/records/image
+
+Fetches remote artwork and uses `Bun.Image` to resize to WebP.
+
+Query params: `src` absolute Discogs `http`/`https` image URL, `size` optional pixel size (default 324, max 1200).
+
+Response: `image/webp` (200)
+
+Errors: 400 (invalid `src`), 502
+
 ## PUT /api/records/[id]
 
 Partial update. Any subset of record fields. `updatedAt` set automatically.

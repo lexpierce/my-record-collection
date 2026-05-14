@@ -55,7 +55,7 @@ esbuild, Vite, Vitest, Astro, and `drizzle-kit` do not recognize `ES2025` as a t
 
 `lib: esnext` makes the TypeScript compiler accept ES2025 APIs. Production runtime is Bun; test runtime is Node.js through Vitest workers.
 
-| API | TS lib | Bun 1.3.13 | Node.js 24 | Notes |
+| API | TS lib | Bun 1.3.14 | Node.js 24 | Notes |
 |-----|--------|------------|------------|-------|
 | `Map.groupBy` | Yes | Yes | Yes | Safe everywhere |
 | `Object.groupBy` | Yes | Yes | Yes | Safe everywhere |

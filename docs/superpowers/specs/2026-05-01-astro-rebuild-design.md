@@ -10,7 +10,7 @@ Rebuild the web app as an Astro SSR application using `@astrojs/node`, Bun, Driz
 |------|----------|
 | Framework | Astro SSR |
 | Adapter | `@astrojs/node` |
-| Runtime | Bun 1.3.13 |
+| Runtime | Bun 1.3.14 |
 | UI interactivity | Vanilla browser scripts, no React islands |
 | Database | Existing Drizzle ORM schema and lazy `getDatabase()` pattern |
 | API paths | Preserve existing records/Discogs API paths |

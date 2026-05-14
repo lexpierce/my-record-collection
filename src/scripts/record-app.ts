@@ -247,9 +247,16 @@ function renderPagination(totalPages: number, safePage: number): string {
   `;
 }
 
+function imageProxyUrl(sourceUrl: string, size: number): string {
+  const params = new URLSearchParams({ src: sourceUrl, size: String(size) });
+  return `/api/records/image?${params.toString()}`;
+}
+
 function renderImage(record: BrowserRecord, sizeClass: string, width: number, height: number): string {
-  if (!record.thumbnailUrl) return `<div class="noImagePlaceholder">No Image</div>`;
-  return `<img src="${escapeHtml(record.thumbnailUrl)}" alt="${escapeHtml(`${record.albumTitle} by ${record.artistName}`)}" width="${width}" height="${height}" class="${sizeClass}" />`;
+  const imageUrl = record.coverImageUrl ?? record.thumbnailUrl;
+  if (!imageUrl) return `<div class="noImagePlaceholder">No Image</div>`;
+  const processedImageUrl = imageProxyUrl(imageUrl, Math.max(width, height));
+  return `<img src="${escapeHtml(processedImageUrl)}" alt="${escapeHtml(`${record.albumTitle} by ${record.artistName}`)}" width="${width}" height="${height}" class="${sizeClass}" />`;
 }
 
 function renderMetaRow(label: string, value: unknown, className = "metaValue"): string {

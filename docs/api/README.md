@@ -12,6 +12,7 @@ No authentication. All endpoints public.
 | GET | `/api/records` | List records | [records-crud.md](./endpoints/records-crud.md) |
 | POST | `/api/records` | Create record manually | [records-crud.md](./endpoints/records-crud.md) |
 | GET | `/api/records/[id]` | Get single record | [records-crud.md](./endpoints/records-crud.md) |
+| GET | `/api/records/image` | Resize and convert artwork with `Bun.Image` | [records-crud.md](./endpoints/records-crud.md) |
 | PUT | `/api/records/[id]` | Update record | [records-crud.md](./endpoints/records-crud.md) |
 | DELETE | `/api/records/[id]` | Delete record | [records-crud.md](./endpoints/records-crud.md) |
 | GET | `/api/records/search` | Search Discogs | [discogs-integration.md](./endpoints/discogs-integration.md) |

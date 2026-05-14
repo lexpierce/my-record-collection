@@ -8,7 +8,7 @@
 |-------|------------|-------|
 | Framework | Astro SSR | `src/pages/` routes and API endpoints |
 | Adapter | `@astrojs/node` | Standalone Node server output |
-| Runtime | Bun 1.3.13 | Not npm |
+| Runtime | Bun 1.3.14 | Not npm |
 | Language | TypeScript strict | `tsconfig.json` extends `astro/tsconfigs/strict` |
 | Database | PostgreSQL 18 + Drizzle ORM | `lib/db/schema.ts` |
 | Styling | Sass | `src/styles/globals.scss`, `src/styles/record-app.scss`, root token partials |

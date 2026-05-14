@@ -17,13 +17,14 @@ Runtime card markup is produced by `renderRecordCard()` in `src/scripts/record-a
 |---------|------|
 | Card front | 270px wide |
 | Flipped card | 375px wide |
-| Front art | 216px |
-| Back art | 324px |
+| Front art | 216px rendered through `/api/records/image?size=216` |
+| Back art | 324px rendered through `/api/records/image?size=324` |
 
 ## API calls
 
 | Action | Endpoint |
 |--------|----------|
+| Image processing | `GET /api/records/image?src=<url>&size=<px>` |
 | Update | `POST /api/records/update-from-discogs` |
 | Delete | `DELETE /api/records/[recordId]` |
 
