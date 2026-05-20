@@ -48,7 +48,9 @@ Source: `app/api/records/update-from-discogs/route.ts`
 
 ## POST /api/records/sync
 
-SSE stream. No body required.
+SSE stream. Endpoint does not read a body.
+
+Browser callers must still send `Content-Type: application/json` and a JSON body (`{}`) so Astro SSR does not classify the request as a form-like POST before route dispatch.
 
 ### Pull phase (Discogs → local)
 
@@ -76,4 +78,4 @@ Idempotent. Never deletes. Requires `DISCOGS_USERNAME` + `DISCOGS_TOKEN`.
 
 `export const dynamic = "force-dynamic"`.
 
-Source: `app/api/records/sync/route.ts`, `lib/discogs/sync.ts`
+Source: `src/pages/api/records/sync.ts`, `lib/discogs/sync.ts`

@@ -16,7 +16,9 @@ Failed enrichment per-result: original result returned without format fields.
 
 ### WebUI
 
-`POST /api/records/sync` → SSE stream.
+`POST /api/records/sync` → SSE stream. Browser caller: `src/scripts/record-app.ts`.
+
+Astro SSR blocks cross-site form-like POSTs. The sync button fetch must send `Content-Type: application/json` with a JSON body (`{}`); empty/bodyless POSTs can fail before the endpoint runs.
 
 #### Pull (Discogs → local)
 
@@ -66,10 +68,11 @@ Progress displayed live in `renderList()`. Summary shown after completion; clear
 |------|---------|
 | `lib/discogs/client.ts` | API calls, rate limiter, format extractors |
 | `lib/discogs/sync.ts` | `executeSync()` — pull + push (WebUI) |
-| `app/api/records/search/route.ts` | Search endpoint |
-| `app/api/records/fetch-from-discogs/route.ts` | Fetch + save |
-| `app/api/records/update-from-discogs/route.ts` | Refresh existing |
-| `app/api/records/sync/route.ts` | SSE sync |
-| `app/api/records/sync/status/route.ts` | Env var check |
+| `src/pages/api/records/search.ts` | Search endpoint |
+| `src/pages/api/records/fetch-from-discogs.ts` | Fetch + save |
+| `src/pages/api/records/update-from-discogs.ts` | Refresh existing |
+| `src/pages/api/records/sync.ts` | SSE sync |
+| `src/pages/api/records/sync/status.ts` | Env var check |
+| `src/scripts/record-app.ts` | Browser sync button fetch + SSE parsing |
 | `tui/ui/discogs.go` | TUI Discogs API calls + `executeSync()` |
 | `tui/db/records.go` | `db.Store` sync methods |

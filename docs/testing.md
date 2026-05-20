@@ -22,6 +22,16 @@ bun run test:watch
 bun run test:coverage
 ```
 
+## Local dev verification
+
+Use `.env.dev` when reproducing web app bugs that depend on live services:
+
+```bash
+set -a; . ./.env.dev; set +a; bun run dev -- --host 127.0.0.1 --port 4321
+```
+
+For sync regressions, verify `POST /api/records/sync` returns `200` + `text/event-stream`, then press the Sync Collection button in the browser.
+
 ## Dependency prerequisite
 
 Run `bun install` before tests when `node_modules/` is empty or `tsconfig.json` extends fail. Missing dependencies can surface as `TSConfckParseError` for `astro/tsconfigs/strict`.
