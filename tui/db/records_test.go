@@ -5,12 +5,6 @@ import (
 	"testing"
 )
 
-//go:fix inline
-func strPtr(s string) *string { return new(s) }
-
-//go:fix inline
-func intPtr(i int) *int { return new(i) }
-
 func TestYearString(t *testing.T) {
 	tests := []struct {
 		name string

@@ -15,6 +15,7 @@ import (
 
 	"my-record-collection-tui/db"
 )
+
 type discogsSearchMethod int
 
 const (
@@ -24,11 +25,11 @@ const (
 )
 
 type discogsSearchQuery struct {
-	Method discogsSearchMethod
-	Artist string
-	Title  string
+	Method  discogsSearchMethod
+	Artist  string
+	Title   string
 	Catalog string
-	UPC    string
+	UPC     string
 }
 
 type discogsSearchResult struct {
@@ -89,9 +90,9 @@ type discogsRelease struct {
 	URI        string      `json:"uri"`
 	Year       discogsYear `json:"year"`
 	Thumb      string      `json:"thumb"`
-	CoverImage string `json:"cover_image"`
-	Genres     []string `json:"genres"`
-	Styles     []string `json:"styles"`
+	CoverImage string      `json:"cover_image"`
+	Genres     []string    `json:"genres"`
+	Styles     []string    `json:"styles"`
 	Artists    []struct {
 		Name string `json:"name"`
 	} `json:"artists"`
@@ -249,18 +250,18 @@ func addToDiscogsCollection(dcfg discogsConfig, username string, releaseID int) 
 }
 
 type discogsCollectionBasicInfo struct {
-	ID           int         `json:"id"`
-	Title        string      `json:"title"`
-	Year         discogsYear `json:"year"`
-	Thumb        string      `json:"thumb"`
-	CoverImage   string      `json:"cover_image"`
-	ResourceURL  string      `json:"resource_url"`
-	Formats      []struct {
+	ID          int         `json:"id"`
+	Title       string      `json:"title"`
+	Year        discogsYear `json:"year"`
+	Thumb       string      `json:"thumb"`
+	CoverImage  string      `json:"cover_image"`
+	ResourceURL string      `json:"resource_url"`
+	Formats     []struct {
 		Name         string   `json:"name"`
 		Descriptions []string `json:"descriptions"`
 		Text         string   `json:"text"`
 	} `json:"formats"`
-	Labels  []struct {
+	Labels []struct {
 		Name  string `json:"name"`
 		CatNo string `json:"catno"`
 	} `json:"labels"`
@@ -518,7 +519,7 @@ func discogsRequest(dcfg discogsConfig, method, baseURL, endpoint string) ([]byt
 	if err != nil {
 		return nil, fmt.Errorf("discogs request failed: %w", err)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
@@ -621,7 +622,7 @@ func releaseUPC(release discogsRelease) *string {
 			continue
 		}
 		value := strings.TrimSpace(strings.ReplaceAll(identifier.Value, " ", ""))
-		if value != ""	{
+		if value != "" {
 			return new(value)
 		}
 	}

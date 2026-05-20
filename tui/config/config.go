@@ -13,10 +13,10 @@ const (
 )
 
 type Config struct {
-	DatabaseURL        string
-	DiscogsUsername    string
-	DiscogsToken       string
-	DiscogsUserAgent   string
+	DatabaseURL      string
+	DiscogsUsername  string
+	DiscogsToken     string
+	DiscogsUserAgent string
 }
 
 func configPath() string {
@@ -102,6 +102,9 @@ func readKey(path, key string) string {
 		if k == key {
 			return v
 		}
+	}
+	if scanner.Err() != nil {
+		return ""
 	}
 	return ""
 }

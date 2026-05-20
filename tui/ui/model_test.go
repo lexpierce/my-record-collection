@@ -960,14 +960,6 @@ func TestDetailProtoLabel(t *testing.T) {
 	}
 }
 
-func typeText(m Model, text string) Model {
-	for _, r := range text {
-		updated, _ := m.Update(keyMsg(string(r)))
-		m = updated.(Model)
-	}
-	return m
-}
-
 // keyMsg creates a tea.KeyPressMsg from a string representation.
 func keyMsg(key string) tea.KeyPressMsg {
 	switch key {

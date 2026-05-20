@@ -62,25 +62,25 @@ type Model struct {
 	discogsSaving        bool
 	successMsg           string
 
-	syncing              bool
-	syncPhase            string
-	syncPulled           int
-	syncPushed           int
-	syncSkipped          int
-	syncTotal            int
-	syncErrors           []string
+	syncing     bool
+	syncPhase   string
+	syncPulled  int
+	syncPushed  int
+	syncSkipped int
+	syncTotal   int
+	syncErrors  []string
 
-	manualArtist         string
-	manualAlbum          string
-	manualYear           string
-	manualLabel          string
-	manualCatalog        string
-	manualGenres         string
-	manualSize           string
-	manualColor          string
-	manualCursor         int
-	manualSaving         bool
-	manualErr            string
+	manualArtist  string
+	manualAlbum   string
+	manualYear    string
+	manualLabel   string
+	manualCatalog string
+	manualGenres  string
+	manualSize    string
+	manualColor   string
+	manualCursor  int
+	manualSaving  bool
+	manualErr     string
 }
 
 func NewModel(store db.Store, discogsUsername, discogsToken, discogsUserAgent string) Model {
@@ -316,7 +316,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	}
 
-
 	return m, nil
 }
 
@@ -506,7 +505,7 @@ func (m Model) handleAddDiscogsKey(key string) (tea.Model, tea.Cmd) {
 
 	if m.discogsResultsFocus {
 		switch key {
-			case "up":
+		case "up":
 			if m.discogsResultCursor > 0 {
 				m.discogsResultCursor--
 			}
@@ -702,10 +701,12 @@ func (m Model) renderList() string {
 	title := titleStyle.Render("♫ Record Collection")
 	count := statusBarStyle.Render(fmt.Sprintf("%d records", len(m.filtered)))
 	titleLine := lipgloss.JoinHorizontal(lipgloss.Center, title, "  ", count)
-	b.WriteString(titleLine + "\n")
+	b.WriteString(titleLine)
+	b.WriteString("\n")
 
 	if m.searching {
-		b.WriteString(searchStyle.Render("Search: "+m.search+"█") + "\n")
+		b.WriteString(searchStyle.Render("Search: " + m.search + "█"))
+		b.WriteString("\n")
 	} else {
 		b.WriteString("\n")
 	}
@@ -721,7 +722,8 @@ func (m Model) renderList() string {
 	if len(m.filtered) == 0 {
 		b.WriteString("\n  No records found.\n")
 		if m.deleteErr != "" {
-			b.WriteString(errorStyle.Render("  "+m.deleteErr) + "\n")
+			b.WriteString(errorStyle.Render("  " + m.deleteErr))
+			b.WriteString("\n")
 		}
 		b.WriteString(m.renderHelp())
 		return b.String()
@@ -729,12 +731,13 @@ func (m Model) renderList() string {
 
 	colW := m.columnWidths()
 	header := headerStyle.Render(
-		truncPad("Artist", colW[0])+" "+
-			truncPad("Album", colW[1])+" "+
-			truncPad("Year", colW[2])+" "+
-			truncPad("Label", colW[3])+" "+
+		truncPad("Artist", colW[0]) + " " +
+			truncPad("Album", colW[1]) + " " +
+			truncPad("Year", colW[2]) + " " +
+			truncPad("Label", colW[3]) + " " +
 			truncPad("Genres", colW[4]))
-	b.WriteString(header + "\n")
+	b.WriteString(header)
+	b.WriteString("\n")
 
 	visible := m.listVisibleRows()
 	end := min(m.offset+visible, len(m.filtered))
@@ -756,30 +759,37 @@ func (m Model) renderList() string {
 
 	if len(m.filtered) > visible {
 		scrollInfo := fmt.Sprintf(" %d-%d of %d ", m.offset+1, end, len(m.filtered))
-		b.WriteString(statusBarStyle.Render(scrollInfo) + "\n")
+		b.WriteString(statusBarStyle.Render(scrollInfo))
+		b.WriteString("\n")
 	}
 
 	if m.successMsg != "" {
-		b.WriteString(successStyle.Render("  "+m.successMsg) + "\n")
+		b.WriteString(successStyle.Render("  " + m.successMsg))
+		b.WriteString("\n")
 	}
 	if m.syncing {
 		syncStatus := fmt.Sprintf("  Syncing... [%s] pulled:%d pushed:%d skipped:%d", m.syncPhase, m.syncPulled, m.syncPushed, m.syncSkipped)
 		if m.syncTotal > 0 {
 			syncStatus += fmt.Sprintf(" (%d/%d)", m.syncPulled+m.syncSkipped, m.syncTotal)
 		}
-		b.WriteString(statusBarStyle.Render(syncStatus) + "\n")
+		b.WriteString(statusBarStyle.Render(syncStatus))
+		b.WriteString("\n")
 	} else if m.syncPhase == "done" && (m.syncPulled > 0 || m.syncPushed > 0 || m.syncSkipped > 0 || len(m.syncErrors) > 0) {
 		summary := fmt.Sprintf("  Sync complete — pulled:%d pushed:%d skipped:%d", m.syncPulled, m.syncPushed, m.syncSkipped)
-		b.WriteString(successStyle.Render(summary) + "\n")
+		b.WriteString(successStyle.Render(summary))
+		b.WriteString("\n")
 	}
 	for _, syncErr := range m.syncErrors {
-		b.WriteString(errorStyle.Render("  sync error: "+syncErr) + "\n")
+		b.WriteString(errorStyle.Render("  sync error: " + syncErr))
+		b.WriteString("\n")
 	}
 	if m.deleteErr != "" {
-		b.WriteString(errorStyle.Render("  "+m.deleteErr) + "\n")
+		b.WriteString(errorStyle.Render("  " + m.deleteErr))
+		b.WriteString("\n")
 	}
 	if m.deleteConfirm {
-		b.WriteString(errorStyle.Render("  delete selected record? press d again (or y) to confirm, esc/n to cancel") + "\n")
+		b.WriteString(errorStyle.Render("  delete selected record? press d again (or y) to confirm, esc/n to cancel"))
+		b.WriteString("\n")
 	}
 
 	b.WriteString(m.renderHelp())
@@ -795,7 +805,8 @@ func (m Model) renderDetail() string {
 	var b strings.Builder
 
 	title := titleStyle.Render(fmt.Sprintf("♫ %s — %s", rec.ArtistName, rec.AlbumTitle))
-	b.WriteString(title + "\n\n")
+	b.WriteString(title)
+	b.WriteString("\n\n")
 
 	var artBlock string
 	if m.artLoading {
@@ -853,7 +864,8 @@ func (m Model) renderDetail() string {
 	b.WriteString("\n\n")
 
 	protoLabel := helpStyle.Render(fmt.Sprintf("  [image: %s]", m.imgProto))
-	b.WriteString(helpStyle.Render("  esc/q back") + protoLabel)
+	b.WriteString(helpStyle.Render("  esc/q back"))
+	b.WriteString(protoLabel)
 
 	return b.String()
 }
@@ -866,17 +878,19 @@ func (m Model) renderAddDiscogs() string {
 	b.WriteString("\n\n")
 
 	methodLine := "  Methods: "
-	if m.discogsSearchMethod == discogsSearchArtistTitle {
+	switch m.discogsSearchMethod {
+	case discogsSearchArtistTitle:
 		methodLine += selectedRowStyle.Render("1 Artist+Album") + "  2 Catalog #  3 UPC"
-	} else if m.discogsSearchMethod == discogsSearchCatalog {
+	case discogsSearchCatalog:
 		methodLine += "1 Artist+Album  " + selectedRowStyle.Render("2 Catalog #") + "  3 UPC"
-	} else {
+	case discogsSearchUPC:
 		methodLine += "1 Artist+Album  2 Catalog #  " + selectedRowStyle.Render("3 UPC")
 	}
 	b.WriteString(methodLine)
 	b.WriteString("\n\n")
 
-	if m.discogsSearchMethod == discogsSearchArtistTitle {
+	switch m.discogsSearchMethod {
+	case discogsSearchArtistTitle:
 		artist := m.discogsArtist
 		titleValue := m.discogsTitle
 		if !m.discogsResultsFocus && m.discogsCursor == 0 && !m.discogsSearching && !m.discogsSaving {
@@ -893,9 +907,11 @@ func (m Model) renderAddDiscogs() string {
 		if !m.discogsResultsFocus && m.discogsCursor == 1 {
 			titleLine = selectedRowStyle.Render("→ " + strings.TrimPrefix(titleLine, "  "))
 		}
-		b.WriteString(artistLine + "\n")
-		b.WriteString(titleLine + "\n")
-	} else if m.discogsSearchMethod == discogsSearchCatalog {
+		b.WriteString(artistLine)
+		b.WriteString("\n")
+		b.WriteString(titleLine)
+		b.WriteString("\n")
+	case discogsSearchCatalog:
 		catalog := m.discogsCatalogNumber
 		if !m.discogsResultsFocus && !m.discogsSearching && !m.discogsSaving {
 			catalog += "█"
@@ -904,8 +920,9 @@ func (m Model) renderAddDiscogs() string {
 		if !m.discogsResultsFocus {
 			line = selectedRowStyle.Render("→ " + strings.TrimPrefix(line, "  "))
 		}
-		b.WriteString(line + "\n")
-	} else {
+		b.WriteString(line)
+		b.WriteString("\n")
+	case discogsSearchUPC:
 		upc := m.discogsUPC
 		if !m.discogsResultsFocus && !m.discogsSearching && !m.discogsSaving {
 			upc += "█"
@@ -914,7 +931,8 @@ func (m Model) renderAddDiscogs() string {
 		if !m.discogsResultsFocus {
 			line = selectedRowStyle.Render("→ " + strings.TrimPrefix(line, "  "))
 		}
-		b.WriteString(line + "\n")
+		b.WriteString(line)
+		b.WriteString("\n")
 	}
 
 	if m.discogsSearching {
@@ -976,7 +994,8 @@ func (m Model) renderAddDiscogs() string {
 		helpItem("esc", "cancel"),
 		helpItem("ctrl+c", "quit"),
 	}
-	b.WriteString("  " + strings.Join(helpItems, helpSep()))
+	b.WriteString("  ")
+	b.WriteString(strings.Join(helpItems, helpSep()))
 
 	return b.String()
 }
@@ -1227,7 +1246,7 @@ func (m Model) renderAddManual() string {
 		}
 		line := fmt.Sprintf("  %-12s %s", label+":", val)
 		if active {
-			b.WriteString(selectedRowStyle.Render("→ "+strings.TrimPrefix(line, "  ")))
+			b.WriteString(selectedRowStyle.Render("→ " + strings.TrimPrefix(line, "  ")))
 		} else {
 			b.WriteString(normalRowStyle.Render(line))
 		}
@@ -1241,7 +1260,7 @@ func (m Model) renderAddManual() string {
 	}
 	if m.manualErr != "" {
 		b.WriteString("\n")
-		b.WriteString(errorStyle.Render("  "+m.manualErr))
+		b.WriteString(errorStyle.Render("  " + m.manualErr))
 		b.WriteString("\n")
 	}
 
@@ -1252,6 +1271,7 @@ func (m Model) renderAddManual() string {
 		helpItem("esc", "cancel"),
 		helpItem("ctrl+c", "quit"),
 	}
-	b.WriteString("  " + strings.Join(manualHelpItems, helpSep()))
+	b.WriteString("  ")
+	b.WriteString(strings.Join(manualHelpItems, helpSep()))
 	return b.String()
 }
