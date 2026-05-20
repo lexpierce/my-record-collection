@@ -6,6 +6,7 @@ import {
   escapeHtml,
   filterRecords,
   parseSseChunk,
+  parseSseRemainder,
   paginateRecords,
   sortRecords,
   cardActionVisibility,
@@ -101,6 +102,22 @@ describe("record helpers", () => {
     const parsed = parseSseChunk('data: {"phase":"pull"}\n\ndata: {"phase":"done"}\n\npartial');
     expect(parsed.events).toEqual([{ phase: "pull" }, { phase: "done" }]);
     expect(parsed.remainder).toBe("partial");
+  });
+
+  it("parses CRLF-delimited SSE chunks", () => {
+    const parsed = parseSseChunk('data: {"phase":"pull"}\r\n\r\ndata: {"phase":"done"}\r\n\r\n');
+    expect(parsed.events).toEqual([{ phase: "pull" }, { phase: "done" }]);
+    expect(parsed.remainder).toBe("");
+  });
+
+  it("ignores non-data SSE lines", () => {
+    const parsed = parseSseChunk(': keepalive\nevent: progress\ndata: {"phase":"pull"}\n\n');
+    expect(parsed.events).toEqual([{ phase: "pull" }]);
+  });
+
+  it("parses a final SSE remainder without throwing", () => {
+    expect(parseSseRemainder('data: {"phase":"done"}')).toEqual({ phase: "done" });
+    expect(parseSseRemainder("event: error")).toBeNull();
   });
 
   it("defines card dimensions while preserving art sizes", () => {

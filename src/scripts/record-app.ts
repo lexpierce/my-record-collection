@@ -4,6 +4,7 @@ import {
   filterRecords,
   paginateRecords,
   parseSseChunk,
+  parseSseRemainder,
   sortRecords,
   uniqueEffectiveSizes,
   FLIPPED_CARD_EXTRA_WIDTH,
@@ -78,16 +79,24 @@ function showMessage(selector: string, message: string): void {
   element.hidden = false;
 }
 
+async function readResponseError(response: Response): Promise<string> {
+  const contentType = response.headers.get("Content-Type") || "";
+  if (contentType.includes("application/json")) {
+    const data: unknown = await response.json();
+    if (data && typeof data === "object" && "message" in data && typeof data.message === "string") return data.message;
+    if (data && typeof data === "object" && "error" in data && typeof data.error === "string") return data.error;
+  }
+
+  const text = await response.text();
+  return text || "Request failed";
+}
+
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
-  const data = await response.json();
   if (!response.ok) {
-    const message = typeof data?.message === "string"
-      ? data.message
-      : typeof data?.error === "string" ? data.error : "Request failed";
-    throw new Error(message);
+    throw new Error(await readResponseError(response));
   }
-  return data as T;
+  return await response.json() as T;
 }
 
 async function checkSyncStatus(): Promise<void> {
@@ -666,6 +675,9 @@ async function handleSync(): Promise<void> {
 
   try {
     const response = await fetch("/api/records/sync", { method: "POST" });
+    if (!response.ok) {
+      throw new Error(await readResponseError(response));
+    }
     if (!response.body) throw new Error("No response stream");
 
     const reader = response.body.getReader();
@@ -682,8 +694,8 @@ async function handleSync(): Promise<void> {
     }
 
     if (buffer.trim()) {
-      const parsed = JSON.parse(buffer.replace(/^data: /, "")) as SyncProgress;
-      renderSyncProgress(parsed);
+      const parsed = parseSseRemainder(buffer);
+      if (parsed) renderSyncProgress(parsed as SyncProgress);
     }
     await loadRecords();
   } catch (error) {
