@@ -674,7 +674,11 @@ async function handleSync(): Promise<void> {
   show(query<HTMLElement>("[data-sync-errors]"), false);
 
   try {
-    const response = await fetch("/api/records/sync", { method: "POST" });
+    const response = await fetch("/api/records/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
     if (!response.ok) {
       throw new Error(await readResponseError(response));
     }
