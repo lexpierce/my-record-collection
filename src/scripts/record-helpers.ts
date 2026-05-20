@@ -121,20 +121,32 @@ export function cardActionVisibility(confirmDeleteVisible: boolean): {
   };
 }
 
+function parseSseEvent(chunk: string): unknown | null {
+  const payload = chunk
+    .split("\n")
+    .filter((line) => line.startsWith("data:"))
+    .map((line) => line.replace(/^data: ?/, ""))
+    .join("\n");
+
+  if (!payload) return null;
+
+  try {
+    return JSON.parse(payload) as unknown;
+  } catch {
+    return null;
+  }
+}
+
 export function parseSseChunk(buffer: string): { events: unknown[]; remainder: string } {
-  const chunks = buffer.split("\n\n");
+  const chunks = buffer.split(/\r?\n\r?\n/);
   const remainder = chunks.pop() || "";
   const events = chunks
-    .map((chunk) => chunk.replace(/^data: /, ""))
-    .filter(Boolean)
-    .map((chunk) => {
-      try {
-        return JSON.parse(chunk) as unknown;
-      } catch {
-        return null;
-      }
-    })
+    .map(parseSseEvent)
     .filter((event): event is unknown => event !== null);
 
   return { events, remainder };
+}
+
+export function parseSseRemainder(buffer: string): unknown | null {
+  return parseSseEvent(buffer.trim());
 }
