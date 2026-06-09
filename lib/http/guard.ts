@@ -42,6 +42,9 @@ function jsonError(error: string, message: string, status: number): Response {
  * - Fails closed with 503 if APP_AUTH_TOKEN is not configured.
  * - Requires `Authorization: Bearer <APP_AUTH_TOKEN>`.
  * - Rejects cross-origin writes (CSRF) when an Origin header is present.
+ *   Compares only the Origin host against the request host, ignoring scheme,
+ *   so it works behind a TLS-terminating proxy where the server sees `http`
+ *   while the browser used `https`.
  */
 export function authorizeApiRequest(request: Request, url: URL): Response | null {
   if (!url.pathname.startsWith("/api/") || !isMutating(request.method)) {
@@ -59,8 +62,16 @@ export function authorizeApiRequest(request: Request, url: URL): Response | null
   }
 
   const origin = request.headers.get("Origin");
-  if (origin && origin !== url.origin) {
-    return jsonError("Forbidden", "Cross-origin request rejected", 403);
+  if (origin) {
+    let originHost: string;
+    try {
+      originHost = new URL(origin).host;
+    } catch {
+      return jsonError("Forbidden", "Cross-origin request rejected", 403);
+    }
+    if (originHost !== url.host) {
+      return jsonError("Forbidden", "Cross-origin request rejected", 403);
+    }
   }
 
   return null;

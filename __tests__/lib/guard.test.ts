@@ -81,6 +81,27 @@ describe("authorizeApiRequest", () => {
     });
     expect(authorizeApiRequest(request, url)).toBeNull();
   });
+
+  it("allows same-host requests behind a TLS-terminating proxy", () => {
+    // Browser uses https; the server-reconstructed URL is http (proxy terminated TLS).
+    const url = new URL("http://app.example.com/api/records/sync");
+    const request = new Request(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${TOKEN}`,
+        Origin: "https://app.example.com",
+      },
+    });
+    expect(authorizeApiRequest(request, url)).toBeNull();
+  });
+
+  it("rejects a malformed Origin header (403)", () => {
+    const { request, url } = req("POST", "/api/records/sync", {
+      Authorization: `Bearer ${TOKEN}`,
+      Origin: "not-a-url",
+    });
+    expect(authorizeApiRequest(request, url)?.status).toBe(403);
+  });
 });
 
 describe("applySecurityHeaders", () => {
