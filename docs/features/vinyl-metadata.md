@@ -25,7 +25,5 @@ Three fields extracted from Discogs `formats` array. All look for `format.name =
 
 ## Data flow
 
-1. Search: `GET /api/records/search` → `getRelease()` per result → extract → enrich response
-2. Add: `POST /api/records/fetch-from-discogs` → `getRelease()` → extract → insert row
-3. Update: `POST /api/records/update-from-discogs` → `getRelease()` → extract → update row
-4. Sync: `executeSync()` → `collectionReleaseToRecord()` → extract → insert row
+1. Sync: `executeSync()` → `collectionReleaseToRecord()` → extract → insert/refresh cached row
+2. Refresh: `POST /api/records/update-from-discogs` → `getRelease()` → extract → update row

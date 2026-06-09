@@ -1,16 +1,14 @@
 # Discogs integration workflows
 
-Three workflows, all using `DiscogsClient` from `lib/discogs/client.ts`.
+The web app is **read-only** toward Discogs (uses `DiscogsClient` from
+`lib/discogs/client.ts` for GET requests only). The local database is a cached
+mirror of the Discogs collection. The TUI is a separate client that still
+supports search/fetch and two-way sync (documented below).
 
-## Search
+## Refresh (web)
 
-`SearchBar` → `GET /api/records/search` → Discogs search → `getRelease()` per result (max 10) → enriched results returned.
-
-Failed enrichment per-result: original result returned without format fields.
-
-## Fetch
-
-`SearchBar` "+ Add" → `POST /api/records/fetch-from-discogs` → `getRelease()` → extract metadata → insert `records` row → attempt `addToCollection()` (best-effort, 409 = already synced).
+Per-record "Update" → `POST /api/records/update-from-discogs` → `getRelease()`
+→ extract metadata → update the cached `records` row. Read-only toward Discogs.
 
 ## Sync
 
@@ -20,20 +18,15 @@ Failed enrichment per-result: original result returned without format fields.
 
 Astro SSR blocks cross-site form-like POSTs. The sync button fetch must send `Content-Type: application/json` with a JSON body (`{}`); empty/bodyless POSTs can fail before the endpoint runs.
 
-#### Pull (Discogs → local)
+Pull-only (Discogs → local cache):
 
 1. Build set of existing `discogsId` values
 2. Page through `GET /users/{username}/collection/folders/0/releases`
-3. Skip existing, insert new
-4. Mark all matched records `isSyncedWithDiscogs = true`
+3. Insert new releases (`pulled`); refresh existing ones (`updated`)
+4. Emit `{ phase: "done" }`
 
-#### Push (local → Discogs)
-
-1. Find records with `discogsId` + `isSyncedWithDiscogs = false`
-2. Call `addToCollection()` for each
-3. Emit `{ phase: "done" }`
-
-Idempotent. Never deletes. Requires `DISCOGS_USERNAME` + `DISCOGS_TOKEN` (both config file keys or env var overrides).
+There is no push phase. Sync never writes to Discogs and never deletes local
+records. Requires `DISCOGS_USERNAME` + `DISCOGS_TOKEN`.
 
 ### TUI
 
@@ -60,19 +53,17 @@ Progress displayed live in `renderList()`. Summary shown after completion; clear
 - Duplicate `discogs_id` insert → counted as `skipped`
 - 429 → auto-retry (3 attempts, `Retry-After`) — WebUI only; TUI propagates error
 - `isSyncedWithDiscogs` is display-only; sync uses live Discogs contents as truth
-- Missing `DISCOGS_USERNAME`: sync throws; fetch skips collection-add silently
+- Missing `DISCOGS_USERNAME`: sync throws
 
 ## Key files
 
 | File | Purpose |
 |------|---------|
-| `lib/discogs/client.ts` | API calls, rate limiter, format extractors |
-| `lib/discogs/sync.ts` | `executeSync()` — pull + push (WebUI) |
-| `src/pages/api/records/search.ts` | Search endpoint |
-| `src/pages/api/records/fetch-from-discogs.ts` | Fetch + save |
-| `src/pages/api/records/update-from-discogs.ts` | Refresh existing |
+| `lib/discogs/client.ts` | Read-only API calls, rate limiter, format extractors |
+| `lib/discogs/sync.ts` | `executeSync()` — pull-only cache sync (WebUI) |
+| `src/pages/api/records/update-from-discogs.ts` | Refresh one cached record |
 | `src/pages/api/records/sync.ts` | SSE sync |
 | `src/pages/api/records/sync/status.ts` | Env var check |
 | `src/scripts/record-app.ts` | Browser sync button fetch + SSE parsing |
-| `tui/ui/discogs.go` | TUI Discogs API calls + `executeSync()` |
+| `tui/ui/discogs.go` | TUI Discogs API calls + `executeSync()` (separate client) |
 | `tui/db/records.go` | `db.Store` sync methods |

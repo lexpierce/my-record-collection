@@ -18,7 +18,7 @@ export async function POST(): Promise<Response> {
         send({
           phase: "done",
           pulled: 0,
-          pushed: 0,
+          updated: 0,
           skipped: 0,
           errors: [error instanceof Error ? error.message : String(error)],
           totalDiscogsItems: 0,

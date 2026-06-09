@@ -28,7 +28,7 @@ repo.
 - Tables for structured data; lists for sequences
 - `-` for unordered lists, `1.` for ordered
 - Relative links for internal docs: `[schema](./development/database-schema.md)`
-- Run `bunx markdownlint-cli2` before committing (config: `.markdownlint.json`)
+- Run `rumdl check .` before committing (config: `.rumdl.toml`)
 
 ## What belongs in docs
 
@@ -61,5 +61,5 @@ fix immediately — stale docs are worse than missing docs for agents.
 ## Linting
 
 ```bash
-bun run lint:md       # markdownlint-cli2 on all Markdown files
+bun run lint:md       # rumdl on all Markdown files
 ```

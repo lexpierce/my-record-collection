@@ -30,7 +30,7 @@ async function readStream(response: Response): Promise<SyncProgress[]> {
 const doneProgress: SyncProgress = {
   phase: "done",
   pulled: 3,
-  pushed: 1,
+  updated: 1,
   skipped: 2,
   errors: [],
   totalDiscogsItems: 5,
@@ -40,7 +40,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockExecuteSync.mockImplementation(async (callback: (progress: SyncProgress) => void) => {
     callback({ ...doneProgress, phase: "pull" });
-    callback({ ...doneProgress, phase: "push" });
     return doneProgress;
   });
 });
@@ -69,11 +68,11 @@ describe("POST /api/records/sync", () => {
     expect(lastEvent.errors[0]).toContain("DISCOGS_USERNAME");
   });
 
-  it("streams pulled/pushed counts correctly", async () => {
+  it("streams pulled/updated counts correctly", async () => {
     const response = await POST();
     const events = await readStream(response);
     const doneEvent = events.find((event) => event.phase === "done");
     expect(doneEvent?.pulled).toBe(3);
-    expect(doneEvent?.pushed).toBe(1);
+    expect(doneEvent?.updated).toBe(1);
   });
 });

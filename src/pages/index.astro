@@ -12,7 +12,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         </div>
         <div class="headerActions">
           <button type="button" class="btnPrimary" data-sync-button>Sync Collection</button>
-          <button type="button" class="btnSecondary" data-toggle-search>+ Add an album</button>
         </div>
       </div>
     </header>
@@ -33,42 +32,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <div class="syncErrors" data-sync-errors hidden>
       <div class="syncErrorsInner" data-sync-errors-content></div>
     </div>
-
-    <section class="searchSection" data-search-section hidden>
-      <div class="searchSectionInner">
-        <div class="searchContainer">
-          <div class="tabs" role="tablist" aria-label="Search method">
-            <button type="button" class="tab active" data-search-method="artistTitle">Artist &amp; Title</button>
-            <button type="button" class="tab" data-search-method="catalog">Catalog #</button>
-            <button type="button" class="tab" data-search-method="upc">UPC</button>
-          </div>
-          <form class="form" data-search-form>
-            <div class="fieldGroup" data-field-artist>
-              <label class="fieldLabel" for="artistName">Artist</label>
-              <input id="artistName" type="text" class="input" data-artist-name placeholder="e.g., Pink Floyd" required />
-            </div>
-            <div class="fieldGroup" data-field-title>
-              <label class="fieldLabel" for="albumTitle">Album</label>
-              <input id="albumTitle" type="text" class="input" data-album-title placeholder="e.g., The Dark Side of the Moon" required />
-            </div>
-            <div class="fieldGroup" data-field-catalog hidden>
-              <label class="fieldLabel" for="catalogNumber">Catalog Number</label>
-              <input id="catalogNumber" type="text" class="input" data-catalog-number placeholder="e.g., SHVL 804" />
-            </div>
-            <div class="fieldGroup" data-field-upc hidden>
-              <label class="fieldLabel" for="upcCode">UPC Code</label>
-              <input id="upcCode" type="text" class="input" data-upc-code placeholder="e.g., 724384260804" />
-            </div>
-            <button type="submit" class="searchBtn" data-search-button title="Search Discogs">
-              <img src="/discogs-logo.svg" alt="Search Discogs" width="32" height="32" class="discogsLogo" />
-            </button>
-          </form>
-          <div class="successMsg" data-search-success hidden></div>
-          <div class="errorMsg" data-search-error hidden></div>
-          <div class="results" data-search-results hidden></div>
-        </div>
-      </div>
-    </section>
 
     <section class="shelfSection">
       <div data-shelf-root></div>

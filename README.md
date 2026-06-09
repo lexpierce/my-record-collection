@@ -1,13 +1,12 @@
 # My Record Collection
 
-A modern web application for managing your vinyl record collection, powered by the Discogs API.
+A modern web application for browsing your vinyl record collection, powered by the Discogs API. It is **read-only** toward Discogs: it pulls your personal collection and caches it locally for speed.
 
 ## Features
 
-- **Search Records**: Search for vinyl records by catalog number, artist/title, or UPC code
-- **Discogs Integration**: Automatically fetch detailed information from Discogs
+- **Collection Sync**: Pull your personal Discogs collection into a fast local cache
+- **Discogs Integration**: Automatically fetch detailed release information from Discogs
 - **Vinyl Metadata**: Track record size (7", 10", 12"), vinyl color, and shaped/picture discs
-- **Search Preview**: View size, color, and vinyl type before adding to collection
 - **Beautiful UI**: Warm-toned interface with browser sans-serif font
 - **Record Shelf**: Display your collection with 1" album art thumbnails
 - **Interactive Flip Cards**:
@@ -15,8 +14,8 @@ A modern web application for managing your vinyl record collection, powered by t
   - Card scales up and elevates when flipped for better visibility
   - Displays all information: year, size, color, value, label, genres, styles, UPC, Discogs ID
 - **Record Management**:
-  - Update records with latest Discogs data
-  - Delete records with confirmation dialog
+  - Refresh a cached record with the latest Discogs data
+  - Remove a record from the local cache with a confirmation dialog
 - **Non-ASCII Support**: Preserves special characters in artist names and titles (Björk, Motörhead, etc.)
 
 ## Tech Stack
@@ -78,6 +77,8 @@ bun run dev
 - `DATABASE_URL`: PostgreSQL connection string
 - `DISCOGS_TOKEN`: Your Discogs personal access token
 - `DISCOGS_USER_AGENT`: User agent for Discogs API requests
+- `DISCOGS_USERNAME`: Your Discogs username (required for sync)
+- `APP_AUTH_TOKEN`: Shared secret for state-changing API calls (`Authorization: Bearer <token>`). Generate with `openssl rand -hex 32`.
 - `NODE_ENV`: Environment (development/production)
 
 ## Scripts
@@ -101,18 +102,14 @@ bun run dev
 
 ### Records Management
 
-- `GET /api/records` - Fetch all records from the collection
-- `POST /api/records` - Manually add a new record
+- `GET /api/records` - Fetch all records from the local cache
 - `GET /api/records/[id]` - Fetch a single record by UUID
-- `PUT /api/records/[id]` - Update a record by UUID
-- `DELETE /api/records/[id]` - Delete a record from the collection
-- `POST /api/records/sync` - Two-way sync with Discogs collection (SSE stream)
+- `DELETE /api/records/[id]` - Remove a record from the local cache
+- `POST /api/records/sync` - Pull your Discogs collection into the cache (SSE stream)
 
 ### Discogs Integration
 
-- `GET /api/records/search` - Search Discogs (returns vinyl details: size, color, shaped status)
-- `POST /api/records/fetch-from-discogs` - Fetch and save a record from Discogs
-- `POST /api/records/update-from-discogs` - Update an existing record with latest Discogs data
+- `POST /api/records/update-from-discogs` - Refresh an existing cached record with latest Discogs data
 
 See [API Documentation](./docs/api/README.md) for detailed endpoint information.
 

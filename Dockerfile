@@ -1,13 +1,13 @@
 # Dockerfile for Astro SSR application using Bun runtime
 
-FROM oven/bun:1.3.13 AS dependencies
+FROM oven/bun:1.3.14 AS dependencies
 
 WORKDIR /app
 
 COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
 
-FROM oven/bun:1.3.13 AS builder
+FROM oven/bun:1.3.14 AS builder
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY . .
 ENV NODE_ENV=production
 RUN bun run build
 
-FROM oven/bun:1.3.13-slim AS runner
+FROM oven/bun:1.3.14-slim AS runner
 
 WORKDIR /app
 

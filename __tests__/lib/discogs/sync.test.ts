@@ -1,5 +1,5 @@
 /**
- * Tests for lib/discogs/sync.ts
+ * Tests for lib/discogs/sync.ts (read-only pull-only cache sync)
  *
  * Uses vi.hoisted() so mock variables are available when vi.mock() factories run.
  */
@@ -15,7 +15,6 @@ const {
   mockUpdate,
   mockSelect,
   mockGetUserCollection,
-  mockAddToCollection,
   mockExtractRecordSize,
   mockExtractVinylColor,
   mockIsShapedVinyl,
@@ -24,7 +23,6 @@ const {
   mockUpdate: vi.fn(),
   mockSelect: vi.fn(),
   mockGetUserCollection: vi.fn(),
-  mockAddToCollection: vi.fn(),
   mockExtractRecordSize: vi.fn(),
   mockExtractVinylColor: vi.fn(),
   mockIsShapedVinyl: vi.fn(),
@@ -48,7 +46,6 @@ vi.mock("@/lib/db/client", () => ({
 vi.mock("@/lib/discogs/client", () => ({
   createDiscogsClient: () => ({
     getUserCollection: mockGetUserCollection,
-    addToCollection: mockAddToCollection,
     extractRecordSize: mockExtractRecordSize,
     extractVinylColor: mockExtractVinylColor,
     isShapedVinyl: mockIsShapedVinyl,
@@ -113,8 +110,6 @@ beforeEach(() => {
   // Default: insert/update succeed
   mockInsert.mockReturnValue(drizzleChain([]));
   mockUpdate.mockReturnValue(drizzleChain([]));
-  // Default: addToCollection succeeds
-  mockAddToCollection.mockResolvedValue(undefined);
   // Default vinyl helpers
   mockExtractRecordSize.mockReturnValue('12"');
   mockExtractVinylColor.mockReturnValue(null);
@@ -145,11 +140,11 @@ describe("executeSync — pull phase", () => {
 
     const result = await executeSync(() => {});
     expect(result.pulled).toBe(2);
-    expect(result.skipped).toBe(0);
+    expect(result.updated).toBe(0);
     expect(result.errors).toHaveLength(0);
   });
 
-  it("skips releases already in local DB", async () => {
+  it("refreshes (updates) releases already in local DB", async () => {
     mockGetUserCollection.mockResolvedValue(
       singlePageCollection([makeRelease(1), makeRelease(2)])
     );
@@ -158,7 +153,13 @@ describe("executeSync — pull phase", () => {
 
     const result = await executeSync(() => {});
     expect(result.pulled).toBe(1);
-    expect(result.skipped).toBe(1);
+    expect(result.updated).toBe(1);
+    expect(mockUpdate).toHaveBeenCalledTimes(1);
+  });
+
+  it("never writes back to Discogs", async () => {
+    const client = (await import("@/lib/discogs/client")).createDiscogsClient();
+    expect("addToCollection" in client).toBe(false);
   });
 
   it("skips on unique constraint error (not added to errors list)", async () => {
@@ -222,91 +223,11 @@ describe("executeSync — pull phase", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Push phase
-// ---------------------------------------------------------------------------
-
-describe("executeSync — push phase", () => {
-  it("calls addToCollection for local records not in Discogs collection", async () => {
-    mockGetUserCollection.mockResolvedValue(singlePageCollection([]));
-    // First select (pull phase existing IDs) = empty
-    // Second select (push phase all local records) = one unsynced record not on Discogs
-    mockSelect
-      .mockReturnValueOnce(drizzleChain([]))
-      .mockReturnValueOnce(drizzleChain([{ recordId: "uuid-1", discogsId: "99", isSyncedWithDiscogs: false }]));
-
-    const result = await executeSync(() => {});
-    expect(mockAddToCollection).toHaveBeenCalledWith("testuser", 99);
-    expect(result.pushed).toBe(1);
-  });
-
-  it("skips records already flagged isSyncedWithDiscogs", async () => {
-    mockGetUserCollection.mockResolvedValue(singlePageCollection([]));
-    mockSelect
-      .mockReturnValueOnce(drizzleChain([]))
-      .mockReturnValueOnce(drizzleChain([{ recordId: "uuid-1", discogsId: "99", isSyncedWithDiscogs: true }]));
-
-    const result = await executeSync(() => {});
-    expect(mockAddToCollection).not.toHaveBeenCalled();
-    expect(result.pushed).toBe(0);
-  });
-
-  it("handles 409 from addToCollection as a successful push", async () => {
-    mockGetUserCollection.mockResolvedValue(singlePageCollection([]));
-    mockSelect
-      .mockReturnValueOnce(drizzleChain([]))
-      .mockReturnValueOnce(drizzleChain([{ recordId: "uuid-1", discogsId: "99", isSyncedWithDiscogs: false }]));
-
-    const conflict = Object.assign(new Error("Conflict"), { status: 409 });
-    mockAddToCollection.mockRejectedValueOnce(conflict);
-
-    const result = await executeSync(() => {});
-    expect(result.pushed).toBe(1);
-    expect(result.errors).toHaveLength(0);
-  });
-
-  it("adds non-409 addToCollection errors to errors array", async () => {
-    mockGetUserCollection.mockResolvedValue(singlePageCollection([]));
-    mockSelect
-      .mockReturnValueOnce(drizzleChain([]))
-      .mockReturnValueOnce(drizzleChain([{ recordId: "uuid-1", discogsId: "99", isSyncedWithDiscogs: false }]));
-
-    mockAddToCollection.mockRejectedValueOnce(new Error("rate limit exceeded"));
-
-    const result = await executeSync(() => {});
-    expect(result.errors).toHaveLength(1);
-    expect(result.errors[0]).toContain("Push 99");
-  });
-
-  it("does not push records without a discogsId", async () => {
-    mockGetUserCollection.mockResolvedValue(singlePageCollection([]));
-    mockSelect
-      .mockReturnValueOnce(drizzleChain([]))
-      .mockReturnValueOnce(drizzleChain([{ recordId: "uuid-1", discogsId: null, isSyncedWithDiscogs: false }]));
-
-    const result = await executeSync(() => {});
-    expect(mockAddToCollection).not.toHaveBeenCalled();
-    expect(result.pushed).toBe(0);
-  });
-
-  it("skips invalid non-numeric discogsId values", async () => {
-    mockGetUserCollection.mockResolvedValue(singlePageCollection([]));
-    mockSelect
-      .mockReturnValueOnce(drizzleChain([]))
-      .mockReturnValueOnce(drizzleChain([{ recordId: "uuid-1", discogsId: "abc", isSyncedWithDiscogs: false }]));
-
-    const result = await executeSync(() => {});
-    expect(mockAddToCollection).not.toHaveBeenCalled();
-    expect(result.pushed).toBe(0);
-    expect(result.errors[0]).toContain("invalid discogs id");
-  });
-});
-
-// ---------------------------------------------------------------------------
 // Progress callbacks
 // ---------------------------------------------------------------------------
 
 describe("executeSync — progress callbacks", () => {
-  it("fires callback with pull, push, done phases in order", async () => {
+  it("fires callback with pull then done phases in order", async () => {
     mockGetUserCollection.mockResolvedValue(singlePageCollection([]));
     mockSelect.mockReturnValue(drizzleChain([]));
 
@@ -314,7 +235,7 @@ describe("executeSync — progress callbacks", () => {
     await executeSync((p) => phases.push(p.phase));
 
     expect(phases).toContain("pull");
-    expect(phases).toContain("push");
+    expect(phases).not.toContain("push");
     expect(phases[phases.length - 1]).toBe("done");
   });
 
@@ -326,7 +247,7 @@ describe("executeSync — progress callbacks", () => {
     expect(result).toMatchObject({
       phase: "done",
       pulled: expect.any(Number),
-      pushed: expect.any(Number),
+      updated: expect.any(Number),
       skipped: expect.any(Number),
       errors: expect.any(Array),
       totalDiscogsItems: expect.any(Number),

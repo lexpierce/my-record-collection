@@ -11,17 +11,8 @@ const client = createDiscogsClient();
 
 Reads `DISCOGS_USER_AGENT` (default: `"MyRecordCollection/1.0"`) and `DISCOGS_TOKEN` from env.
 
-## Search methods
-
-All include `&format=Vinyl` (vinyl only).
-
-| Method | Params | Discogs endpoint |
-|--------|--------|------------------|
-| `searchByCatalogNumber(catno)` | catalog string | `GET /database/search?catno=&type=release&format=Vinyl` |
-| `searchByArtistAndTitle(artist, title)` | two strings | `GET /database/search?artist=&title=&type=release&format=Vinyl` |
-| `searchByUPC(upc)` | barcode string | `GET /database/search?barcode=&type=release&format=Vinyl` |
-
-Return: `DiscogsSearchResult[]`
+The client is **read-only**: it only issues GET requests and never writes to
+the Discogs collection.
 
 ## Release method
 
@@ -30,6 +21,15 @@ async getRelease(releaseId: number): Promise<DiscogsRelease>
 ```
 
 `GET /releases/{releaseId}`. Cached 1 hour via `next: { revalidate: 3600 }`.
+
+## Collection method
+
+```ts
+async getUserCollection(username, page = 1, perPage = 100): Promise<DiscogsCollectionResponse>
+```
+
+`GET /users/{username}/collection/folders/0/releases`. Used by sync to mirror
+the collection into the local cache.
 
 ## Vinyl extraction methods
 
@@ -52,12 +52,6 @@ Token bucket: 60/min authenticated, 25/min unauthenticated. 429 retry: max 3 att
 ```ts
 interface DiscogsFormat {
   name: string; qty: string; descriptions?: string[]; text?: string;
-}
-
-interface DiscogsSearchResult {
-  id: number; title: string; year: string; thumb: string;
-  cover_image: string; resource_url: string; type: string;
-  catno?: string; barcode?: string[];
 }
 
 interface DiscogsRelease {

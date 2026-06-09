@@ -1,14 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockSelect, mockInsert } = vi.hoisted(() => ({
+const { mockSelect } = vi.hoisted(() => ({
   mockSelect: vi.fn(),
-  mockInsert: vi.fn(),
 }));
 
 vi.mock("@/lib/db/client", () => ({
   getDatabase: () => ({
     select: mockSelect,
-    insert: mockInsert,
   }),
   schema: {
     recordsTable: {
@@ -50,15 +48,7 @@ function makeGetRequest(params: Record<string, string | string[]> = {}) {
   return new Request(url.toString());
 }
 
-function makePostRequest(body: unknown) {
-  return new Request("http://localhost/api/records", {
-    method: "POST",
-    body: JSON.stringify(body),
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-import { GET, POST } from "@/src/pages/api/records";
+import { GET } from "@/src/pages/api/records";
 
 const mockRecord = {
   recordId: "uuid-1",
@@ -72,7 +62,6 @@ const mockRecord = {
 beforeEach(() => {
   vi.clearAllMocks();
   mockSelect.mockReturnValue(drizzleChain([mockRecord]));
-  mockInsert.mockReturnValue(drizzleChain([mockRecord]));
 });
 
 describe("GET /api/records", () => {
@@ -138,34 +127,5 @@ describe("GET /api/records", () => {
   it("accepts shaped=true filter", async () => {
     const response = await GET({ request: makeGetRequest({ shaped: "true" }) });
     expect(response.status).toBe(200);
-  });
-});
-
-describe("POST /api/records", () => {
-  it("returns 201 with new record on success", async () => {
-    const response = await POST({ request: makePostRequest({ artistName: "Nirvana", albumTitle: "Nevermind" }) });
-    expect(response.status).toBe(201);
-    const body = await response.json();
-    expect(body.record).toBeDefined();
-  });
-
-  it("returns 400 when artistName is missing", async () => {
-    const response = await POST({ request: makePostRequest({ albumTitle: "Nevermind" }) });
-    expect(response.status).toBe(400);
-    const body = await response.json();
-    expect(body.error).toContain("Missing required fields");
-  });
-
-  it("returns 400 when albumTitle is missing", async () => {
-    const response = await POST({ request: makePostRequest({ artistName: "Nirvana" }) });
-    expect(response.status).toBe(400);
-  });
-
-  it("returns 500 when database throws", async () => {
-    mockInsert.mockImplementationOnce(() => {
-      throw new Error("insert failed");
-    });
-    const response = await POST({ request: makePostRequest({ artistName: "Nirvana", albumTitle: "Nevermind" }) });
-    expect(response.status).toBe(500);
   });
 });

@@ -1,0 +1,3 @@
+[global]
+disable = ["MD060", "MD013", "MD041", "MD024", "MD033", "MD029", "MD076"]
+exclude = ["node_modules", "dist", "coverage"]

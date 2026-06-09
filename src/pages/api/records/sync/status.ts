@@ -1,10 +1,8 @@
 import { jsonResponse } from "../../_helpers";
+import { missingSyncEnv } from "@/lib/env";
 
 export async function GET(): Promise<Response> {
-  const missing: string[] = [];
-
-  if (!process.env.DISCOGS_USERNAME) missing.push("DISCOGS_USERNAME");
-  if (!process.env.DISCOGS_TOKEN) missing.push("DISCOGS_TOKEN");
+  const missing = missingSyncEnv();
 
   return jsonResponse({
     ready: missing.length === 0,

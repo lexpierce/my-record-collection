@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { createDiscogsClient } from "@/lib/discogs/client";
 import { getDatabase, schema } from "@/lib/db/client";
-import { errorResponse, getErrorMessage, jsonResponse } from "../_helpers";
+import { jsonResponse, serverError } from "../_helpers";
 
 export async function POST({ request }: { request: Request }): Promise<Response> {
   try {
@@ -12,8 +12,13 @@ export async function POST({ request }: { request: Request }): Promise<Response>
       return jsonResponse({ error: "recordId and discogsId are required" }, 400);
     }
 
+    const releaseId = Number.parseInt(String(discogsId), 10);
+    if (!Number.isSafeInteger(releaseId) || releaseId <= 0) {
+      return jsonResponse({ error: "discogsId must be a positive integer" }, 400);
+    }
+
     const discogsClient = createDiscogsClient();
-    const releaseData = await discogsClient.getRelease(Number.parseInt(discogsId, 10));
+    const releaseData = await discogsClient.getRelease(releaseId);
 
     const artistName = releaseData.artists[0]?.name || "Unknown Artist";
     const labelName = releaseData.labels[0]?.name || null;
@@ -56,7 +61,6 @@ export async function POST({ request }: { request: Request }): Promise<Response>
       message: "Record updated from Discogs successfully",
     });
   } catch (error) {
-    console.error("Error updating from Discogs:", error);
-    return errorResponse("Failed to update from Discogs", getErrorMessage(error), 500);
+    return serverError("Failed to update from Discogs", error);
   }
 }

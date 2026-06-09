@@ -1,4 +1,6 @@
-import { errorResponse, getErrorMessage } from "../_helpers";
+import { errorResponse, serverError } from "../_helpers";
+import { getDiscogsUserAgent } from "@/lib/env";
+import { hasBunImage } from "@/lib/runtime";
 
 const ONE_WEEK_SECONDS = 60 * 60 * 24 * 7;
 const IMAGE_SIZE_PATTERN = /^\d+$/;
@@ -55,9 +57,17 @@ export async function GET({ request }: { request: Request }): Promise<Response> 
       return errorResponse("Invalid image source", "src must be an absolute Discogs http or https URL", 400);
     }
 
+    if (!hasBunImage()) {
+      return errorResponse(
+        "Image processing unavailable",
+        "Server is not running under the Bun runtime (Bun.Image is required)",
+        500,
+      );
+    }
+
     const imageSize = parseImageSize(searchParams.get("size"));
     const sourceResponse = await fetch(sourceURL, {
-      headers: { "User-Agent": process.env.DISCOGS_USER_AGENT || "MyRecordCollection/1.0" },
+      headers: { "User-Agent": getDiscogsUserAgent() },
     });
     if (!sourceResponse.ok) {
       return errorResponse("Failed to fetch image", `Upstream image returned ${sourceResponse.status}`, 502);
@@ -77,7 +87,6 @@ export async function GET({ request }: { request: Request }): Promise<Response> 
       },
     });
   } catch (error) {
-    console.error("Error processing image:", error);
-    return errorResponse("Failed to process image", getErrorMessage(error), 502);
+    return serverError("Failed to process image", error, 502);
   }
 }

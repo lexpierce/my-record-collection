@@ -104,7 +104,9 @@ Once deployed, test your application:
 - `NODE_ENV`: production
 - `DATABASE_URL`: PostgreSQL connection string (needs update)
 - `DISCOGS_TOKEN`: Your Discogs API token (needs update)
+- `DISCOGS_USERNAME`: Your Discogs username
 - `DISCOGS_USER_AGENT`: MyRecordCollection/1.0
+- `APP_AUTH_TOKEN`: Shared secret for state-changing API calls. `render.yaml` sets `generateValue: true`, so Render generates it automatically; copy it from the service env to use the Sync/Update/Delete actions.
 
 ## Troubleshooting
 

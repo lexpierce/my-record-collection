@@ -1,5 +1,6 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { getDatabaseUrl } from "@/lib/env";
 import * as schema from "./schema";
 
 /**
@@ -19,15 +20,19 @@ import * as schema from "./schema";
  */
 let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
+/**
+ * Maximum connections per process. Kept small so a single web instance cannot
+ * exhaust the managed Postgres connection ceiling (the starter/basic plans
+ * allow only a handful). Override with DB_POOL_MAX if you scale up.
+ */
+function poolMax(): number {
+  const parsed = Number.parseInt(process.env.DB_POOL_MAX ?? "", 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 5;
+}
+
 export function getDatabase() {
   if (!_db) {
-    const databaseURL = process.env.DATABASE_URL;
-    if (!databaseURL) {
-      throw new Error(
-        "DATABASE_URL environment variable is not defined. Please set it in your .env file."
-      );
-    }
-    _db = drizzle(postgres(databaseURL), { schema });
+    _db = drizzle(postgres(getDatabaseUrl(), { max: poolMax() }), { schema });
   }
   return _db;
 }

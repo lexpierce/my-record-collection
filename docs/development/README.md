@@ -36,7 +36,7 @@ bun run dev           # Astro dev server forced through Bun runtime
 bun run build         # Astro production build forced through Bun runtime
 bun run start         # Start Astro server with Bun on 0.0.0.0 from dist/server/entry.mjs
 bun run lint          # ESLint scoped to TS files
-bun run lint:md       # markdownlint-cli2
+bun run lint:md       # rumdl
 bun run type-check    # astro check + tsc --noEmit
 bun run test          # Vitest
 bun run test:watch    # Vitest watch mode
@@ -101,7 +101,7 @@ lib/
 | Styling | Sass only, no Tailwind |
 | Color tokens | Semantic CSS custom properties from `styles/_variables.scss` |
 | Card size | 237px wide, 347px flipped, content-driven height |
-| Page layout | `max-width: 80rem` header/search, full-width grid |
+| Page layout | `max-width: 80rem` header, full-width grid |
 | Grid | `grid-template-columns: repeat(auto-fill, 237px)` with `5px` gaps |
 | Overflow | No `overflow-x: clip` on grid ancestors |
 

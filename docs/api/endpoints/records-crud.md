@@ -1,6 +1,11 @@
-# Records CRUD endpoints
+# Records endpoints
 
-Source: `app/api/records/route.ts`, `app/api/records/[id]/route.ts`
+Source: `src/pages/api/records.ts`, `src/pages/api/records/[id].ts`
+
+This app is read-only with respect to Discogs. The local database is a cached
+mirror of the Discogs collection, populated by sync (see
+[discogs-integration.md](./discogs-integration.md)). There are no endpoints
+that create records manually or write back to Discogs.
 
 ## GET /api/records
 
@@ -9,18 +14,6 @@ Returns all records. Query params in [api/README.md](../README.md).
 Response: `{ "records": [...], "count": N }` (200)
 
 Errors: 500
-
-## POST /api/records
-
-Creates a record manually (no Discogs).
-
-Body: `{ "artistName": string, "albumTitle": string, "yearReleased"?: number, ... }`
-
-Required: `artistName`, `albumTitle`. All other schema fields optional.
-
-Response: `{ "record": {...}, "message": "..." }` (201)
-
-Errors: 400 (missing fields), 500
 
 ## GET /api/records/[id]
 
@@ -51,17 +44,10 @@ Response: `image/webp` (200)
 
 Errors: 400 (invalid `src`), 502
 
-## PUT /api/records/[id]
-
-Partial update. Any subset of record fields. `updatedAt` set automatically.
-
-Response: `{ "record": {...}, "message": "..." }` (200)
-
-Errors: 404, 500
-
 ## DELETE /api/records/[id]
 
-Hard delete. Irreversible.
+Removes a record from the local cache. Does not affect the Discogs collection;
+a record still present on Discogs reappears on the next sync.
 
 Response: `{ "message": "Record deleted successfully" }` (200)
 

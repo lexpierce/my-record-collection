@@ -93,40 +93,12 @@ describe("DiscogsClient.makeRequest", () => {
     expect((opts as { next?: { revalidate: number } }).next?.revalidate).toBe(3600);
   });
 
-  it("does NOT add next.revalidate for POST requests", async () => {
-    const fetchSpy = vi
-      .spyOn(globalThis, "fetch")
-      .mockImplementation(() => makeFetchResponse(null, 201));
-    const client = new DiscogsClient("TestApp/1.0");
-    await client.makeRequest("/test", { method: "POST" });
-    const [, opts] = fetchSpy.mock.calls[0] as [string, RequestInit & { next?: unknown }];
-    expect((opts as { next?: unknown }).next).toBeUndefined();
-  });
-
   it("throws typed error with .status on non-OK response", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation(() =>
       makeFetchResponse({ error: "not found" }, 404)
     );
     const client = new DiscogsClient("TestApp/1.0");
     await expect(client.makeRequest("/missing")).rejects.toMatchObject({ status: 404 });
-  });
-
-  it("handles empty body (POST 201) without JSON parse error", async () => {
-    vi.spyOn(globalThis, "fetch").mockImplementation(() => makeFetchResponse(null, 201));
-    const client = new DiscogsClient("TestApp/1.0");
-    const result = await client.makeRequest("/test", { method: "POST" });
-    expect((result as { _status?: number })._status).toBe(201);
-  });
-
-  it("serialises request body as JSON for POST", async () => {
-    const fetchSpy = vi
-      .spyOn(globalThis, "fetch")
-      .mockImplementation(() => makeFetchResponse(null, 201));
-    const client = new DiscogsClient("TestApp/1.0");
-    await client.makeRequest("/test", { method: "POST", body: { foo: "bar" } });
-    const [, opts] = fetchSpy.mock.calls[0] as [string, RequestInit];
-    expect(opts.body).toBe(JSON.stringify({ foo: "bar" }));
-    expect((opts.headers as Record<string, string>)["Content-Type"]).toBe("application/json");
   });
 
   it("retries on 429 and succeeds on second attempt", async () => {
@@ -160,69 +132,6 @@ describe("DiscogsClient.makeRequest", () => {
     );
     const client = new DiscogsClient("TestApp/1.0");
     await expect(client.makeRequest("/test")).rejects.toMatchObject({ status: 429 });
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Search methods
-// ---------------------------------------------------------------------------
-
-describe("DiscogsClient.searchByCatalogNumber", () => {
-  it("calls correct endpoint and returns results", async () => {
-    const results = [{ id: 1, title: "Test Album" }];
-    vi.spyOn(globalThis, "fetch").mockImplementation(() =>
-      makeFetchResponse({ results })
-    );
-    const client = new DiscogsClient("TestApp/1.0");
-    const data = await client.searchByCatalogNumber("SHVL-804");
-    expect(data).toEqual(results);
-  });
-
-  it("URL-encodes catalog number", async () => {
-    const fetchSpy = vi
-      .spyOn(globalThis, "fetch")
-      .mockImplementation(() => makeFetchResponse({ results: [] }));
-    const client = new DiscogsClient("TestApp/1.0");
-    await client.searchByCatalogNumber("ABC 123");
-    const [url] = fetchSpy.mock.calls[0] as [string];
-    expect(url).toContain("ABC%20123");
-  });
-});
-
-describe("DiscogsClient.searchByArtistAndTitle", () => {
-  it("calls correct endpoint and returns results", async () => {
-    const results = [{ id: 2, title: "Dark Side" }];
-    vi.spyOn(globalThis, "fetch").mockImplementation(() =>
-      makeFetchResponse({ results })
-    );
-    const client = new DiscogsClient("TestApp/1.0");
-    const data = await client.searchByArtistAndTitle("Pink Floyd", "Dark Side");
-    expect(data).toEqual(results);
-  });
-
-  it("URL-encodes artist and title", async () => {
-    const fetchSpy = vi
-      .spyOn(globalThis, "fetch")
-      .mockImplementation(() => makeFetchResponse({ results: [] }));
-    const client = new DiscogsClient("TestApp/1.0");
-    // Test with a name containing a non-ASCII char; verify it appears percent-encoded in the URL
-    await client.searchByArtistAndTitle("Björk", "Post");
-    const [url] = fetchSpy.mock.calls[0] as [string];
-    // The ö character (U+00F6) encodes to %C3%B6
-    expect(url).toContain("Bj%C3%B6rk");
-    expect(url).toContain("Post");
-  });
-});
-
-describe("DiscogsClient.searchByUPC", () => {
-  it("calls correct endpoint and returns results", async () => {
-    const results = [{ id: 3, title: "Album" }];
-    vi.spyOn(globalThis, "fetch").mockImplementation(() =>
-      makeFetchResponse({ results })
-    );
-    const client = new DiscogsClient("TestApp/1.0");
-    const data = await client.searchByUPC("724384260804");
-    expect(data).toEqual(results);
   });
 });
 
@@ -272,32 +181,6 @@ describe("DiscogsClient.getUserCollection", () => {
     await client.getUserCollection("test user");
     const [url] = fetchSpy.mock.calls[0] as [string];
     expect(url).toContain("test%20user");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// addToCollection
-// ---------------------------------------------------------------------------
-
-describe("DiscogsClient.addToCollection", () => {
-  it("calls POST on the collection endpoint", async () => {
-    const fetchSpy = vi
-      .spyOn(globalThis, "fetch")
-      .mockImplementation(() => makeFetchResponse(null, 201));
-    const client = new DiscogsClient("TestApp/1.0", "tok");
-    await client.addToCollection("testuser", 123);
-    const [url, opts] = fetchSpy.mock.calls[0] as [string, RequestInit];
-    expect(url).toContain("testuser");
-    expect(url).toContain("123");
-    expect(opts.method).toBe("POST");
-  });
-
-  it("throws with status 409 if already in collection", async () => {
-    vi.spyOn(globalThis, "fetch").mockImplementation(() =>
-      makeFetchResponse({ message: "Already in collection" }, 409)
-    );
-    const client = new DiscogsClient("TestApp/1.0", "tok");
-    await expect(client.addToCollection("user", 1)).rejects.toMatchObject({ status: 409 });
   });
 });
 

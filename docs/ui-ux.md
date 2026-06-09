@@ -28,7 +28,7 @@ Orkney is self-hosted from `public/fonts/` and loaded through `styles/_fonts.scs
 
 ## Layout
 
-- Header/search/sync: `max-width: 80rem`, centered
+- Header/sync bar: `max-width: 80rem`, centered
 - Record grid: full viewport width, `grid-template-columns: repeat(auto-fill, 237px)` with `5px` gaps, no breakpoints
 - Card faces use `16px` corner radius
 - No `overflow-x: clip` on grid ancestors
@@ -57,12 +57,12 @@ Optically center control text by ignoring descenders: use `line-height: 1` and l
 | Click flipped card | Flip back |
 | Hover card | `translateY(-2px)` |
 | Sync button | Shows "Syncing..." + progress bar, shelf re-fetches on done |
-| "+ Add an album" | Slides open search section |
-| Search result "+ Add" | `POST fetch-from-discogs`, shelf re-fetches |
+| Card "Update" | `POST update-from-discogs`, shelf re-fetches |
+| Card "Delete" | `DELETE /api/records/[id]`, shelf re-fetches |
 
 ## No full-page reloads
 
-All mutations refresh app state through browser scripts and API calls.
+All updates refresh app state through browser scripts and API calls.
 
 ## Responsive
 

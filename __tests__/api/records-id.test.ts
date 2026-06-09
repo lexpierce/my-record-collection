@@ -29,31 +29,21 @@ function drizzleChain(resolveValue: unknown) {
   return chain;
 }
 
-import { DELETE, GET, PUT } from "@/src/pages/api/records/[id]";
+import { DELETE, GET } from "@/src/pages/api/records/[id]";
+
+const VALID_UUID = "11111111-1111-4111-8111-111111111111";
 
 const mockRecord = {
-  recordId: "uuid-1",
+  recordId: VALID_UUID,
   artistName: "Nirvana",
   albumTitle: "Nevermind",
   yearReleased: 1991,
 };
 
 const routeContext = {
-  request: new Request("http://localhost/api/records/uuid-1"),
-  params: { id: "uuid-1" },
+  request: new Request(`http://localhost/api/records/${VALID_UUID}`),
+  params: { id: VALID_UUID },
 };
-
-function makeContext(method: string, body?: unknown) {
-  return {
-    request: new Request("http://localhost/api/records/uuid-1", {
-      method,
-      ...(body
-        ? { body: JSON.stringify(body), headers: { "Content-Type": "application/json" } }
-        : {}),
-    }),
-    params: { id: "uuid-1" },
-  };
-}
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -81,26 +71,11 @@ describe("GET /api/records/[id]", () => {
     const response = await GET(routeContext);
     expect(response.status).toBe(500);
   });
-});
 
-describe("PUT /api/records/[id]", () => {
-  it("returns 200 with updated record", async () => {
-    const response = await PUT(makeContext("PUT", { albumTitle: "In Utero" }));
-    expect(response.status).toBe(200);
-    const body = await response.json();
-    expect(body.message).toContain("updated");
-  });
-
-  it("returns 404 when record not found", async () => {
-    mockUpdate.mockReturnValue(drizzleChain([]));
-    const response = await PUT(makeContext("PUT", { albumTitle: "x" }));
+  it("returns 404 for a non-UUID id without touching the DB", async () => {
+    const response = await GET({ ...routeContext, params: { id: "not-a-uuid" } });
     expect(response.status).toBe(404);
-  });
-
-  it("returns 500 on DB error", async () => {
-    mockUpdate.mockImplementationOnce(() => { throw new Error("DB down"); });
-    const response = await PUT(makeContext("PUT", { albumTitle: "x" }));
-    expect(response.status).toBe(500);
+    expect(mockSelect).not.toHaveBeenCalled();
   });
 });
 
@@ -122,5 +97,11 @@ describe("DELETE /api/records/[id]", () => {
     mockDelete.mockImplementationOnce(() => { throw new Error("DB down"); });
     const response = await DELETE(routeContext);
     expect(response.status).toBe(500);
+  });
+
+  it("returns 404 for a non-UUID id without touching the DB", async () => {
+    const response = await DELETE({ ...routeContext, params: { id: "not-a-uuid" } });
+    expect(response.status).toBe(404);
+    expect(mockDelete).not.toHaveBeenCalled();
   });
 });

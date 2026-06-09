@@ -1,6 +1,6 @@
 import { asc, desc, inArray, eq, and } from "drizzle-orm";
 import { getDatabase, schema } from "@/lib/db/client";
-import { errorResponse, getErrorMessage, jsonResponse } from "./_helpers";
+import { jsonResponse, serverError } from "./_helpers";
 
 export async function GET({ request }: { request: Request }): Promise<Response> {
   try {
@@ -54,44 +54,6 @@ export async function GET({ request }: { request: Request }): Promise<Response> 
       count: allRecords.length,
     });
   } catch (error) {
-    console.error("Error fetching records:", error);
-    return errorResponse("Failed to fetch records", getErrorMessage(error), 500);
-  }
-}
-
-export async function POST({ request }: { request: Request }): Promise<Response> {
-  try {
-    const recordData = await request.json();
-
-    if (!recordData.artistName || !recordData.albumTitle) {
-      return jsonResponse(
-        {
-          error: "Missing required fields",
-          message: "artistName and albumTitle are required",
-        },
-        400,
-      );
-    }
-
-    const insertedRecords = await getDatabase()
-      .insert(schema.recordsTable)
-      .values({
-        ...recordData,
-        updatedAt: new Date(),
-      })
-      .returning();
-
-    const newRecord = insertedRecords[0];
-
-    return jsonResponse(
-      {
-        record: newRecord,
-        message: "Record added successfully",
-      },
-      201,
-    );
-  } catch (error) {
-    console.error("Error adding record:", error);
-    return errorResponse("Failed to add record", getErrorMessage(error), 500);
+    return serverError("Failed to fetch records", error);
   }
 }

@@ -1,27 +1,28 @@
 /**
- * Two-way sync between the local Postgres database and a user's Discogs collection.
+ * One-way (read-only) sync that caches a user's Discogs collection locally.
  *
- * Pull phase: pages through the Discogs collection and inserts any releases
- *   that don't yet exist locally (identified by discogsId).
+ * Pull phase: pages through the Discogs collection and, for each release,
+ *   inserts it locally if it doesn't exist yet (identified by discogsId) or
+ *   refreshes the cached metadata of the existing local record.
  *
- * Push phase: finds local records not yet flagged as synced and whose
- *   discogsId is NOT in the live Discogs collection, then calls addToCollection.
- *
- * Idempotent — safe to run multiple times; never deletes from either side.
+ * This sync never writes to Discogs and never deletes local records.
+ * The local database is purely a fast, cached mirror of the collection.
+ * Idempotent — safe to run multiple times.
  */
 
-import { eq, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { getDatabase, schema } from "@/lib/db/client";
 import {
   createDiscogsClient,
   type DiscogsCollectionBasicInfo,
 } from "@/lib/discogs/client";
+import { getDiscogsUsername } from "@/lib/env";
 import type { NewRecord } from "@/lib/db/schema";
 
 export interface SyncProgress {
-  phase: "pull" | "push" | "done";
+  phase: "pull" | "done";
   pulled: number;
-  pushed: number;
+  updated: number;
   skipped: number;
   errors: string[];
   totalDiscogsItems: number;
@@ -59,30 +60,25 @@ function collectionReleaseToRecord(
 }
 
 /**
- * Orchestrates two-way sync between local DB and Discogs collection.
- * Pull: Import missing Discogs releases into local DB.
- * Push: Add local Discogs-sourced records to Discogs collection.
- * Never removes entries from either side.
+ * Pulls the Discogs collection into the local DB cache.
+ * Inserts releases that are new locally and refreshes ones that already exist.
+ * Never writes to Discogs and never removes local records.
  */
 export async function executeSync(
   onProgress: (progress: SyncProgress) => void,
 ): Promise<SyncProgress> {
-  const username = process.env.DISCOGS_USERNAME;
-  if (!username) {
-    throw new Error("DISCOGS_USERNAME environment variable is required for sync");
-  }
+  const username = getDiscogsUsername();
 
   const client = createDiscogsClient();
   const progress: SyncProgress = {
     phase: "pull",
     pulled: 0,
-    pushed: 0,
+    updated: 0,
     skipped: 0,
     errors: [],
     totalDiscogsItems: 0,
   };
 
-  // --- PULL phase: Discogs → Local DB ---
   onProgress({ ...progress });
 
   // Build a Set of existing discogsIds for fast lookup
@@ -93,8 +89,7 @@ export async function executeSync(
     existingRecords.map((r) => r.discogsId).filter(Boolean),
   );
 
-  // Paginate through Discogs collection, track which IDs are actually on Discogs
-  const discogsCollectionIds = new Set<string>();
+  // Paginate through the Discogs collection (Discogs → local cache)
   let page = 1;
   let totalPages = 1;
 
@@ -105,18 +100,21 @@ export async function executeSync(
 
     for (const release of response.releases) {
       const discogsId = release.basic_information.id.toString();
-      discogsCollectionIds.add(discogsId);
-
-      if (existingIds.has(discogsId)) {
-        progress.skipped++;
-        continue;
-      }
+      const record = collectionReleaseToRecord(release.basic_information, client);
 
       try {
-        const newRecord = collectionReleaseToRecord(release.basic_information, client);
-        await getDatabase().insert(schema.recordsTable).values(newRecord);
-        progress.pulled++;
-        existingIds.add(discogsId);
+        if (existingIds.has(discogsId)) {
+          // Refresh cached metadata for an already-imported release.
+          await getDatabase()
+            .update(schema.recordsTable)
+            .set({ ...record, updatedAt: new Date() })
+            .where(eq(schema.recordsTable.discogsId, discogsId));
+          progress.updated++;
+        } else {
+          await getDatabase().insert(schema.recordsTable).values(record);
+          progress.pulled++;
+          existingIds.add(discogsId);
+        }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         if (msg.includes("unique") || msg.includes("duplicate")) {
@@ -129,70 +127,6 @@ export async function executeSync(
 
     onProgress({ ...progress });
     page++;
-  }
-
-  // Only mark records as synced if they actually exist in the Discogs collection
-  const idsToMarkSynced = [...discogsCollectionIds];
-  for (let i = 0; i < idsToMarkSynced.length; i += 500) {
-    const chunk = idsToMarkSynced.slice(i, i + 500);
-    await getDatabase()
-      .update(schema.recordsTable)
-      .set({ isSyncedWithDiscogs: true })
-      .where(inArray(schema.recordsTable.discogsId, chunk));
-  }
-
-  // --- PUSH phase: Local DB → Discogs ---
-  progress.phase = "push";
-  onProgress({ ...progress });
-
-  // Find local records with a discogsId NOT already flagged as synced.
-  // The pull phase marks everything it finds in Discogs as synced, so this
-  // efficiently skips records that were already confirmed present.
-  const allLocalRecords = await getDatabase()
-    .select({
-      recordId: schema.recordsTable.recordId,
-      discogsId: schema.recordsTable.discogsId,
-      isSyncedWithDiscogs: schema.recordsTable.isSyncedWithDiscogs,
-    })
-    .from(schema.recordsTable);
-
-  const recordsToPush = allLocalRecords.filter(
-    (r) => r.discogsId && !r.isSyncedWithDiscogs && !discogsCollectionIds.has(r.discogsId),
-  );
-
-  for (const record of recordsToPush) {
-    if (!record.discogsId) continue;
-
-    const releaseId = Number.parseInt(record.discogsId, 10);
-    if (!Number.isSafeInteger(releaseId) || releaseId <= 0) {
-      progress.errors.push(`Push ${record.discogsId}: invalid discogs id`);
-      onProgress({ ...progress });
-      continue;
-    }
-
-    try {
-      await client.addToCollection(username, releaseId);
-      await getDatabase()
-        .update(schema.recordsTable)
-        .set({ isSyncedWithDiscogs: true })
-        .where(eq(schema.recordsTable.recordId, record.recordId));
-      progress.pushed++;
-    } catch (err) {
-      const errWithStatus = err as Error & { status?: number };
-      // 409 = already in collection — mark as synced
-      if (errWithStatus.status === 409) {
-        await getDatabase()
-          .update(schema.recordsTable)
-          .set({ isSyncedWithDiscogs: true })
-          .where(eq(schema.recordsTable.recordId, record.recordId));
-        progress.pushed++;
-      } else {
-        const msg = err instanceof Error ? err.message : String(err);
-        progress.errors.push(`Push ${record.discogsId}: ${msg}`);
-      }
-    }
-
-    onProgress({ ...progress });
   }
 
   progress.phase = "done";

@@ -16,27 +16,15 @@ import {
 } from "./record-helpers";
 
 interface SyncProgress {
-  phase: "pull" | "push" | "done";
+  phase: "pull" | "done";
   pulled: number;
-  pushed: number;
+  updated: number;
   skipped: number;
   errors: string[];
   totalDiscogsItems: number;
 }
 
-interface DiscogsSearchResult {
-  id: number;
-  title: string;
-  year?: string;
-  thumb?: string;
-  catno?: string;
-  recordSize?: string | null;
-  vinylColor?: string | null;
-  isShapedVinyl?: boolean;
-}
-
 type PageSize = 25 | 50 | 100;
-type SearchMethod = "artistTitle" | "catalog" | "upc";
 
 const PAGE_SIZE_OPTIONS: PageSize[] = [25, 50, 100];
 
@@ -50,7 +38,6 @@ const state = {
   activeBucket: null as string | null,
   pageSize: (window.innerWidth > 640 ? 50 : 25) as PageSize,
   currentPage: 1,
-  searchMethod: "artistTitle" as SearchMethod,
 };
 
 function query<T extends Element>(selector: string): T {
@@ -67,18 +54,6 @@ function setHtml(selector: string, value: string): void {
   query<HTMLElement>(selector).innerHTML = value;
 }
 
-function clearMessage(selector: string): void {
-  const element = query<HTMLElement>(selector);
-  element.textContent = "";
-  element.hidden = true;
-}
-
-function showMessage(selector: string, message: string): void {
-  const element = query<HTMLElement>(selector);
-  element.textContent = message;
-  element.hidden = false;
-}
-
 async function readResponseError(response: Response): Promise<string> {
   const contentType = response.headers.get("Content-Type") || "";
   if (contentType.includes("application/json")) {
@@ -93,10 +68,36 @@ async function readResponseError(response: Response): Promise<string> {
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
+  if (response.status === 401) clearAuthToken();
   if (!response.ok) {
     throw new Error(await readResponseError(response));
   }
   return await response.json() as T;
+}
+
+const AUTH_TOKEN_KEY = "app_auth_token";
+
+/**
+ * Returns the admin token for state-changing requests, prompting once per
+ * session if needed. The token is held only in sessionStorage — never embedded
+ * in the served HTML — so it stays out of the public page source.
+ */
+function getAuthToken(): string | null {
+  let token = sessionStorage.getItem(AUTH_TOKEN_KEY);
+  if (!token) {
+    token = window.prompt("Enter your admin token to modify the collection:")?.trim() || null;
+    if (token) sessionStorage.setItem(AUTH_TOKEN_KEY, token);
+  }
+  return token;
+}
+
+function clearAuthToken(): void {
+  sessionStorage.removeItem(AUTH_TOKEN_KEY);
+}
+
+function authHeaders(): Record<string, string> {
+  const token = getAuthToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 async function checkSyncStatus(): Promise<void> {
@@ -152,7 +153,7 @@ function renderShelf(): void {
   if (state.records.length === 0) {
     shelfRoot.innerHTML = `
       <div class="stateCenter">
-        <p class="emptyText">Your collection is empty. Click <strong>&ldquo;+ Add an album&rdquo;</strong> to get started.</p>
+        <p class="emptyText">Your collection is empty. Click <strong>&ldquo;Sync Collection&rdquo;</strong> to pull your records from Discogs.</p>
       </div>
     `;
     return;
@@ -508,7 +509,7 @@ async function updateRecord(record: BrowserRecord, card: HTMLElement): Promise<v
   try {
     await fetchJson("/api/records/update-from-discogs", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeaders() },
       body: JSON.stringify({ recordId: record.recordId, discogsId: record.discogsId }),
     });
     await loadRecords();
@@ -520,119 +521,13 @@ async function updateRecord(record: BrowserRecord, card: HTMLElement): Promise<v
 async function deleteRecord(record: BrowserRecord, card: HTMLElement): Promise<void> {
   applyCardActionVisibility(card, false);
   try {
-    await fetchJson(`/api/records/${encodeURIComponent(record.recordId)}`, { method: "DELETE" });
+    await fetchJson(`/api/records/${encodeURIComponent(record.recordId)}`, {
+      method: "DELETE",
+      headers: authHeaders(),
+    });
     await loadRecords();
   } catch {
     showCardError(card, "Failed to delete record. Please try again.");
-  }
-}
-
-function setSearchMethod(method: SearchMethod): void {
-  state.searchMethod = method;
-  document.querySelectorAll<HTMLButtonElement>("[data-search-method]").forEach((button) => {
-    button.classList.toggle("active", button.dataset.searchMethod === method);
-  });
-  show(query<HTMLElement>("[data-field-artist]"), method === "artistTitle");
-  show(query<HTMLElement>("[data-field-title]"), method === "artistTitle");
-  show(query<HTMLElement>("[data-field-catalog]"), method === "catalog");
-  show(query<HTMLElement>("[data-field-upc]"), method === "upc");
-}
-
-function buildSearchUrl(): string | null {
-  if (state.searchMethod === "catalog") {
-    const catalogNumber = query<HTMLInputElement>("[data-catalog-number]").value.trim();
-    return catalogNumber ? `/api/records/search?catalogNumber=${encodeURIComponent(catalogNumber)}` : null;
-  }
-  if (state.searchMethod === "upc") {
-    const upcCode = query<HTMLInputElement>("[data-upc-code]").value.trim();
-    return upcCode ? `/api/records/search?upc=${encodeURIComponent(upcCode)}` : null;
-  }
-  const artistName = query<HTMLInputElement>("[data-artist-name]").value.trim();
-  const albumTitle = query<HTMLInputElement>("[data-album-title]").value.trim();
-  return artistName && albumTitle
-    ? `/api/records/search?artist=${encodeURIComponent(artistName)}&title=${encodeURIComponent(albumTitle)}`
-    : null;
-}
-
-async function handleSearchSubmit(event: SubmitEvent): Promise<void> {
-  event.preventDefault();
-  clearMessage("[data-search-error]");
-  clearMessage("[data-search-success]");
-  show(query<HTMLElement>("[data-search-results]"), false);
-
-  const searchUrl = buildSearchUrl();
-  if (!searchUrl) {
-    showMessage("[data-search-error]", "Please fill in all required fields");
-    return;
-  }
-
-  const button = query<HTMLButtonElement>("[data-search-button]");
-  button.disabled = true;
-  button.innerHTML = `<div class="searchBtnSpinner"></div>`;
-
-  try {
-    const data = await fetchJson<{ results: DiscogsSearchResult[] }>(searchUrl);
-    renderSearchResults(data.results || []);
-    if ((data.results || []).length === 0) {
-      showMessage("[data-search-error]", "No results found. Try a different search or add manually.");
-    }
-  } catch (error) {
-    showMessage("[data-search-error]", error instanceof Error ? error.message : "An error occurred while searching");
-  } finally {
-    button.disabled = false;
-    button.innerHTML = `<img src="/discogs-logo.svg" alt="Search Discogs" width="32" height="32" class="discogsLogo" />`;
-  }
-}
-
-function renderSearchResults(results: DiscogsSearchResult[]): void {
-  const container = query<HTMLElement>("[data-search-results]");
-  if (results.length === 0) {
-    container.innerHTML = "";
-    container.hidden = true;
-    return;
-  }
-
-  container.innerHTML = `
-    <h3 class="resultsHeading">Results (${results.length})</h3>
-    <div class="resultsList">
-      ${results.map((result) => `
-        <div class="resultItem">
-          ${result.thumb ? `<img src="${escapeHtml(result.thumb)}" alt="${escapeHtml(result.title)}" width="48" height="48" class="resultThumb" />` : ""}
-          <div class="resultInfo">
-            <h4 class="resultTitle">${escapeHtml(result.title)}</h4>
-            <div class="resultMeta">
-              ${result.year ? `<span>${escapeHtml(result.year)}</span>` : ""}
-              ${result.catno ? `<span>Cat#: ${escapeHtml(result.catno)}</span>` : ""}
-              ${result.recordSize ? `<span>${escapeHtml(result.recordSize)}</span>` : ""}
-              ${result.vinylColor ? `<span>${escapeHtml(result.vinylColor)}</span>` : ""}
-              ${result.isShapedVinyl ? `<span class="resultPicDisc">Picture Disc</span>` : ""}
-            </div>
-          </div>
-          <button type="button" class="addBtn" data-add-result="${result.id}">+ Add</button>
-        </div>
-      `).join("")}
-    </div>
-  `;
-  container.hidden = false;
-
-  container.querySelectorAll<HTMLButtonElement>("[data-add-result]").forEach((button) => {
-    button.addEventListener("click", () => addSearchResult(Number(button.dataset.addResult)));
-  });
-}
-
-async function addSearchResult(releaseId: number): Promise<void> {
-  clearMessage("[data-search-error]");
-  try {
-    const data = await fetchJson<{ record?: BrowserRecord }>("/api/records/fetch-from-discogs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ releaseId }),
-    });
-    showMessage("[data-search-success]", `Added "${data.record?.albumTitle ?? "record"}" to collection!`);
-    window.setTimeout(() => clearMessage("[data-search-success]"), 3000);
-    await loadRecords();
-  } catch (error) {
-    showMessage("[data-search-error]", error instanceof Error ? error.message : "Failed to add record. Please try manual entry.");
   }
 }
 
@@ -647,15 +542,15 @@ function renderSyncProgress(progress: SyncProgress): void {
   } else {
     show(bar, true);
     status.innerHTML = `
-      <span class="syncPhase">${progress.phase === "pull" ? "Pulling from Discogs..." : "Pushing to Discogs..."}</span>
+      <span class="syncPhase">Pulling from Discogs...</span>
       <span>Imported: ${progress.pulled}</span>
-      <span>Pushed: ${progress.pushed}</span>
+      <span>Updated: ${progress.updated}</span>
       <span>Skipped: ${progress.skipped}</span>
-      ${progress.totalDiscogsItems > 0 ? `<span>(${progress.pulled + progress.skipped} / ${progress.totalDiscogsItems})</span>` : ""}
+      ${progress.totalDiscogsItems > 0 ? `<span>(${progress.pulled + progress.updated + progress.skipped} / ${progress.totalDiscogsItems})</span>` : ""}
     `;
     show(track, progress.totalDiscogsItems > 0);
     if (progress.totalDiscogsItems > 0) {
-      fill.style.width = `${Math.round(((progress.pulled + progress.skipped) / progress.totalDiscogsItems) * 100)}%`;
+      fill.style.width = `${Math.round(((progress.pulled + progress.updated + progress.skipped) / progress.totalDiscogsItems) * 100)}%`;
     }
   }
 
@@ -676,9 +571,10 @@ async function handleSync(): Promise<void> {
   try {
     const response = await fetch("/api/records/sync", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeaders() },
       body: "{}",
     });
+    if (response.status === 401) clearAuthToken();
     if (!response.ok) {
       throw new Error(await readResponseError(response));
     }
@@ -706,7 +602,7 @@ async function handleSync(): Promise<void> {
     renderSyncProgress({
       phase: "done",
       pulled: 0,
-      pushed: 0,
+      updated: 0,
       skipped: 0,
       errors: [error instanceof Error ? error.message : "Sync failed"],
       totalDiscogsItems: 0,
@@ -723,22 +619,9 @@ function wireStaticEvents(): void {
     flipCardsBack();
   });
 
-  query<HTMLButtonElement>("[data-toggle-search]").addEventListener("click", () => {
-    const section = query<HTMLElement>("[data-search-section]");
-    const button = query<HTMLButtonElement>("[data-toggle-search]");
-    section.hidden = !section.hidden;
-    button.textContent = section.hidden ? "+ Add an album" : "Close";
-  });
-
   query<HTMLButtonElement>("[data-sync-button]").addEventListener("click", handleSync);
-  query<HTMLFormElement>("[data-search-form]").addEventListener("submit", handleSearchSubmit);
-
-  document.querySelectorAll<HTMLButtonElement>("[data-search-method]").forEach((button) => {
-    button.addEventListener("click", () => setSearchMethod(button.dataset.searchMethod as SearchMethod));
-  });
 }
 
 wireStaticEvents();
-setSearchMethod("artistTitle");
 void checkSyncStatus();
 void loadRecords();

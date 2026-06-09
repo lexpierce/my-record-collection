@@ -105,6 +105,18 @@ describe("POST /api/records/update-from-discogs", () => {
     expect(mockGetRelease).toHaveBeenCalledWith(456);
   });
 
+  it("returns 400 for a non-numeric discogsId without calling getRelease", async () => {
+    const response = await POST({ request: makeRequest({ recordId: "uuid-1", discogsId: "abc" }) });
+    expect(response.status).toBe(400);
+    expect(mockGetRelease).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for a non-positive discogsId", async () => {
+    const response = await POST({ request: makeRequest({ recordId: "uuid-1", discogsId: "0" }) });
+    expect(response.status).toBe(400);
+    expect(mockGetRelease).not.toHaveBeenCalled();
+  });
+
   it("returns 500 when getRelease throws", async () => {
     mockGetRelease.mockRejectedValueOnce(new Error("API down"));
     const response = await POST({ request: makeRequest({ recordId: "uuid-1", discogsId: "123" }) });

@@ -1,20 +1,20 @@
 # API design patterns
 
-Conventions for all `app/api/*/route.ts` handlers.
+Conventions for all Astro endpoint handlers under `src/pages/api/` (and the `/am_i_evil` page).
 
 ## Route file layout
 
 ```text
-app/api/
-├── am_i_evil/route.ts                # GET health check
-├── records/
-│   ├── route.ts                      # GET (list) + POST (create)
-│   ├── [id]/route.ts                 # GET / PUT / DELETE single record
-│   ├── search/route.ts               # GET search Discogs
-│   ├── fetch-from-discogs/route.ts   # POST save Discogs release
-│   ├── update-from-discogs/route.ts  # POST refresh from Discogs
-│   ├── sync/route.ts                 # POST SSE sync stream
-│   └── sync/status/route.ts          # GET env var check
+src/pages/
+├── am_i_evil.astro                   # GET health check page
+└── api/
+    ├── records.ts                    # GET (list)
+    └── records/
+        ├── [id].ts                   # GET / DELETE single record
+        ├── image.ts                  # GET resize/convert artwork
+        ├── update-from-discogs.ts    # POST refresh one cached record
+        ├── sync.ts                   # POST SSE pull-only sync stream
+        └── sync/status.ts            # GET env var check
 ```
 
 ## Response shape

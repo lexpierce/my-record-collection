@@ -18,7 +18,7 @@ projects:
             region: oregon
             branch: main
             repo: https://github.com/lexpierce/my-record-collection
-            healthCheckPath: /am_i_evil
+            healthCheckPath: /api/health
             envVars:
               - key: NODE_ENV
                 value: production
@@ -34,6 +34,8 @@ projects:
                 value: Lexpierce
               - key: DISCOGS_USER_AGENT
                 value: MyRecordCollection/1.0
+              - key: APP_AUTH_TOKEN
+                generateValue: true
             buildFilter:
               ignoredPaths:
                 - docs/**

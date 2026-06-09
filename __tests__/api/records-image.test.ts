@@ -100,4 +100,17 @@ describe("GET /api/records/image", () => {
     expect(response.status).toBe(502);
     expect(MockBunImage.instances).toHaveLength(0);
   });
+
+  it("returns 500 when Bun.Image is unavailable (non-Bun runtime)", async () => {
+    delete testGlobal.Bun;
+
+    const response = await GET({
+      request: new Request("http://localhost/api/records/image?src=https%3A%2F%2Fi.discogs.com%2Fcover.jpg"),
+    });
+
+    expect(response.status).toBe(500);
+    const body = await response.json();
+    expect(body.error).toBe("Image processing unavailable");
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
 });

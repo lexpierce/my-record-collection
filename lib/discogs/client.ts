@@ -7,6 +7,8 @@
  * - Unauthenticated: 25 requests per minute
  */
 
+import { getDiscogsConfig } from "@/lib/env";
+
 /**
  * Interface for Discogs format information
  * Contains vinyl-specific details like size and color
@@ -71,20 +73,6 @@ interface DiscogsCollectionResponse {
 }
 
 /**
- * Interface for Discogs search result
- */
-interface DiscogsSearchResult {
-  id: number;
-  title: string;
-  year: string;
-  thumb: string;
-  resource_url: string;
-  type: string;
-  catno?: string;
-  barcode?: string[];
-}
-
-/**
  * Rate limiter class to prevent exceeding Discogs API limits
  * Uses a token bucket algorithm for smooth rate limiting
  */
@@ -117,8 +105,9 @@ class RateLimiter {
 }
 
 /**
- * Discogs API client class
- * Provides methods to search and fetch release information
+ * Discogs API client class (read-only)
+ * Provides methods to fetch release information and the user's collection.
+ * It never writes to the Discogs collection.
  */
 export class DiscogsClient {
   private readonly baseURL = "https://api.discogs.com";
@@ -139,19 +128,18 @@ export class DiscogsClient {
   }
 
   /**
-   * Makes an authenticated request to the Discogs API.
+   * Makes an authenticated GET request to the Discogs API.
    *
    * Retries up to 3 times on 429 (Too Many Requests) responses, using
    * exponential backoff seeded by the Retry-After header (default 1 s).
    * All other non-2xx responses throw immediately.
    *
+   * This client is read-only: it never writes to the Discogs collection.
+   *
    * @param endpoint - API endpoint to call
    * @returns Parsed JSON response
    */
-  async makeRequest<T>(
-    endpoint: string,
-    options?: { method?: string; body?: unknown },
-  ): Promise<T & { _status?: number }> {
+  async makeRequest<T>(endpoint: string): Promise<T> {
     await this.rateLimiter.waitForNextRequest();
 
     const headers: HeadersInit = {
@@ -163,16 +151,10 @@ export class DiscogsClient {
     }
 
     const fetchOptions: RequestInit & { next?: { revalidate: number } } = {
-      method: options?.method || "GET",
+      method: "GET",
       headers,
+      next: { revalidate: 3600 },
     };
-
-    if (options?.body) {
-      headers["Content-Type"] = "application/json";
-      fetchOptions.body = JSON.stringify(options.body);
-    } else if (fetchOptions.method === "GET") {
-      fetchOptions.next = { revalidate: 3600 };
-    }
 
     const maxRetries = 3;
     for (let attempt = 0; attempt < maxRetries; attempt++) {
@@ -201,60 +183,11 @@ export class DiscogsClient {
         throw err;
       }
 
-      // Some POST endpoints return 201 with empty body
-      const text = await response.text();
-      if (!text) return { _status: response.status } as T & { _status?: number };
-      return JSON.parse(text);
+      return JSON.parse(await response.text());
     }
 
     // Unreachable — loop always returns or throws, but TypeScript needs this
     throw new Error("makeRequest: unexpected exit from retry loop");
-  }
-
-  /**
-   * Searches for releases by catalog number (vinyl only)
-   * @param catalogNumber - The catalog number to search for
-   * @returns Array of matching vinyl releases
-   */
-  async searchByCatalogNumber(
-    catalogNumber: string
-  ): Promise<DiscogsSearchResult[]> {
-    const encodedCatalogNumber = encodeURIComponent(catalogNumber);
-    const response = await this.makeRequest<{ results: DiscogsSearchResult[] }>(
-      `/database/search?catno=${encodedCatalogNumber}&type=release&format=Vinyl`
-    );
-    return response.results;
-  }
-
-  /**
-   * Searches for releases by artist and title (vinyl only)
-   * @param artistName - The artist name
-   * @param albumTitle - The album title
-   * @returns Array of matching vinyl releases
-   */
-  async searchByArtistAndTitle(
-    artistName: string,
-    albumTitle: string
-  ): Promise<DiscogsSearchResult[]> {
-    const encodedArtist = encodeURIComponent(artistName);
-    const encodedTitle = encodeURIComponent(albumTitle);
-    const response = await this.makeRequest<{ results: DiscogsSearchResult[] }>(
-      `/database/search?artist=${encodedArtist}&title=${encodedTitle}&type=release&format=Vinyl`
-    );
-    return response.results;
-  }
-
-  /**
-   * Searches for releases by UPC/barcode (vinyl only)
-   * @param upcCode - The UPC/barcode to search for
-   * @returns Array of matching vinyl releases
-   */
-  async searchByUPC(upcCode: string): Promise<DiscogsSearchResult[]> {
-    const encodedUPC = encodeURIComponent(upcCode);
-    const response = await this.makeRequest<{ results: DiscogsSearchResult[] }>(
-      `/database/search?barcode=${encodedUPC}&type=release&format=Vinyl`
-    );
-    return response.results;
   }
 
   /**
@@ -340,17 +273,6 @@ export class DiscogsClient {
     );
   }
 
-  /**
-   * Adds a release to the user's Discogs collection (folder 1 = uncategorized)
-   * Returns 201 on success, throws 409 if already in collection
-   */
-  async addToCollection(username: string, releaseId: number): Promise<void> {
-    await this.makeRequest(
-      `/users/${encodeURIComponent(username)}/collection/folders/1/releases/${releaseId}`,
-      { method: "POST" },
-    );
-  }
-
 }
 
 /**
@@ -362,8 +284,6 @@ export class DiscogsClient {
  *   DISCOGS_TOKEN      — personal access token; omit for unauthenticated (25 req/min) access
  */
 export function createDiscogsClient(): DiscogsClient {
-  const userAgent = process.env.DISCOGS_USER_AGENT || "MyRecordCollection/1.0";
-  const token = process.env.DISCOGS_TOKEN;
-
+  const { userAgent, token } = getDiscogsConfig();
   return new DiscogsClient(userAgent, token);
 }

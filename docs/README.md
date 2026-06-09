@@ -20,8 +20,7 @@ docs/
 ├── components/
 │   ├── README.md               # Component index
 │   ├── record-card.md
-│   ├── record-shelf.md
-│   └── search-bar.md
+│   └── record-shelf.md
 ├── development/
 │   ├── README.md               # Tech stack, commands, design decisions
 │   ├── coding-standards.md     # Code rules (TS, Go, CSS, testing)
@@ -29,7 +28,7 @@ docs/
 │   └── api-design-patterns.md  # Route handler conventions
 ├── features/
 │   ├── README.md               # Feature index
-│   ├── discogs-integration.md  # Search/fetch/sync workflows
+│   ├── discogs-integration.md  # Read-only Discogs sync/refresh workflows
 │   ├── flip-card-animation.md  # CSS 3D flip card rules
 │   └── vinyl-metadata.md       # Vinyl format extraction logic
 ├── deployment/
