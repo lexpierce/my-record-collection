@@ -25,6 +25,19 @@ Before removing any import, field, variable, or function: search references in `
 
 Use `rg` instead of `grep`. Use `fd` instead of `find`.
 
+### Static analysis with fallow
+
+`bun run fallow` runs dead-code, duplication, and complexity analysis. Not a style linter — does not check formatting, unused vars, or `any` usage; `bun run lint` (ESLint) still owns that.
+
+| Task | Command |
+|------|---------|
+| Dead code (unused exports/files/deps) | `bun run fallow -- dead-code --format json --quiet` |
+| Duplicate code blocks | `bun run fallow -- dupes --format json --quiet` |
+| Complexity/CRAP hotspots | `bun run fallow -- health --format json --quiet --complexity` |
+| Verify an export is unused before deleting | `bun run fallow -- dead-code --trace <file>:<export>` |
+
+CRAP score (`CC² × (1 - coverage)³ + CC`) is inflated by low test coverage, not just high complexity — a simple function can exceed threshold at 0% coverage. Add tests before refactoring a flagged function; re-run with `--coverage coverage/coverage-final.json` (after `bun run test:coverage`) to see the corrected score.
+
 ## TypeScript
 
 See [TypeScript configuration](./typescript.md).

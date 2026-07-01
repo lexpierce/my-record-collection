@@ -37,6 +37,7 @@ bun run build         # Astro production build forced through Bun runtime
 bun run start         # Start Astro server with Bun on 0.0.0.0 from dist/server/entry.mjs
 bun run lint          # ESLint scoped to TS files
 bun run lint:md       # rumdl
+bun run fallow        # Dead-code/duplication/complexity analysis (see coding-standards.md)
 bun run type-check    # astro check + tsc --noEmit
 bun run test          # Vitest
 bun run test:watch    # Vitest watch mode

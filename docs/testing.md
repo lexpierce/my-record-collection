@@ -79,6 +79,22 @@ await DELETE({
 | Discogs | Mock `createDiscogsClient()` methods |
 | `drizzle-orm` operators | Return inspectable plain objects |
 | fetch | Use URL-routing `mockImplementation`, not `mockReturnValueOnce` stacks |
+| `window.prompt` | jsdom does not implement it; stub with `vi.spyOn(window, "prompt").mockReturnValue(...)` or it logs `Not implemented` and returns `undefined` |
+
+## jsdom environment
+
+`fetch`, `Headers`, `Response`, and `ReadableStream` are native globals in the `jsdom` test environment — no polyfill needed. `vitest.setup.ts` only polyfills `Map.prototype.getOrInsert(Computed)` (not yet in Node's V8, but used at runtime under Bun).
+
+## Testing modules with top-level side effects
+
+`src/scripts/record-app.ts` has no exports and runs init code (event wiring, initial fetch) at module scope on import. To test it:
+
+1. Build the same `data-*` markup as the consuming `.astro` page before each test.
+2. Mock `fetch` with a path-based router (`GET /api/records`, etc.), not per-call stacks.
+3. `vi.resetModules()` then dynamically `import()` the module fresh per test so its top-level init runs against the new DOM/mock state.
+4. `await vi.waitFor(() => expect(...))` to await the fire-and-forget async init before asserting — the module's top-level calls are not awaited by the test.
+
+See `__tests__/scripts/record-app.test.ts` for the full pattern, including SSE-stream mocking via a `ReadableStream` that enqueues `TextEncoder`-encoded `data: ...\n\n` chunks.
 
 ## Rules
 

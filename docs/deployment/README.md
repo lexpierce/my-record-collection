@@ -38,7 +38,7 @@ Skips rebuild on changes to `docs/**`, `*.md`, and `tui/**`.
 
 ## Health check
 
-`/am_i_evil` — static Astro page, configured in `render.yaml`. See [health-check.md](../api/endpoints/health-check.md).
+`/api/health` — DB-aware readiness probe, configured in `render.yaml` (`healthCheckPath`). See [health-check.md](../api/endpoints/health-check.md).
 
 ## Pre-deploy warning
 
