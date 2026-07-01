@@ -1,3 +1,4 @@
+// fallow-ignore-file duplicate-export -- artistSortKey here is an intentional lowercase wrapper around lib/pagination/buckets.ts's artistSortKey, not a true duplicate
 import { artistSortKey as normalizeArtistSortKey } from "@/lib/pagination/buckets";
 
 export const CARD_SCALE = 1.5;

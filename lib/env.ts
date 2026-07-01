@@ -11,7 +11,7 @@
 const DEFAULT_USER_AGENT = "MyRecordCollection/1.0";
 
 /** Environment variables required for Discogs collection sync. */
-export const SYNC_REQUIRED_ENV = ["DISCOGS_USERNAME", "DISCOGS_TOKEN"] as const;
+const SYNC_REQUIRED_ENV = ["DISCOGS_USERNAME", "DISCOGS_TOKEN"] as const;
 
 /**
  * Returns the validated Postgres connection string.
@@ -69,17 +69,5 @@ export function getDiscogsUsername(): string {
 /** Lists which sync-required env vars are currently unset. */
 export function missingSyncEnv(): string[] {
   return SYNC_REQUIRED_ENV.filter((name) => !process.env[name]);
-}
-
-/**
- * Returns the shared secret required for all state-changing API calls.
- * @throws if APP_AUTH_TOKEN is not set (fail closed — never allow unauthenticated writes).
- */
-export function getAuthToken(): string {
-  const token = process.env.APP_AUTH_TOKEN;
-  if (!token) {
-    throw new Error("APP_AUTH_TOKEN environment variable is required");
-  }
-  return token;
 }
 

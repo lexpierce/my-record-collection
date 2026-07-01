@@ -5,7 +5,7 @@
  */
 
 /** Paths exempt from security headers (e.g. the standalone health-check page). */
-export const HEADER_EXEMPT_PATHS = new Set<string>(["/am_i_evil"]);
+const HEADER_EXEMPT_PATHS = new Set<string>(["/am_i_evil"]);
 
 export const SECURITY_HEADERS: Record<string, string> = {
   "X-Content-Type-Options": "nosniff",

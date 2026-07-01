@@ -15,6 +15,7 @@ import { getDatabase, schema } from "@/lib/db/client";
 import {
   createDiscogsClient,
   type DiscogsCollectionBasicInfo,
+  type DiscogsCollectionRelease,
 } from "@/lib/discogs/client";
 import { getDiscogsUsername } from "@/lib/env";
 import type { NewRecord } from "@/lib/db/schema";
@@ -59,6 +60,51 @@ function collectionReleaseToRecord(
   };
 }
 
+/** Returns the set of discogsId values already cached in the local DB. */
+async function loadExistingDiscogsIds(): Promise<Set<string>> {
+  const existingRecords = await getDatabase()
+    .select({ discogsId: schema.recordsTable.discogsId })
+    .from(schema.recordsTable);
+  return new Set(existingRecords.map((r) => r.discogsId).filter((id): id is string => Boolean(id)));
+}
+
+/**
+ * Inserts a new release or refreshes an existing one's cached metadata.
+ * Mutates `progress` and `existingIds` in place; unique/duplicate errors are
+ * counted as skips rather than surfaced, since they indicate a harmless
+ * race with a concurrent sync rather than a real failure.
+ */
+async function upsertRelease(
+  release: DiscogsCollectionRelease,
+  client: ReturnType<typeof createDiscogsClient>,
+  existingIds: Set<string>,
+  progress: SyncProgress,
+): Promise<void> {
+  const discogsId = release.basic_information.id.toString();
+  const record = collectionReleaseToRecord(release.basic_information, client);
+
+  try {
+    if (existingIds.has(discogsId)) {
+      await getDatabase()
+        .update(schema.recordsTable)
+        .set({ ...record, updatedAt: new Date() })
+        .where(eq(schema.recordsTable.discogsId, discogsId));
+      progress.updated++;
+    } else {
+      await getDatabase().insert(schema.recordsTable).values(record);
+      progress.pulled++;
+      existingIds.add(discogsId);
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("unique") || msg.includes("duplicate")) {
+      progress.skipped++;
+    } else {
+      progress.errors.push(`Pull ${discogsId}: ${msg}`);
+    }
+  }
+}
+
 /**
  * Pulls the Discogs collection into the local DB cache.
  * Inserts releases that are new locally and refreshes ones that already exist.
@@ -81,13 +127,7 @@ export async function executeSync(
 
   onProgress({ ...progress });
 
-  // Build a Set of existing discogsIds for fast lookup
-  const existingRecords = await getDatabase()
-    .select({ discogsId: schema.recordsTable.discogsId })
-    .from(schema.recordsTable);
-  const existingIds = new Set(
-    existingRecords.map((r) => r.discogsId).filter(Boolean),
-  );
+  const existingIds = await loadExistingDiscogsIds();
 
   // Paginate through the Discogs collection (Discogs → local cache)
   let page = 1;
@@ -99,30 +139,7 @@ export async function executeSync(
     progress.totalDiscogsItems = response.pagination.items;
 
     for (const release of response.releases) {
-      const discogsId = release.basic_information.id.toString();
-      const record = collectionReleaseToRecord(release.basic_information, client);
-
-      try {
-        if (existingIds.has(discogsId)) {
-          // Refresh cached metadata for an already-imported release.
-          await getDatabase()
-            .update(schema.recordsTable)
-            .set({ ...record, updatedAt: new Date() })
-            .where(eq(schema.recordsTable.discogsId, discogsId));
-          progress.updated++;
-        } else {
-          await getDatabase().insert(schema.recordsTable).values(record);
-          progress.pulled++;
-          existingIds.add(discogsId);
-        }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        if (msg.includes("unique") || msg.includes("duplicate")) {
-          progress.skipped++;
-        } else {
-          progress.errors.push(`Pull ${discogsId}: ${msg}`);
-        }
-      }
+      await upsertRelease(release, client, existingIds, progress);
     }
 
     onProgress({ ...progress });

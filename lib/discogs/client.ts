@@ -56,7 +56,7 @@ export interface DiscogsCollectionBasicInfo {
   resource_url: string;
 }
 
-interface DiscogsCollectionRelease {
+export interface DiscogsCollectionRelease {
   id: number; // instance_id
   rating: number;
   basic_information: DiscogsCollectionBasicInfo;
@@ -190,16 +190,24 @@ export class DiscogsClient {
     throw new Error("makeRequest: unexpected exit from retry loop");
   }
 
+  /** Finds the Vinyl format entry with non-empty descriptions, if any. */
+  private findVinylFormatWithDescriptions(
+    formats?: DiscogsFormat[],
+  ): (DiscogsFormat & { descriptions: string[] }) | null {
+    if (!formats) return null;
+    const vinylFormat = formats.find(f => f.name === "Vinyl");
+    if (!vinylFormat?.descriptions) return null;
+    return vinylFormat as DiscogsFormat & { descriptions: string[] };
+  }
+
   /**
    * Extracts record size from format descriptions
    * @param formats - Array of format objects from Discogs
    * @returns Record size (e.g., "12\"", "7\"") or null
    */
   extractRecordSize(formats?: DiscogsFormat[]): string | null {
-    if (!formats) return null;
-
-    const vinylFormat = formats.find(f => f.name === "Vinyl");
-    if (!vinylFormat?.descriptions) return null;
+    const vinylFormat = this.findVinylFormatWithDescriptions(formats);
+    if (!vinylFormat) return null;
 
     // Look for size indicators in descriptions
     const sizeMatch = vinylFormat.descriptions.find(d =>
@@ -215,10 +223,8 @@ export class DiscogsClient {
    * @returns Vinyl color description or null
    */
   extractVinylColor(formats?: DiscogsFormat[]): string | null {
-    if (!formats) return null;
-
-    const vinylFormat = formats.find(f => f.name === "Vinyl");
-    if (!vinylFormat?.descriptions) return null;
+    const vinylFormat = this.findVinylFormatWithDescriptions(formats);
+    if (!vinylFormat) return null;
 
     // Common color-related keywords
     const colorKeywords = ['Vinyl', 'Colored', 'Clear', 'Transparent', 'Marble', 'Splatter',
@@ -238,10 +244,8 @@ export class DiscogsClient {
    * @returns true if shaped/picture disc, false otherwise
    */
   isShapedVinyl(formats?: DiscogsFormat[]): boolean {
-    if (!formats) return false;
-
-    const vinylFormat = formats.find(f => f.name === "Vinyl");
-    if (!vinylFormat?.descriptions) return false;
+    const vinylFormat = this.findVinylFormatWithDescriptions(formats);
+    if (!vinylFormat) return false;
 
     // Keywords indicating shaped/picture discs
     const shapedKeywords = ['Picture Disc', 'Shaped', 'Shape', 'Picture'];

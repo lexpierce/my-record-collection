@@ -74,6 +74,139 @@ interface RawPage {
   recordIds: string[];
 }
 
+/** Sort keys in order A–Z then "#" last. */
+function compareLetters(a: string, b: string): number {
+  if (a === "#") return 1;
+  if (b === "#") return -1;
+  return a.localeCompare(b);
+}
+
+/**
+ * Split an oversized letter group into 2-char-labelled sub-buckets by second
+ * character, each capped at `maxSize`.
+ */
+function splitOversizedGroup(
+  letter: string,
+  group: { recordId: string; artistName: string }[],
+  maxSize: number,
+): RawPage[] {
+  const bySecond = new Map<string, string[]>();
+  for (const record of group) {
+    bySecond.getOrInsertComputed(secondChar(record.artistName), () => []).push(record.recordId);
+  }
+
+  const chars = [...bySecond.keys()].sort();
+  const pages: RawPage[] = [];
+  let subIds: string[] = [];
+  let startChar = chars[0];
+
+  const flushSubPage = (endChar: string) => {
+    const label =
+      startChar === endChar
+        ? `${letter}${startChar}`
+        : `${letter}${startChar}\u2013${letter}${endChar}`;
+    pages.push({ firstLetter: letter, isSplit: true, baseLabel: label, recordIds: subIds });
+  };
+
+  for (let i = 0; i < chars.length; i++) {
+    const ch2 = chars[i];
+    const ids = bySecond.get(ch2)!;
+
+    if (subIds.length > 0 && subIds.length + ids.length > maxSize) {
+      flushSubPage(chars[i - 1]);
+      subIds = [];
+      startChar = ch2;
+    }
+
+    subIds.push(...ids);
+    if (i === chars.length - 1) flushSubPage(ch2);
+  }
+
+  return pages;
+}
+
+/** Pass 1: group records by first letter, splitting oversized letters. */
+function buildRawPages(
+  records: { recordId: string; artistName: string }[],
+  maxSize: number,
+): RawPage[] {
+  const byFirst = Map.groupBy(records, (record) => firstChar(record.artistName));
+  const letters = [...byFirst.keys()].sort(compareLetters);
+  const rawPages: RawPage[] = [];
+
+  for (const letter of letters) {
+    const group = byFirst.get(letter)!;
+
+    if (letter === "#" || group.length <= maxSize) {
+      rawPages.push({
+        firstLetter: letter,
+        isSplit: false,
+        baseLabel: letter,
+        recordIds: group.map((r) => r.recordId),
+      });
+      continue;
+    }
+
+    rawPages.push(...splitOversizedGroup(letter, group, maxSize));
+  }
+
+  return rawPages;
+}
+
+/**
+ * Pass 2: merge adjacent non-split, non-# pages.
+ *
+ * Merges greedily: accumulates pages until the next one would push us over
+ * maxSize, then flushes. Never merges across:
+ *   - the "#" bucket
+ *   - sub-buckets that came from a split letter (they already have 2-char labels)
+ *   - a split-letter group with its neighbours from other letters
+ */
+function mergeRawPages(rawPages: RawPage[], maxSize: number): AlphaBucket[] {
+  const buckets: AlphaBucket[] = [];
+  const hashPage = rawPages.find((p) => p.firstLetter === "#");
+  const letterPages = rawPages.filter((p) => p.firstLetter !== "#");
+
+  let mergeIds: string[] = [];
+  let mergeStart: RawPage | null = null;
+  let mergeLast: RawPage | null = null;
+
+  const flushMerge = () => {
+    if (mergeIds.length === 0) return;
+    const startLetter = mergeStart!.baseLabel;
+    const endLetter = mergeLast!.baseLabel;
+    const label = startLetter === endLetter ? startLetter : `${startLetter}\u2013${endLetter}`;
+    buckets.push({ label, recordIds: mergeIds });
+    mergeIds = [];
+    mergeStart = null;
+    mergeLast = null;
+  };
+
+  for (const page of letterPages) {
+    if (page.isSplit) {
+      flushMerge();
+      buckets.push({ label: page.baseLabel, recordIds: page.recordIds });
+      continue;
+    }
+
+    if (mergeIds.length + page.recordIds.length > maxSize && mergeIds.length > 0) {
+      flushMerge();
+    }
+
+    mergeIds.push(...page.recordIds);
+    if (mergeStart === null) mergeStart = page;
+    mergeLast = page;
+  }
+
+  flushMerge();
+
+  if (hashPage) {
+    buckets.push({ label: "#", recordIds: hashPage.recordIds });
+  }
+
+  return buckets;
+}
+
 /**
  * Compute alphabetical buckets from a pre-sorted list of records.
  *
@@ -90,130 +223,6 @@ export function computeBuckets(
   maxSize: number = MAX_BUCKET_SIZE,
 ): AlphaBucket[] {
   if (records.length === 0) return [];
-
-  // ── Pass 0: group by first character ──────────────────────────────────────
-  const byFirst = Map.groupBy(records, (record) => firstChar(record.artistName));
-
-  // Letters in order A–Z then "#"
-  const letters = [...byFirst.keys()].sort((a, b) => {
-    if (a === "#") return 1;
-    if (b === "#") return -1;
-    return a.localeCompare(b);
-  });
-
-  // ── Pass 1: build raw pages, splitting oversized letters ──────────────────
-  const rawPages: RawPage[] = [];
-
-  for (const letter of letters) {
-    const group = byFirst.get(letter)!;
-
-    if (letter === "#" || group.length <= maxSize) {
-      rawPages.push({
-        firstLetter: letter,
-        isSplit: false,
-        baseLabel: letter,
-        recordIds: group.map((r) => r.recordId),
-      });
-      continue;
-    }
-
-    // Split by second character
-    const bySecond = new Map<string, string[]>();
-    for (const record of group) {
-      bySecond.getOrInsertComputed(secondChar(record.artistName), () => []).push(record.recordId);
-    }
-
-    const chars = [...bySecond.keys()].sort();
-    let subIds: string[] = [];
-    let startChar = chars[0];
-
-    for (let i = 0; i < chars.length; i++) {
-      const ch2 = chars[i];
-      const ids = bySecond.get(ch2)!;
-
-      if (subIds.length > 0 && subIds.length + ids.length > maxSize) {
-        const endChar = chars[i - 1];
-        const label =
-          startChar === endChar
-            ? `${letter}${startChar}`
-            : `${letter}${startChar}\u2013${letter}${endChar}`;
-        rawPages.push({ firstLetter: letter, isSplit: true, baseLabel: label, recordIds: subIds });
-        subIds = [];
-        startChar = ch2;
-      }
-
-      subIds.push(...ids);
-
-      if (i === chars.length - 1) {
-        const label =
-          startChar === ch2
-            ? `${letter}${startChar}`
-            : `${letter}${startChar}\u2013${letter}${ch2}`;
-        rawPages.push({ firstLetter: letter, isSplit: true, baseLabel: label, recordIds: subIds });
-      }
-    }
-  }
-
-  // ── Pass 2: merge adjacent non-split, non-# pages ─────────────────────────
-  // We merge greedily: accumulate pages until the next one would push us over
-  // maxSize, then flush. We never merge across:
-  //   - the "#" bucket
-  //   - sub-buckets that came from a split letter (they already have 2-char labels)
-  //   - a split-letter group with its neighbours from other letters
-
-  const buckets: AlphaBucket[] = [];
-
-  // Separate # from the rest
-  const hashPage = rawPages.find((p) => p.firstLetter === "#");
-  const letterPages = rawPages.filter((p) => p.firstLetter !== "#");
-
-  // Group letter pages by whether they are part of a split letter.
-  // A run of pages all from the same split letter stays together but is never
-  // merged with pages from a different letter. Non-split pages from different
-  // letters CAN be merged.
-  //
-  // Strategy: treat each "split-letter group" as an atomic block that is
-  // flushed as-is, and only merge across consecutive non-split pages.
-
-  let mergeIds: string[] = [];
-  let mergeStart: RawPage | null = null;
-  let mergeLast: RawPage | null = null;
-
-  function flushMerge() {
-    if (mergeIds.length === 0) return;
-    const startLetter = mergeStart!.baseLabel;
-    const endLetter = mergeLast!.baseLabel;
-    const label = startLetter === endLetter ? startLetter : `${startLetter}\u2013${endLetter}`;
-    buckets.push({ label, recordIds: mergeIds });
-    mergeIds = [];
-    mergeStart = null;
-    mergeLast = null;
-  }
-
-  for (const page of letterPages) {
-    if (page.isSplit) {
-      // Flush any pending merge first, then emit split sub-buckets as-is
-      flushMerge();
-      buckets.push({ label: page.baseLabel, recordIds: page.recordIds });
-      continue;
-    }
-
-    // Non-split page — try to merge
-    if (mergeIds.length + page.recordIds.length > maxSize && mergeIds.length > 0) {
-      flushMerge();
-    }
-
-    mergeIds.push(...page.recordIds);
-    if (mergeStart === null) mergeStart = page;
-    mergeLast = page;
-  }
-
-  flushMerge();
-
-  // Always append # last
-  if (hashPage) {
-    buckets.push({ label: "#", recordIds: hashPage.recordIds });
-  }
-
-  return buckets;
+  const rawPages = buildRawPages(records, maxSize);
+  return mergeRawPages(rawPages, maxSize);
 }

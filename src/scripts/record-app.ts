@@ -54,12 +54,18 @@ function setHtml(selector: string, value: string): void {
   query<HTMLElement>(selector).innerHTML = value;
 }
 
+function stringField(data: unknown, field: string): string | null {
+  if (!data || typeof data !== "object" || !(field in data)) return null;
+  const value = (data as Record<string, unknown>)[field];
+  return typeof value === "string" ? value : null;
+}
+
 async function readResponseError(response: Response): Promise<string> {
   const contentType = response.headers.get("Content-Type") || "";
   if (contentType.includes("application/json")) {
     const data: unknown = await response.json();
-    if (data && typeof data === "object" && "message" in data && typeof data.message === "string") return data.message;
-    if (data && typeof data === "object" && "error" in data && typeof data.error === "string") return data.error;
+    const message = stringField(data, "message") ?? stringField(data, "error");
+    if (message) return message;
   }
 
   const text = await response.text();
@@ -147,18 +153,24 @@ function visibleRecords(): BrowserRecord[] {
   return sorted.filter((record) => recordIds.has(record.recordId));
 }
 
-function renderShelf(): void {
-  const shelfRoot = query<HTMLElement>("[data-shelf-root]");
+function renderEmptyShelf(): string {
+  return `
+    <div class="stateCenter">
+      <p class="emptyText">Your collection is empty. Click <strong>&ldquo;Sync Collection&rdquo;</strong> to pull your records from Discogs.</p>
+    </div>
+  `;
+}
 
-  if (state.records.length === 0) {
-    shelfRoot.innerHTML = `
-      <div class="stateCenter">
-        <p class="emptyText">Your collection is empty. Click <strong>&ldquo;Sync Collection&rdquo;</strong> to pull your records from Discogs.</p>
-      </div>
-    `;
-    return;
-  }
+function recordCountLabel(count: number): string {
+  return `${count} ${count === 1 ? "record" : "records"}`;
+}
 
+function renderFilterResultCount(activeFilterCount: number, displayedCount: number, totalCount: number): string {
+  if (activeFilterCount === 0 && state.activeBucket === null) return "";
+  return `<span class="filterResultCount">${displayedCount} of ${totalCount} shown</span>`;
+}
+
+function renderShelfContent(): string {
   const sortedForBuckets = sortRecords(filterRecords(state.records, state.sizeFilter, state.shapedOnly), state.sortBy, state.sortAsc);
   const alphaBuckets = state.sortBy === "artist" ? computeBuckets(sortedForBuckets, state.pageSize) : [];
   const displayedRecords = visibleRecords();
@@ -166,14 +178,14 @@ function renderShelf(): void {
   state.currentPage = safePage;
   const activeFilterCount = (state.sizeFilter.size > 0 ? 1 : 0) + (state.shapedOnly ? 1 : 0);
 
-  shelfRoot.innerHTML = `
+  return `
     <div>
       <div class="controls">
-        <h2 class="recordCount">${state.records.length} ${state.records.length === 1 ? "record" : "records"}</h2>
+        <h2 class="recordCount">${recordCountLabel(state.records.length)}</h2>
         ${renderSortSelect()}
         <button type="button" class="sortDirBtn" data-sort-direction aria-label="${state.sortAsc ? "Sort ascending" : "Sort descending"}">${state.sortAsc ? "▲" : "▼"}</button>
         ${renderFilterControls(activeFilterCount)}
-        ${(activeFilterCount > 0 || state.activeBucket !== null) ? `<span class="filterResultCount">${displayedRecords.length} of ${state.records.length} shown</span>` : ""}
+        ${renderFilterResultCount(activeFilterCount, displayedRecords.length, state.records.length)}
         ${renderPageSizeSelect()}
       </div>
       ${state.sortBy === "artist" && alphaBuckets.length > 0 ? renderAlphaNav(alphaBuckets) : ""}
@@ -183,7 +195,17 @@ function renderShelf(): void {
       ${totalPages > 1 ? renderPagination(totalPages, safePage) : ""}
     </div>
   `;
+}
 
+function renderShelf(): void {
+  const shelfRoot = query<HTMLElement>("[data-shelf-root]");
+
+  if (state.records.length === 0) {
+    shelfRoot.innerHTML = renderEmptyShelf();
+    return;
+  }
+
+  shelfRoot.innerHTML = renderShelfContent();
   wireShelfEvents();
 }
 
@@ -205,33 +227,48 @@ function renderPageSizeSelect(): string {
   `;
 }
 
-function renderFilterControls(activeFilterCount: number): string {
+function renderFilterToggleButton(activeFilterCount: number): string {
+  return `
+    <button type="button" class="filterBtn${activeFilterCount > 0 ? " active" : ""}" data-filter-toggle aria-label="Filter records" aria-expanded="${state.showFilters}">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+      </svg>
+      ${activeFilterCount > 0 ? `<span class="filterBadge">${activeFilterCount}</span>` : ""}
+    </button>
+  `;
+}
+
+function renderSizeCheckboxes(sizes: string[]): string {
+  return sizes.map((size) => `
+    <label class="filterCheckLabel">
+      <input type="checkbox" data-size-filter="${escapeHtml(size)}" ${state.sizeFilter.has(size) ? "checked" : ""} />
+      ${escapeHtml(size)}
+    </label>
+  `).join("");
+}
+
+function renderFilterDropdown(activeFilterCount: number): string {
+  if (!state.showFilters) return "";
   const sizes = uniqueEffectiveSizes(state.records);
   return `
+    <div class="filterDropdown" role="group" aria-label="Filters">
+      <div class="filterGroupLabel">Size</div>
+      ${renderSizeCheckboxes(sizes)}
+      <div class="filterDivider"></div>
+      <label class="filterCheckLabel">
+        <input type="checkbox" data-shaped-filter ${state.shapedOnly ? "checked" : ""} />
+        Picture disc / Shaped only
+      </label>
+      ${activeFilterCount > 0 ? `<button type="button" class="filterClearBtn" data-clear-filters>Clear filters</button>` : ""}
+    </div>
+  `;
+}
+
+function renderFilterControls(activeFilterCount: number): string {
+  return `
     <div class="filterWrapper">
-      <button type="button" class="filterBtn${activeFilterCount > 0 ? " active" : ""}" data-filter-toggle aria-label="Filter records" aria-expanded="${state.showFilters}">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-        </svg>
-        ${activeFilterCount > 0 ? `<span class="filterBadge">${activeFilterCount}</span>` : ""}
-      </button>
-      ${state.showFilters ? `
-        <div class="filterDropdown" role="group" aria-label="Filters">
-          <div class="filterGroupLabel">Size</div>
-          ${sizes.map((size) => `
-            <label class="filterCheckLabel">
-              <input type="checkbox" data-size-filter="${escapeHtml(size)}" ${state.sizeFilter.has(size) ? "checked" : ""} />
-              ${escapeHtml(size)}
-            </label>
-          `).join("")}
-          <div class="filterDivider"></div>
-          <label class="filterCheckLabel">
-            <input type="checkbox" data-shaped-filter ${state.shapedOnly ? "checked" : ""} />
-            Picture disc / Shaped only
-          </label>
-          ${activeFilterCount > 0 ? `<button type="button" class="filterClearBtn" data-clear-filters>Clear filters</button>` : ""}
-        </div>
-      ` : ""}
+      ${renderFilterToggleButton(activeFilterCount)}
+      ${renderFilterDropdown(activeFilterCount)}
     </div>
   `;
 }
@@ -269,8 +306,13 @@ function renderImage(record: BrowserRecord, sizeClass: string, width: number, he
   return `<img src="${escapeHtml(processedImageUrl)}" alt="${escapeHtml(`${record.albumTitle} by ${record.artistName}`)}" width="${width}" height="${height}" class="${sizeClass}" />`;
 }
 
+function isEmptyMetaValue(value: unknown): boolean {
+  if (value === null || value === undefined || value === "") return true;
+  return Array.isArray(value) && value.length === 0;
+}
+
 function renderMetaRow(label: string, value: unknown, className = "metaValue"): string {
-  if (value === null || value === undefined || value === "" || (Array.isArray(value) && value.length === 0)) return "";
+  if (isEmptyMetaValue(value)) return "";
   const displayValue = Array.isArray(value) ? value.join(", ") : value;
   return `
     <div class="metaRow">
@@ -531,34 +573,64 @@ async function deleteRecord(record: BrowserRecord, card: HTMLElement): Promise<v
   }
 }
 
-function renderSyncProgress(progress: SyncProgress): void {
+function updateSyncBar(progress: SyncProgress): void {
   const bar = query<HTMLElement>("[data-sync-bar]");
+  if (progress.phase === "done") {
+    show(bar, false);
+    return;
+  }
+
+  show(bar, true);
   const track = query<HTMLElement>("[data-sync-progress-track]");
   const fill = query<HTMLElement>("[data-sync-progress-fill]");
   const status = query<HTMLElement>("[data-sync-status]");
+  const totalProcessed = progress.pulled + progress.updated + progress.skipped;
 
-  if (progress.phase === "done") {
-    show(bar, false);
-  } else {
-    show(bar, true);
-    status.innerHTML = `
-      <span class="syncPhase">Pulling from Discogs...</span>
-      <span>Imported: ${progress.pulled}</span>
-      <span>Updated: ${progress.updated}</span>
-      <span>Skipped: ${progress.skipped}</span>
-      ${progress.totalDiscogsItems > 0 ? `<span>(${progress.pulled + progress.updated + progress.skipped} / ${progress.totalDiscogsItems})</span>` : ""}
-    `;
-    show(track, progress.totalDiscogsItems > 0);
-    if (progress.totalDiscogsItems > 0) {
-      fill.style.width = `${Math.round(((progress.pulled + progress.updated + progress.skipped) / progress.totalDiscogsItems) * 100)}%`;
-    }
+  status.innerHTML = `
+    <span class="syncPhase">Pulling from Discogs...</span>
+    <span>Imported: ${progress.pulled}</span>
+    <span>Updated: ${progress.updated}</span>
+    <span>Skipped: ${progress.skipped}</span>
+    ${progress.totalDiscogsItems > 0 ? `<span>(${totalProcessed} / ${progress.totalDiscogsItems})</span>` : ""}
+  `;
+  show(track, progress.totalDiscogsItems > 0);
+  if (progress.totalDiscogsItems > 0) {
+    fill.style.width = `${Math.round((totalProcessed / progress.totalDiscogsItems) * 100)}%`;
+  }
+}
+
+function updateSyncErrors(progress: SyncProgress): void {
+  if (progress.errors.length === 0) return;
+  const errors = progress.errors.slice(0, 5).map((error) => `<div>${escapeHtml(error)}</div>`).join("");
+  const remainder = progress.errors.length > 5 ? `<div>...and ${progress.errors.length - 5} more errors</div>` : "";
+  setHtml("[data-sync-errors-content]", errors + remainder);
+  show(query<HTMLElement>("[data-sync-errors]"), true);
+}
+
+function renderSyncProgress(progress: SyncProgress): void {
+  updateSyncBar(progress);
+  updateSyncErrors(progress);
+}
+
+async function consumeSyncStream(response: Response): Promise<void> {
+  if (!response.body) throw new Error("No response stream");
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const parsed = parseSseChunk(buffer);
+    buffer = parsed.remainder;
+    for (const event of parsed.events) renderSyncProgress(event as SyncProgress);
   }
 
-  if (progress.errors.length > 0) {
-    const errors = progress.errors.slice(0, 5).map((error) => `<div>${escapeHtml(error)}</div>`).join("");
-    const remainder = progress.errors.length > 5 ? `<div>...and ${progress.errors.length - 5} more errors</div>` : "";
-    setHtml("[data-sync-errors-content]", errors + remainder);
-    show(query<HTMLElement>("[data-sync-errors]"), true);
+  if (buffer.trim()) {
+    const parsed = parseSseRemainder(buffer);
+    if (parsed) renderSyncProgress(parsed as SyncProgress);
   }
 }
 
@@ -578,25 +650,8 @@ async function handleSync(): Promise<void> {
     if (!response.ok) {
       throw new Error(await readResponseError(response));
     }
-    if (!response.body) throw new Error("No response stream");
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const parsed = parseSseChunk(buffer);
-      buffer = parsed.remainder;
-      for (const event of parsed.events) renderSyncProgress(event as SyncProgress);
-    }
-
-    if (buffer.trim()) {
-      const parsed = parseSseRemainder(buffer);
-      if (parsed) renderSyncProgress(parsed as SyncProgress);
-    }
+    await consumeSyncStream(response);
     await loadRecords();
   } catch (error) {
     renderSyncProgress({
